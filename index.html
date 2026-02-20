@@ -70,12 +70,6 @@ a{color:var(--accent2);text-decoration:none}
 .data-table tr:last-child td{border-bottom:none}
 .data-table tr:hover td{background:var(--bg3)}
 
-/* Allocation bar */
-.alloc-bar{display:flex;height:32px;border-radius:8px;overflow:hidden;margin:12px 0}
-.alloc-segment{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;transition:width .5s}
-.alloc-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px}
-.alloc-legend-item{display:flex;align-items:center;gap:6px;font-size:13px}
-.alloc-legend-item .dot{width:10px;height:10px;border-radius:3px}
 
 /* Tabs */
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
@@ -219,22 +213,6 @@ a{color:var(--accent2);text-decoration:none}
       </div>
     </div>
 
-    <!-- Allocation -->
-    <div class="card" style="margin-top:16px">
-      <div class="card-title">Repartition du portefeuille</div>
-      <div class="alloc-bar">
-        <div class="alloc-segment" style="width:70%;background:var(--accent)">70%</div>
-        <div class="alloc-segment" style="width:10%;background:var(--btc)">10%</div>
-        <div class="alloc-segment" style="width:10%;background:var(--gold)">10%</div>
-        <div class="alloc-segment" style="width:10%;background:var(--green)">10%</div>
-      </div>
-      <div class="alloc-legend">
-        <div class="alloc-legend-item"><span class="dot" style="background:var(--accent)"></span> MSCI World (MWRE)</div>
-        <div class="alloc-legend-item"><span class="dot" style="background:var(--btc)"></span> Bitcoin (BTC)</div>
-        <div class="alloc-legend-item"><span class="dot" style="background:var(--gold)"></span> Or (GLDA)</div>
-        <div class="alloc-legend-item"><span class="dot" style="background:var(--green)"></span> Fonds Monetaire (XEON)</div>
-      </div>
-    </div>
 
     <!-- Indicators row -->
     <div class="grid grid-2" style="margin-top:16px">
