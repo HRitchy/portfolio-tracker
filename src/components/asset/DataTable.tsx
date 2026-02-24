@@ -7,22 +7,22 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
   const showMM200 = assetKey !== 'vix';
 
   return (
-    <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5 max-h-[500px] overflow-y-auto">
-      <div className="text-[13px] text-[#6b7280] uppercase tracking-wide mb-3 font-semibold">Dernieres donnees</div>
+    <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5 max-h-[500px] overflow-y-auto">
+      <div className="text-[13px] text-[var(--muted)] uppercase tracking-wide mb-3 font-semibold">Dernieres donnees</div>
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr>
-            <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">Date</th>
-            <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">Cours</th>
-            <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">Var. %</th>
+            <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Date</th>
+            <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Cours</th>
+            <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Var. %</th>
             {config.hasMM && (
               <>
-                <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">MM50</th>
-                {showMM200 && <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">MM200</th>}
+                <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM50</th>
+                {showMM200 && <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM200</th>}
               </>
             )}
             {config.hasRSI && (
-              <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">RSI 14</th>
+              <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">RSI 14</th>
             )}
           </tr>
         </thead>
@@ -31,18 +31,18 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
             const i = data.series.length - 1 - idx;
             const varColor = s.variation == null ? '' : s.variation >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]';
             return (
-              <tr key={s.date + i} className="hover:bg-[#242836]">
-                <td className="px-3 py-2.5 border-b border-[#2e3347]">{s.date}</td>
-                <td className="px-3 py-2.5 border-b border-[#2e3347]">{fmtPrice(s.close, digits)}</td>
-                <td className={`px-3 py-2.5 border-b border-[#2e3347] ${varColor}`}>{fmtPct(s.variation)}</td>
+              <tr key={s.date + i} className="hover:bg-[var(--panel-hover)]">
+                <td className="px-3 py-2.5 border-b border-[var(--border)]">{s.date}</td>
+                <td className="px-3 py-2.5 border-b border-[var(--border)]">{fmtPrice(s.close, digits)}</td>
+                <td className={`px-3 py-2.5 border-b border-[var(--border)] ${varColor}`}>{fmtPct(s.variation)}</td>
                 {config.hasMM && (
                   <>
-                    <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.mm50?.[i] != null ? fmtPrice(data.mm50[i]!, digits) : '--'}</td>
-                    {showMM200 && <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>}
+                    <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm50?.[i] != null ? fmtPrice(data.mm50[i]!, digits) : '--'}</td>
+                    {showMM200 && <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>}
                   </>
                 )}
                 {config.hasRSI && (
-                  <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.rsi14?.[i] ?? '--'}</td>
+                  <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.rsi14?.[i] ?? '--'}</td>
                 )}
               </tr>
             );

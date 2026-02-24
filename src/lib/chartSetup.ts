@@ -24,8 +24,14 @@ ChartJS.register(
   Filler
 );
 
-ChartJS.defaults.color = '#9da3b4';
-ChartJS.defaults.borderColor = 'rgba(46,51,71,0.5)';
+function getCssVar(name: string, fallback: string) {
+  if (typeof window === 'undefined') return fallback;
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+ChartJS.defaults.color = getCssVar('--nav-text', '#9da3b4');
+ChartJS.defaults.borderColor = getCssVar('--border', 'rgba(46,51,71,0.5)');
 ChartJS.defaults.font.family = "'Segoe UI',system-ui,sans-serif";
 ChartJS.defaults.font.size = 11;
 ChartJS.defaults.plugins.legend.labels.boxWidth = 12;
@@ -33,6 +39,9 @@ ChartJS.defaults.plugins.legend.labels.padding = 16;
 (ChartJS.defaults.animation as Record<string, unknown>).duration = 500;
 
 export function chartOpts(yLabel?: string) {
+  const panel = getCssVar('--panel', '#1a1d27');
+  const border = getCssVar('--border', '#2e3347');
+  const navText = getCssVar('--nav-text', '#9da3b4');
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -40,8 +49,8 @@ export function chartOpts(yLabel?: string) {
     plugins: {
       legend: { position: 'top' as const },
       tooltip: {
-        backgroundColor: 'rgba(26,29,39,0.95)',
-        borderColor: '#2e3347',
+        backgroundColor: panel,
+        borderColor: border,
         borderWidth: 1,
         titleFont: { weight: 'bold' as const },
       },
@@ -54,7 +63,8 @@ export function chartOpts(yLabel?: string) {
       },
       y: {
         title: { display: !!yLabel, text: yLabel },
-        grid: { color: 'rgba(46,51,71,0.5)' },
+        ticks: { color: navText },
+        grid: { color: border },
       },
     },
   };

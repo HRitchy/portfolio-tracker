@@ -21,7 +21,7 @@ function AssetHeader({ config }: { config: AssetConfig }) {
     <div className="flex items-center justify-between mb-6">
       <div>
         <h2 className="text-2xl font-bold">{config.name}</h2>
-        <div className="text-[13px] text-[#6b7280] mt-0.5">{config.symbol}</div>
+        <div className="text-[13px] text-[var(--muted)] mt-0.5">{config.symbol}</div>
       </div>
       <RefreshButton />
     </div>
@@ -45,10 +45,10 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
   return (
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
       {cards.map((c) => (
-        <div key={c.label} className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-4">
-          <div className="text-[11px] text-[#6b7280] uppercase tracking-wide mb-1">{c.label}</div>
+        <div key={c.label} className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-4">
+          <div className="text-[11px] text-[var(--muted)] uppercase tracking-wide mb-1">{c.label}</div>
           <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
-          <div className="text-[11px] text-[#6b7280] mt-0.5">{c.sub}</div>
+          <div className="text-[11px] text-[var(--muted)] mt-0.5">{c.sub}</div>
         </div>
       ))}
     </div>
@@ -72,8 +72,8 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
           onClick={() => onChange(t.id)}
           className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
-              ? 'bg-[#6366f1] text-white'
-              : 'bg-[#242836] text-[#9da3b4] hover:bg-[#2e3347]'
+              ? 'bg-[var(--accent)] text-white'
+              : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]'
           }`}
         >
           {t.label}
@@ -103,7 +103,7 @@ export default function AssetPage() {
       {!data && loading ? (
         <LoadingSpinner />
       ) : !data ? (
-        <div className="text-[#6b7280]">Aucune donnee disponible pour {config.name}.</div>
+        <div className="text-[var(--muted)]">Aucune donnee disponible pour {config.name}.</div>
       ) : (
         <>
           <StatCards data={data} assetKey={key} />

@@ -39,16 +39,16 @@ export default function RSIChart({ data, assetKey }: { data: ProcessedAsset; ass
         </div>
       </Card>
       <div className="grid grid-cols-3 gap-4 mt-4">
-        <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5">
-          <div className="text-xs text-[#6b7280] mb-2">RSI Court (7j)</div>
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+          <div className="text-xs text-[var(--muted)] mb-2">RSI Court (7j)</div>
           <div className="text-[22px] font-bold">{r7 ?? '--'}</div>
         </div>
-        <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5">
-          <div className="text-xs text-[#6b7280] mb-2">RSI Moyen (14j)</div>
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+          <div className="text-xs text-[var(--muted)] mb-2">RSI Moyen (14j)</div>
           <div className="text-[22px] font-bold">{r14 ?? '--'}</div>
         </div>
-        <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5">
-          <div className="text-xs text-[#6b7280] mb-2">RSI Long Terme (28j)</div>
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+          <div className="text-xs text-[var(--muted)] mb-2">RSI Long Terme (28j)</div>
           <div className="text-[22px] font-bold">{r28 ?? '--'}</div>
         </div>
       </div>

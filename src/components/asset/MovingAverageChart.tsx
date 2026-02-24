@@ -33,13 +33,13 @@ export default function MovingAverageChart({ data, config, assetKey }: { data: P
         </div>
       </Card>
       <div className={`grid ${showMM200 ? 'grid-cols-2' : 'grid-cols-1'} gap-4 mt-4`}>
-        <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5">
-          <div className="text-xs text-[#6b7280] mb-2">MM50</div>
+        <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+          <div className="text-xs text-[var(--muted)] mb-2">MM50</div>
           <div className="text-[22px] font-bold">{mm50v != null ? fmtPrice(mm50v, digits) : '--'}</div>
         </div>
         {showMM200 && (
-          <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5">
-            <div className="text-xs text-[#6b7280] mb-2">MM200</div>
+          <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+            <div className="text-xs text-[var(--muted)] mb-2">MM200</div>
             <div className="text-[22px] font-bold">{mm200v != null ? fmtPrice(mm200v, digits) : '--'}</div>
           </div>
         )}
