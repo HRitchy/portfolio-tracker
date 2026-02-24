@@ -26,7 +26,7 @@ export interface ProcessedAsset {
   rsi28?: (number | null)[];
 }
 
-export type AssetKey = 'mwre' | 'btc' | 'glda' | 'xeon' | 'vix' | 'eurusd';
+export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
 
 export type Store = Partial<Record<AssetKey, ProcessedAsset | null>>;
 

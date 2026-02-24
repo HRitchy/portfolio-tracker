@@ -5,7 +5,7 @@ import { PORTFOLIO_KEYS, INDICATOR_KEYS } from '@/lib/config';
 import StatCard from '@/components/dashboard/StatCard';
 
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
-import VariationChart from '@/components/dashboard/VariationChart';
+
 import RSIOverview from '@/components/dashboard/RSIOverview';
 import RefreshButton from '@/components/ui/RefreshButton';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -40,9 +40,8 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <div className="mt-4">
             <PerformanceChart store={store} />
-            <VariationChart data={store.mwre} />
           </div>
 
           <RSIOverview store={store} />

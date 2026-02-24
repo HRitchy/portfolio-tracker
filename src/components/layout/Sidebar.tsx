@@ -12,7 +12,7 @@ const navItems = [
     { key: 'mwre',  href: '/asset/mwre',  label: 'MSCI World',      color: '#6366f1' },
     { key: 'btc',   href: '/asset/btc',   label: 'Bitcoin',         color: '#f7931a' },
     { key: 'glda',  href: '/asset/glda',  label: 'Or (Gold)',       color: '#eab308' },
-    { key: 'xeon',  href: '/asset/xeon',  label: 'Fonds Monetaire', color: '#10b981' },
+
   ]},
   { section: 'Indicateurs', items: [
     { key: 'vix',    href: '/asset/vix',    label: 'VIX',     color: '#ef4444' },
