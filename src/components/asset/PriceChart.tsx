@@ -11,6 +11,9 @@ import PeriodSelector from '@/components/ui/PeriodSelector';
 export default function PriceChart({ data, config }: { data: ProcessedAsset; config: AssetConfig }) {
   const [days, setDays] = useState(180);
   const series = days >= 9999 ? data.series : data.series.slice(-days);
+  const lastVariation = series[series.length - 1]?.variation;
+  const priceColor = lastVariation == null ? 'var(--muted)' : lastVariation >= 0 ? '#10b981' : '#ef4444';
+  const priceAreaColor = lastVariation == null ? 'rgba(148,163,184,0.2)' : lastVariation >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
 
   return (
     <Card>
@@ -21,8 +24,8 @@ export default function PriceChart({ data, config }: { data: ProcessedAsset; con
             datasets: [{
               label: config.name,
               data: series.map((s) => ({ x: s.dateObj.getTime(), y: s.close })),
-              borderColor: config.color,
-              backgroundColor: config.colorBg,
+              borderColor: priceColor,
+              backgroundColor: priceAreaColor,
               borderWidth: 2,
               pointRadius: 0,
               fill: true,
