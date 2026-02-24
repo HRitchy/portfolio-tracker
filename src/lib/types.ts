@@ -1,7 +1,7 @@
 export interface AssetConfig {
   symbol: string;
   name: string;
-  alloc: number;
+
   color: string;
   colorBg: string;
   hasRSI: boolean;

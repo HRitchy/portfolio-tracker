@@ -3,7 +3,7 @@
 import { usePortfolio } from '@/context/PortfolioContext';
 import { PORTFOLIO_KEYS, INDICATOR_KEYS } from '@/lib/config';
 import StatCard from '@/components/dashboard/StatCard';
-import AllocationBar from '@/components/dashboard/AllocationBar';
+
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 import VariationChart from '@/components/dashboard/VariationChart';
 import RSIOverview from '@/components/dashboard/RSIOverview';
@@ -33,8 +33,6 @@ export default function DashboardPage() {
               <StatCard key={key} assetKey={key} data={store[key]} />
             ))}
           </div>
-
-          <AllocationBar />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {INDICATOR_KEYS.map((key) => (

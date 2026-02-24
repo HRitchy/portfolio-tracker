@@ -9,10 +9,10 @@ const navItems = [
     { key: 'dashboard', href: '/', label: 'Dashboard', icon: true },
   ]},
   { section: 'Actifs', items: [
-    { key: 'mwre',  href: '/asset/mwre',  label: 'MSCI World',      color: '#6366f1', badge: '70%' },
-    { key: 'btc',   href: '/asset/btc',   label: 'Bitcoin',         color: '#f7931a', badge: '10%' },
-    { key: 'glda',  href: '/asset/glda',  label: 'Or (Gold)',       color: '#eab308', badge: '10%' },
-    { key: 'xeon',  href: '/asset/xeon',  label: 'Fonds Monetaire', color: '#10b981', badge: '10%' },
+    { key: 'mwre',  href: '/asset/mwre',  label: 'MSCI World',      color: '#6366f1' },
+    { key: 'btc',   href: '/asset/btc',   label: 'Bitcoin',         color: '#f7931a' },
+    { key: 'glda',  href: '/asset/glda',  label: 'Or (Gold)',       color: '#eab308' },
+    { key: 'xeon',  href: '/asset/xeon',  label: 'Fonds Monetaire', color: '#10b981' },
   ]},
   { section: 'Indicateurs', items: [
     { key: 'vix',    href: '/asset/vix',    label: 'VIX',     color: '#ef4444' },
@@ -63,11 +63,6 @@ export default function Sidebar() {
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} />
                 )}
                 {item.label}
-                {'badge' in item && item.badge && (
-                  <span className="ml-auto text-[11px] px-2 py-0.5 rounded-xl bg-[#2e3347] text-[#9da3b4]">
-                    {item.badge}
-                  </span>
-                )}
               </Link>
             ))}
           </div>
