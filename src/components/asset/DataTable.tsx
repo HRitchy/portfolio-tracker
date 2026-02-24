@@ -4,6 +4,7 @@ import { fmtPrice, fmtPct, getDigitsForKey } from '@/lib/formatting';
 export default function DataTable({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: AssetKey }) {
   const digits = getDigitsForKey(assetKey);
   const last50 = data.series.slice(-50).reverse();
+  const showMM200 = assetKey !== 'vix';
 
   return (
     <div className="bg-[#1a1d27] border border-[#2e3347] rounded-xl p-5 max-h-[500px] overflow-y-auto">
@@ -17,7 +18,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
             {config.hasMM && (
               <>
                 <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">MM50</th>
-                <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">MM200</th>
+                {showMM200 && <th className="text-left px-3 py-2.5 text-[#6b7280] font-semibold border-b border-[#2e3347] text-[11px] uppercase tracking-wide">MM200</th>}
               </>
             )}
             {config.hasRSI && (
@@ -37,7 +38,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
                 {config.hasMM && (
                   <>
                     <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.mm50?.[i] != null ? fmtPrice(data.mm50[i]!, digits) : '--'}</td>
-                    <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>
+                    {showMM200 && <td className="px-3 py-2.5 border-b border-[#2e3347]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>}
                   </>
                 )}
                 {config.hasRSI && (
