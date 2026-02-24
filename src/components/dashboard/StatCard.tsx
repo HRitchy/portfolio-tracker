@@ -19,7 +19,7 @@ export default function StatCard({ assetKey, data }: { assetKey: AssetKey; data:
         <span className="inline-block w-2 h-2 rounded-full" style={{ background: cfg.color }} />
         {cfg.name}
       </div>
-      <div className="text-[28px] font-bold mb-1">
+      <div className={`text-[28px] font-bold mb-1 ${colorMap[last ? chgClass(last.variation) : 'neutral']}`}>
         {last ? fmtPrice(last.close, digits) : '--'}
       </div>
       <div className={`text-[13px] font-medium ${colorMap[last ? chgClass(last.variation) : 'neutral']}`}>
