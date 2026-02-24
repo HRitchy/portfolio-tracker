@@ -16,24 +16,24 @@ export default function RSIOverview({ store }: { store: Store }) {
   return (
     <Card title="RSI - Vue d'ensemble" className="mt-4">
       {items.length === 0 ? (
-        <div className="flex items-center justify-center h-[100px] text-[#6b7280]">Aucune donnee RSI</div>
+        <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnee RSI</div>
       ) : (
         items.map((item) => item && (
           <div key={item.key} className="flex items-center gap-3 py-2">
             <div className="w-[120px] text-[13px] font-semibold">{item.name}</div>
-            <div className="flex-1 h-2 bg-[#2e3347] rounded relative overflow-visible">
+            <div className="flex-1 h-2 bg-[var(--border)] rounded relative overflow-visible">
               <div
                 className="h-full rounded"
                 style={{ width: `${item.val}%`, background: item.color, opacity: 0.3 }}
               />
               <div
-                className="absolute top-[-4px] w-4 h-4 rounded-full border-2 border-[#1a1d27]"
+                className="absolute top-[-4px] w-4 h-4 rounded-full border-2 border-[var(--panel)]"
                 style={{ left: `${item.val}%`, background: item.color, transform: 'translateX(-50%)' }}
               />
             </div>
             <div className="w-[80px] text-right">
               <span className="text-lg font-bold" style={{ color: item.color }}>{item.val}</span>
-              <div className="text-[10px] text-[#6b7280]">{item.label}</div>
+              <div className="text-[10px] text-[var(--muted)]">{item.label}</div>
             </div>
           </div>
         ))

@@ -19,7 +19,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold">Dashboard</h2>
-          <div className="text-[13px] text-[#6b7280] mt-0.5">Vue d&apos;ensemble du portefeuille</div>
+          <div className="text-[13px] text-[var(--muted)] mt-0.5">Vue d&apos;ensemble du portefeuille</div>
         </div>
         <RefreshButton />
       </div>

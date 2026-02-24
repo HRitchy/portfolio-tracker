@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePortfolio } from '@/context/PortfolioContext';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 const navItems = [
   { section: 'Vue generale', items: [
@@ -30,16 +31,16 @@ export default function Sidebar() {
   }
 
   return (
-    <nav className="w-[260px] bg-[#1a1d27] border-r border-[#2e3347] flex flex-col fixed top-0 left-0 bottom-0 z-50 max-md:hidden">
-      <div className="px-5 pb-5 pt-5 border-b border-[#2e3347]">
-        <h1 className="text-lg font-bold text-[#e4e6f0]">Portfolio Tracker</h1>
-        <p className="text-xs text-[#6b7280] mt-1">Suivi temps reel</p>
+    <nav className="w-[260px] bg-[var(--sidebar-bg)] border-r border-[var(--border)] flex flex-col fixed top-0 left-0 bottom-0 z-50 max-md:hidden">
+      <div className="px-5 pb-5 pt-5 border-b border-[var(--border)]">
+        <h1 className="text-lg font-bold text-[var(--text)]">Portfolio Tracker</h1>
+        <p className="text-xs text-[var(--muted)] mt-1">Suivi temps reel</p>
       </div>
 
       <div className="flex-1 px-2.5 py-3 overflow-y-auto">
         {navItems.map((section) => (
           <div key={section.section} className="mb-4">
-            <div className="text-[11px] uppercase text-[#6b7280] px-3 tracking-wider font-semibold mb-1">
+            <div className="text-[11px] uppercase text-[var(--muted)] px-3 tracking-wider font-semibold mb-1">
               {section.section}
             </div>
             {section.items.map((item) => (
@@ -48,8 +49,8 @@ export default function Sidebar() {
                 href={item.href}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   isActive(item.href)
-                    ? 'bg-[#6366f1] text-white'
-                    : 'text-[#9da3b4] hover:bg-[#242836] hover:text-[#e4e6f0]'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 {'icon' in item ? (
@@ -69,11 +70,14 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <div className="px-5 py-3 border-t border-[#2e3347] text-[11px] text-[#6b7280]">
+      <div className="px-5 py-3 border-t border-[var(--border)] text-[11px] text-[var(--muted)]">
+        <ThemeToggle />
+        <div className="mt-3">
         <span className="inline-block w-2 h-2 rounded-full bg-[#10b981] mr-1.5 animate-pulse" />
         Donnees Yahoo Finance
         <br />
         <span>{lastUpdate ?? '--'}</span>
+        </div>
       </div>
     </nav>
   );

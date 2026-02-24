@@ -23,8 +23,8 @@ export default function PeriodSelector({
           onClick={() => onChange(p.days)}
           className={`px-3.5 py-1.5 border rounded-md text-xs cursor-pointer transition-all ${
             activeDays === p.days
-              ? 'bg-[#6366f1] text-white border-[#6366f1]'
-              : 'bg-[#242836] text-[#9da3b4] border-[#2e3347] hover:border-[#6366f1]'
+              ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+              : 'bg-[var(--panel-hover)] text-[var(--nav-text)] border-[var(--border)] hover:border-[var(--accent)]'
           }`}
         >
           {p.label}
