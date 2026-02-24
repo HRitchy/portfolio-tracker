@@ -33,7 +33,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
             return (
               <tr key={s.date + i} className="hover:bg-[var(--panel-hover)]">
                 <td className="px-3 py-2.5 border-b border-[var(--border)]">{s.date}</td>
-                <td className="px-3 py-2.5 border-b border-[var(--border)]">{fmtPrice(s.close, digits)}</td>
+                <td className={`px-3 py-2.5 border-b border-[var(--border)] ${varColor}`}>{fmtPrice(s.close, digits)}</td>
                 <td className={`px-3 py-2.5 border-b border-[var(--border)] ${varColor}`}>{fmtPct(s.variation)}</td>
                 {config.hasMM && (
                   <>

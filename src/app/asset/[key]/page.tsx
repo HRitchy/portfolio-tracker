@@ -36,7 +36,7 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
   const low = Math.min(...prices);
 
   const cards = [
-    { label: 'Dernier cours', value: fmtPrice(last?.close, digits), sub: last?.date ?? '', color: '' },
+    { label: 'Dernier cours', value: fmtPrice(last?.close, digits), sub: last?.date ?? '', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },
     { label: 'Variation', value: fmtPct(last?.variation), sub: 'vs jour precedent', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },
     { label: 'Plus haut', value: fmtPrice(high, digits), sub: 'sur la periode', color: 'text-[#10b981]' },
     { label: 'Plus bas', value: fmtPrice(low, digits), sub: 'sur la periode', color: 'text-[#ef4444]' },
