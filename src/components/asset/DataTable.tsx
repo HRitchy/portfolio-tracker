@@ -3,8 +3,8 @@ import { fmtPrice, fmtPct, getDigitsForKey } from '@/lib/formatting';
 
 export default function DataTable({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: AssetKey }) {
   const digits = getDigitsForKey(assetKey);
+  const hasMM200 = !!data.mm200;
   const last50 = data.series.slice(-50).reverse();
-  const showMM200 = assetKey !== 'vix';
 
   return (
     <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5 max-h-[500px] overflow-y-auto">
@@ -16,10 +16,10 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
             <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Cours</th>
             <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Var. %</th>
             {config.hasMM && (
-              <>
-                <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM50</th>
-                {showMM200 && <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM200</th>}
-              </>
+              <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM50</th>
+            )}
+            {config.hasMM && hasMM200 && (
+              <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">MM200</th>
             )}
             {config.hasRSI && (
               <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">RSI 14</th>
@@ -36,10 +36,10 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
                 <td className={`px-3 py-2.5 border-b border-[var(--border)] ${varColor}`}>{fmtPrice(s.close, digits)}</td>
                 <td className={`px-3 py-2.5 border-b border-[var(--border)] ${varColor}`}>{fmtPct(s.variation)}</td>
                 {config.hasMM && (
-                  <>
-                    <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm50?.[i] != null ? fmtPrice(data.mm50[i]!, digits) : '--'}</td>
-                    {showMM200 && <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>}
-                  </>
+                  <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm50?.[i] != null ? fmtPrice(data.mm50[i]!, digits) : '--'}</td>
+                )}
+                {config.hasMM && hasMM200 && (
+                  <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.mm200?.[i] != null ? fmtPrice(data.mm200[i]!, digits) : '--'}</td>
                 )}
                 {config.hasRSI && (
                   <td className="px-3 py-2.5 border-b border-[var(--border)]">{data.rsi14?.[i] ?? '--'}</td>

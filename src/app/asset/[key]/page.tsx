@@ -30,10 +30,10 @@ function AssetHeader({ config }: { config: AssetConfig }) {
 
 function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKey }) {
   const digits = getDigitsForKey(assetKey);
-  const last = data.series[data.series.length - 1];
+  const last = data.series.length ? data.series[data.series.length - 1] : undefined;
   const prices = data.series.map((s) => s.close);
-  const high = Math.max(...prices);
-  const low = Math.min(...prices);
+  const high = prices.length ? Math.max(...prices) : 0;
+  const low = prices.length ? Math.min(...prices) : 0;
 
   const cards = [
     { label: 'Dernier cours', value: fmtPrice(last?.close, digits), sub: last?.date ?? '', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },

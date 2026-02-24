@@ -8,9 +8,9 @@ import Card from '@/components/ui/Card';
 export default function RSIChart({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKey }) {
   void assetKey;
   const s = data.series;
-  const r7 = data.rsi7?.[data.rsi7.length - 1];
-  const r14 = data.rsi14?.[data.rsi14.length - 1];
-  const r28 = data.rsi28?.[data.rsi28.length - 1];
+  const r7 = data.rsi7 ? data.rsi7[data.rsi7.length - 1] : null;
+  const r14 = data.rsi14 ? data.rsi14[data.rsi14.length - 1] : null;
+  const r28 = data.rsi28 ? data.rsi28[data.rsi28.length - 1] : null;
 
   return (
     <>
@@ -41,15 +41,15 @@ export default function RSIChart({ data, assetKey }: { data: ProcessedAsset; ass
       <div className="grid grid-cols-3 gap-4 mt-4">
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
           <div className="text-xs text-[var(--muted)] mb-2">RSI Court (7j)</div>
-          <div className="text-[22px] font-bold">{r7 ?? '--'}</div>
+          <div className="text-[22px] font-bold">{r7 != null ? Number(r7).toFixed(2) : '--'}</div>
         </div>
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
           <div className="text-xs text-[var(--muted)] mb-2">RSI Moyen (14j)</div>
-          <div className="text-[22px] font-bold">{r14 ?? '--'}</div>
+          <div className="text-[22px] font-bold">{r14 != null ? Number(r14).toFixed(2) : '--'}</div>
         </div>
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
           <div className="text-xs text-[var(--muted)] mb-2">RSI Long Terme (28j)</div>
-          <div className="text-[22px] font-bold">{r28 ?? '--'}</div>
+          <div className="text-[22px] font-bold">{r28 != null ? Number(r28).toFixed(2) : '--'}</div>
         </div>
       </div>
     </>

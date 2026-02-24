@@ -84,7 +84,9 @@ export function processAsset(key: AssetKey, result: YahooResult): ProcessedAsset
 
   if (cfg.hasMM) {
     data.mm50 = calcSMA(series, 50);
-    data.mm200 = calcSMA(series, 200);
+    if (cfg.hasMM200 !== false) {
+      data.mm200 = calcSMA(series, 200);
+    }
   }
   if (cfg.hasRSI) {
     data.rsi7 = calcRSI(series, 7);

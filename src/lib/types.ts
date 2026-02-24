@@ -6,6 +6,7 @@ export interface AssetConfig {
   colorBg: string;
   hasRSI: boolean;
   hasMM: boolean;
+  hasMM200?: boolean;
 }
 
 export interface SeriesPoint {

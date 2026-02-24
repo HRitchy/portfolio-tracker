@@ -10,7 +10,8 @@ const colorMap: Record<string, string> = {
 
 export default function StatCard({ assetKey, data }: { assetKey: AssetKey; data: ProcessedAsset | null | undefined }) {
   const cfg = ASSETS[assetKey];
-  const last = data?.series?.[data.series.length - 1];
+  const series = data?.series;
+  const last = series?.length ? series[series.length - 1] : undefined;
   const digits = getDigitsForKey(assetKey);
 
   return (

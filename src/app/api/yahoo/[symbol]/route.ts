@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import dns from 'node:dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 export async function GET(
   request: NextRequest,
