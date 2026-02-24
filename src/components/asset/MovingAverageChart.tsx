@@ -13,11 +13,8 @@ export default function MovingAverageChart({ data, config, assetKey }: { data: P
   const mm50v = data.mm50 ? data.mm50[data.mm50.length - 1] : null;
   const mm200v = data.mm200 ? data.mm200[data.mm200.length - 1] : null;
   const hasMM200 = !!data.mm200;
-  const lastVariation = s[s.length - 1]?.variation;
-  const priceColor = lastVariation == null ? 'var(--muted)' : lastVariation >= 0 ? '#10b981' : '#ef4444';
-
   const datasets = [
-    { label: 'Cours', data: s.map((x) => ({ x: x.dateObj.getTime(), y: x.close })), borderColor: priceColor, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 },
+    { label: 'Cours', data: s.map((x) => ({ x: x.dateObj.getTime(), y: x.close })), borderColor: config.color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 },
     { label: 'MM50', data: s.map((x, i) => ({ x: x.dateObj.getTime(), y: data.mm50?.[i] ?? null })), borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0, fill: false, borderDash: [5, 3] },
   ];
   if (hasMM200) {
