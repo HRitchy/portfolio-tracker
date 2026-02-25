@@ -9,6 +9,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
   return (
     <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5 max-h-[500px] overflow-y-auto">
       <div className="text-[13px] text-[var(--muted)] uppercase tracking-wide mb-3 font-semibold">Dernieres donnees</div>
+      <div className="overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr>
@@ -49,6 +50,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

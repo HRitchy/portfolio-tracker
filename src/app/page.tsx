@@ -10,7 +10,7 @@ import HYSpreadCard from '@/components/dashboard/HYSpreadCard';
 import FearGreedCard from '@/components/dashboard/FearGreedCard';
 import AdviceOverview from '@/components/dashboard/AdviceOverview';
 import RefreshButton from '@/components/ui/RefreshButton';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { SkeletonDashboard } from '@/components/ui/SkeletonCard';
 
 export default function DashboardPage() {
   const { store, loading } = usePortfolio();
@@ -28,7 +28,7 @@ export default function DashboardPage() {
       </div>
 
       {!hasData && loading ? (
-        <LoadingSpinner />
+        <SkeletonDashboard />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
