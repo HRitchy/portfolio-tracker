@@ -6,6 +6,9 @@ import { ASSETS, ASSET_KEYS, TIMEZONE } from '@/lib/config';
 import { fetchAssetData } from '@/lib/fetcher';
 import { processAsset } from '@/lib/calculations';
 
+const SESSION_KEY = 'portfolio_snapshot';
+const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+
 interface PortfolioContextType {
   store: Store;
   loading: boolean;
@@ -20,10 +23,29 @@ const PortfolioContext = createContext<PortfolioContextType>({
   refreshAll: async () => {},
 });
 
+function loadSnapshot(): { store: Store; lastUpdate: string } | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function saveSnapshot(store: Store, lastUpdate: string) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ store, lastUpdate }));
+  } catch {
+    // sessionStorage can be unavailable (private mode quotas)
+  }
+}
+
 export function PortfolioProvider({ children }: { children: ReactNode }) {
-  const [store, setStore] = useState<Store>({});
+  const snapshot = loadSnapshot();
+  const [store, setStore] = useState<Store>(snapshot?.store ?? {});
   const [loading, setLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<string | null>(snapshot?.lastUpdate ?? null);
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
@@ -42,13 +64,24 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       });
     }
 
+    const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });
     setStore(newStore);
-    setLastUpdate(new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE }));
+    setLastUpdate(timestamp);
+    saveSnapshot(newStore, timestamp);
     setLoading(false);
   }, []);
 
+  // Initial fetch on mount
   useEffect(() => {
     refreshAll();
+  }, [refreshAll]);
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshAll();
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(interval);
   }, [refreshAll]);
 
   return (
