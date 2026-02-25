@@ -20,7 +20,7 @@ export default function DrawdownOverview({ store }: { store: Store }) {
   }).filter(Boolean);
 
   return (
-    <Card title="Drawdown - Vue d'ensemble" className="mt-4">
+    <Card title="Drawdown - Vue d'ensemble" className="mb-0">
       {items.length === 0 ? (
         <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnee Drawdown</div>
       ) : (
