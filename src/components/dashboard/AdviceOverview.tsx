@@ -4,7 +4,8 @@ import { ASSETS } from '@/lib/config';
 import { Store } from '@/lib/types';
 
 export default function AdviceOverview({ store }: { store: Store }) {
-  const adviceByAsset = getAssetAdvice(store);
+  const excludedAssets = new Set(['vix', 'eurusd']);
+  const adviceByAsset = getAssetAdvice(store).filter((item) => !excludedAssets.has(item.key));
 
   return (
     <Card title="Conseils automatiques par classe d'actifs" className="mb-0">
