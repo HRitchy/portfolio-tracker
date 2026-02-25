@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             <PortfolioProvider>
               <Sidebar />
-              <main className="ml-[280px] max-md:ml-0 flex-1 min-h-screen p-5 md:p-8">
+              <main className="ml-[280px] max-md:ml-0 flex-1 min-h-screen p-5 md:p-8 max-md:pt-16">
                 <div className="max-w-[1500px] mx-auto">
                   <ErrorBoundary>{children}</ErrorBoundary>
                 </div>

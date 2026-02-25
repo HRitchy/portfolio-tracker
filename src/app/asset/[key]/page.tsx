@@ -1,22 +1,39 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
+import Link from 'next/link';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { ASSETS } from '@/lib/config';
 import { AssetKey, ProcessedAsset, AssetConfig } from '@/lib/types';
 import { fmtPrice, fmtPct, getDigitsForKey } from '@/lib/formatting';
-import PriceChart from '@/components/asset/PriceChart';
-import MovingAverageChart from '@/components/asset/MovingAverageChart';
-import RSIChart from '@/components/asset/RSIChart';
-import AssetVariationChart from '@/components/asset/AssetVariationChart';
-import DrawdownChart from '@/components/asset/DrawdownChart';
-import BollingerChart from '@/components/asset/BollingerChart';
-import DataTable from '@/components/asset/DataTable';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import RefreshButton from '@/components/ui/RefreshButton';
+import { SkeletonAssetPage } from '@/components/ui/SkeletonCard';
+
+const PriceChart = lazy(() => import('@/components/asset/PriceChart'));
+const MovingAverageChart = lazy(() => import('@/components/asset/MovingAverageChart'));
+const RSIChart = lazy(() => import('@/components/asset/RSIChart'));
+const AssetVariationChart = lazy(() => import('@/components/asset/AssetVariationChart'));
+const DrawdownChart = lazy(() => import('@/components/asset/DrawdownChart'));
+const BollingerChart = lazy(() => import('@/components/asset/BollingerChart'));
+const DataTable = lazy(() => import('@/components/asset/DataTable'));
 
 type Tab = 'cours' | 'mm' | 'rsi' | 'drawdown' | 'bollinger' | 'variations' | 'donnees';
+
+function Breadcrumb({ config }: { config: AssetConfig }) {
+  return (
+    <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4">
+      <Link href="/" className="hover:text-[var(--text)] transition-colors">
+        Dashboard
+      </Link>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+      <span className="text-[var(--text)] font-medium">{config.name}</span>
+    </nav>
+  );
+}
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
@@ -69,10 +86,12 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
   ];
 
   return (
-    <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1">
       {tabs.filter((t) => t.show).map((t) => (
         <button
           key={t.id}
+          role="tab"
+          aria-selected={active === t.id}
           onClick={() => onChange(t.id)}
           className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
@@ -102,10 +121,11 @@ export default function AssetPage() {
 
   return (
     <>
+      <Breadcrumb config={config} />
       <AssetHeader config={config} />
 
       {!data && loading ? (
-        <LoadingSpinner />
+        <SkeletonAssetPage />
       ) : !data ? (
         <div className="text-[var(--muted)]">Aucune donnee disponible pour {config.name}.</div>
       ) : (
@@ -113,13 +133,15 @@ export default function AssetPage() {
           <StatCards data={data} assetKey={key} />
           <TabNav active={tab} onChange={setTab} config={config} />
 
-          {tab === 'cours' && <PriceChart data={data} config={config} />}
-          {tab === 'mm' && config.hasMM && <MovingAverageChart data={data} config={config} assetKey={key} />}
-          {tab === 'rsi' && config.hasRSI && <RSIChart data={data} assetKey={key} />}
-          {tab === 'drawdown' && config.hasDrawdown && <DrawdownChart data={data} config={config} />}
-          {tab === 'bollinger' && config.hasBollinger && <BollingerChart data={data} config={config} assetKey={key} />}
-          {tab === 'variations' && <AssetVariationChart data={data} />}
-          {tab === 'donnees' && <DataTable data={data} config={config} assetKey={key} />}
+          <Suspense fallback={<LoadingSpinner />}>
+            {tab === 'cours' && <PriceChart data={data} config={config} />}
+            {tab === 'mm' && config.hasMM && <MovingAverageChart data={data} config={config} assetKey={key} />}
+            {tab === 'rsi' && config.hasRSI && <RSIChart data={data} assetKey={key} />}
+            {tab === 'drawdown' && config.hasDrawdown && <DrawdownChart data={data} config={config} />}
+            {tab === 'bollinger' && config.hasBollinger && <BollingerChart data={data} config={config} assetKey={key} />}
+            {tab === 'variations' && <AssetVariationChart data={data} />}
+            {tab === 'donnees' && <DataTable data={data} config={config} assetKey={key} />}
+          </Suspense>
         </>
       )}
     </>
