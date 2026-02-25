@@ -20,10 +20,10 @@ type Tab = 'cours' | 'mm' | 'rsi' | 'drawdown' | 'bollinger' | 'variations' | 'd
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
       <div>
-        <h2 className="text-2xl font-bold">{config.name}</h2>
-        <div className="text-[13px] text-[var(--muted)] mt-0.5">{config.symbol}</div>
+        <h2 className="text-3xl font-bold tracking-tight">{config.name}</h2>
+        <div className="text-sm text-[var(--muted)] mt-1">{config.symbol}</div>
       </div>
       <RefreshButton />
     </div>
@@ -45,10 +45,10 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
   ];
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
       {cards.map((c) => (
-        <div key={c.label} className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-4">
-          <div className="text-[11px] text-[var(--muted)] uppercase tracking-wide mb-1">{c.label}</div>
+        <div key={c.label} className="data-card p-4">
+          <div className="text-[11px] text-[var(--muted)] uppercase tracking-[0.16em] mb-1">{c.label}</div>
           <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
           <div className="text-[11px] text-[var(--muted)] mt-0.5">{c.sub}</div>
         </div>
@@ -69,15 +69,15 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
   ];
 
   return (
-    <div className="flex gap-1 mb-4 overflow-x-auto">
+    <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
       {tabs.filter((t) => t.show).map((t) => (
         <button
           key={t.id}
           onClick={() => onChange(t.id)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
+          className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
               ? 'bg-[var(--accent)] text-white'
-              : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]'
+              : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]/80'
           }`}
         >
           {t.label}

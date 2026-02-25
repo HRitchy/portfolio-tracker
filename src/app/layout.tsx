@@ -16,8 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <PortfolioProvider>
             <Sidebar />
-            <main className="ml-[260px] max-md:ml-0 flex-1 p-6 px-8 min-h-screen">
-              {children}
+            <main className="ml-[280px] max-md:ml-0 flex-1 min-h-screen p-5 md:p-8">
+              <div className="max-w-[1500px] mx-auto">{children}</div>
             </main>
           </PortfolioProvider>
         </ThemeProvider>
