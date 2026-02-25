@@ -45,7 +45,7 @@ export default function FearGreedCard() {
   const delta = score != null && prevClose != null ? score - prevClose : null;
 
   return (
-    <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+    <div className="data-card p-5">
       <div className="text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#8b5cf6' }} />
         Fear &amp; Greed Index

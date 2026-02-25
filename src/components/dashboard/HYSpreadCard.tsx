@@ -40,7 +40,7 @@ export default function HYSpreadCard() {
   const delta = val != null && prevVal != null ? val - prevVal : null;
 
   return (
-    <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
+    <div className="data-card p-5">
       <div className="text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
         HY Spread (ICE BofA)

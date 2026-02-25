@@ -23,7 +23,7 @@ type Tab = 'cours' | 'mm' | 'rsi' | 'drawdown' | 'bollinger' | 'variations' | 'd
 
 function Breadcrumb({ config }: { config: AssetConfig }) {
   return (
-    <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4">
+    <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4 fade-in">
       <Link href="/" className="hover:text-[var(--text)] transition-colors">
         Dashboard
       </Link>
@@ -37,10 +37,15 @@ function Breadcrumb({ config }: { config: AssetConfig }) {
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">{config.name}</h2>
-        <div className="text-sm text-[var(--muted)] mt-1">{config.symbol}</div>
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 fade-in">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold" style={{ background: config.color }}>
+          {config.name.slice(0, 2).toUpperCase()}
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">{config.name}</h2>
+          <div className="text-sm text-[var(--muted)] mt-0.5">{config.symbol} &middot; {config.assetClass}</div>
+        </div>
       </div>
       <RefreshButton />
     </div>
@@ -63,8 +68,8 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-      {cards.map((c) => (
-        <div key={c.label} className="data-card p-4">
+      {cards.map((c, i) => (
+        <div key={c.label} className={`data-card p-4 fade-in stagger-${i + 1}`}>
           <div className="text-[11px] text-[var(--muted)] uppercase tracking-[0.16em] mb-1">{c.label}</div>
           <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
           <div className="text-[11px] text-[var(--muted)] mt-0.5">{c.sub}</div>
@@ -86,7 +91,7 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
   ];
 
   return (
-    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1">
+    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1 fade-in">
       {tabs.filter((t) => t.show).map((t) => (
         <button
           key={t.id}
@@ -95,7 +100,7 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
           onClick={() => onChange(t.id)}
           className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
-              ? 'bg-[var(--accent)] text-white'
+              ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
               : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]/80'
           }`}
         >
@@ -133,15 +138,17 @@ export default function AssetPage() {
           <StatCards data={data} assetKey={key} />
           <TabNav active={tab} onChange={setTab} config={config} />
 
-          <Suspense fallback={<LoadingSpinner />}>
-            {tab === 'cours' && <PriceChart data={data} config={config} />}
-            {tab === 'mm' && config.hasMM && <MovingAverageChart data={data} config={config} assetKey={key} />}
-            {tab === 'rsi' && config.hasRSI && <RSIChart data={data} assetKey={key} />}
-            {tab === 'drawdown' && config.hasDrawdown && <DrawdownChart data={data} config={config} />}
-            {tab === 'bollinger' && config.hasBollinger && <BollingerChart data={data} config={config} assetKey={key} />}
-            {tab === 'variations' && <AssetVariationChart data={data} />}
-            {tab === 'donnees' && <DataTable data={data} config={config} assetKey={key} />}
-          </Suspense>
+          <div className="fade-in-scale">
+            <Suspense fallback={<LoadingSpinner />}>
+              {tab === 'cours' && <PriceChart data={data} config={config} />}
+              {tab === 'mm' && config.hasMM && <MovingAverageChart data={data} config={config} assetKey={key} />}
+              {tab === 'rsi' && config.hasRSI && <RSIChart data={data} assetKey={key} />}
+              {tab === 'drawdown' && config.hasDrawdown && <DrawdownChart data={data} config={config} />}
+              {tab === 'bollinger' && config.hasBollinger && <BollingerChart data={data} config={config} assetKey={key} />}
+              {tab === 'variations' && <AssetVariationChart data={data} />}
+              {tab === 'donnees' && <DataTable data={data} config={config} assetKey={key} />}
+            </Suspense>
+          </div>
         </>
       )}
     </>
