@@ -1,12 +1,12 @@
 import { AssetConfig, AssetKey } from './types';
 
 export const ASSETS: Record<AssetKey, AssetConfig> = {
-  mwre:   { symbol: 'MWRE.DE', name: 'MSCI World',      color: 'rgb(99,102,241)',  colorBg: 'rgba(99,102,241,0.1)',  hasRSI: true,  hasMM: true  },
-  btc:    { symbol: 'BTC-EUR', name: 'Bitcoin',          color: 'rgb(247,147,26)',  colorBg: 'rgba(247,147,26,0.1)',  hasRSI: true,  hasMM: true  },
-  glda:   { symbol: 'GLDA.DE', name: 'Or (GLDA)',        color: 'rgb(234,179,8)',   colorBg: 'rgba(234,179,8,0.1)',   hasRSI: true,  hasMM: true  },
+  mwre:   { symbol: 'MWRE.DE', name: 'MSCI World',      color: 'rgb(99,102,241)',  colorBg: 'rgba(99,102,241,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
+  btc:    { symbol: 'BTC-EUR', name: 'Bitcoin',          color: 'rgb(247,147,26)',  colorBg: 'rgba(247,147,26,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
+  glda:   { symbol: 'GLDA.DE', name: 'Or (GLDA)',        color: 'rgb(234,179,8)',   colorBg: 'rgba(234,179,8,0.1)',   hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
 
-  vix:    { symbol: '^VIX',    name: 'VIX',              color: 'rgb(239,68,68)',   colorBg: 'rgba(239,68,68,0.1)',   hasRSI: false, hasMM: true, hasMM200: false },
-  eurusd: { symbol: 'EUR=X',   name: 'USD/EUR',          color: 'rgb(59,130,246)',  colorBg: 'rgba(59,130,246,0.1)',  hasRSI: false, hasMM: false },
+  vix:    { symbol: '^VIX',    name: 'VIX',              color: 'rgb(239,68,68)',   colorBg: 'rgba(239,68,68,0.1)',   hasRSI: false, hasMM: true, hasMM200: false, hasDrawdown: true,  hasBollinger: false },
+  eurusd: { symbol: 'EUR=X',   name: 'USD/EUR',          color: 'rgb(59,130,246)',  colorBg: 'rgba(59,130,246,0.1)',  hasRSI: false, hasMM: false, hasDrawdown: false, hasBollinger: false },
 };
 
 export const TIMEZONE = 'Indian/Reunion';

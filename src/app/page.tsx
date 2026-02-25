@@ -7,6 +7,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 
 import RSIOverview from '@/components/dashboard/RSIOverview';
+import DrawdownOverview from '@/components/dashboard/DrawdownOverview';
 import RefreshButton from '@/components/ui/RefreshButton';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -45,6 +46,7 @@ export default function DashboardPage() {
           </div>
 
           <RSIOverview store={store} />
+          <DrawdownOverview store={store} />
         </>
       )}
     </>
