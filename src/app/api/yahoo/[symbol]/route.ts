@@ -13,7 +13,8 @@ export async function GET(
   if (!ALLOWED_SYMBOLS.has(symbol)) {
     return NextResponse.json({ error: 'Symbol not allowed' }, { status: 400 });
   }
-  const days = parseInt(request.nextUrl.searchParams.get('days') ?? '500');
+  const rawDays = parseInt(request.nextUrl.searchParams.get('days') ?? '500', 10);
+  const days = Number.isFinite(rawDays) ? Math.min(Math.max(rawDays, 1), 3650) : 500;
   const period1 = Math.floor((Date.now() - 86400000 * days) / 1000);
   const period2 = Math.floor(Date.now() / 1000);
   const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&period1=${period1}&period2=${period2}`;
@@ -31,7 +32,12 @@ export async function GET(
     return NextResponse.json({ result }, {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
-  } catch {
+  } catch (err) {
+    console.error('[/api/yahoo]', {
+      symbol,
+      message: err instanceof Error ? err.message : String(err),
+      ts: new Date().toISOString(),
+    });
     return NextResponse.json({ error: 'Fetch failed' }, { status: 502 });
   }
 }
