@@ -8,6 +8,8 @@ import PerformanceChart from '@/components/dashboard/PerformanceChart';
 
 import RSIOverview from '@/components/dashboard/RSIOverview';
 import DrawdownOverview from '@/components/dashboard/DrawdownOverview';
+import HYSpreadCard from '@/components/dashboard/HYSpreadCard';
+import FearGreedCard from '@/components/dashboard/FearGreedCard';
 import RefreshButton from '@/components/ui/RefreshButton';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -35,10 +37,12 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
             {INDICATOR_KEYS.map((key) => (
               <StatCard key={key} assetKey={key} data={store[key]} />
             ))}
+            <HYSpreadCard />
+            <FearGreedCard />
           </div>
 
           <div className="mt-4">
