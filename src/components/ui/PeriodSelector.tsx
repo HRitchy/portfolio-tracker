@@ -16,7 +16,7 @@ export default function PeriodSelector({
   onChange: (days: number) => void;
 }) {
   return (
-    <div className="flex gap-1 mb-3">
+    <div className="flex gap-1">
       {periods.map((p) => (
         <button
           key={p.days}
