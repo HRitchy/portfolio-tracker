@@ -6,19 +6,25 @@ import { usePortfolio } from '@/context/PortfolioContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
 const navItems = [
-  { section: 'Vue generale', items: [
-    { key: 'dashboard', href: '/', label: 'Dashboard', icon: true },
-  ]},
-  { section: 'Actifs', items: [
-    { key: 'mwre',  href: '/asset/mwre',  label: 'MSCI World',      color: '#6366f1' },
-    { key: 'btc',   href: '/asset/btc',   label: 'Bitcoin',         color: '#f7931a' },
-    { key: 'glda',  href: '/asset/glda',  label: 'Or (Gold)',       color: '#eab308' },
-
-  ]},
-  { section: 'Indicateurs', items: [
-    { key: 'vix',    href: '/asset/vix',    label: 'VIX',     color: '#ef4444' },
-    { key: 'eurusd', href: '/asset/eurusd', label: 'USD/EUR', color: '#3b82f6' },
-  ]},
+  {
+    section: 'Vue generale',
+    items: [{ key: 'dashboard', href: '/', label: 'Dashboard', icon: true }],
+  },
+  {
+    section: 'Actifs',
+    items: [
+      { key: 'mwre', href: '/asset/mwre', label: 'MSCI World', color: '#6366f1' },
+      { key: 'btc', href: '/asset/btc', label: 'Bitcoin', color: '#f7931a' },
+      { key: 'glda', href: '/asset/glda', label: 'Or (Gold)', color: '#eab308' },
+    ],
+  },
+  {
+    section: 'Indicateurs',
+    items: [
+      { key: 'vix', href: '/asset/vix', label: 'VIX', color: '#ef4444' },
+      { key: 'eurusd', href: '/asset/eurusd', label: 'USD/EUR', color: '#3b82f6' },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -31,52 +37,58 @@ export default function Sidebar() {
   }
 
   return (
-    <nav className="w-[260px] bg-[var(--sidebar-bg)] border-r border-[var(--border)] flex flex-col fixed top-0 left-0 bottom-0 z-50 max-md:hidden">
-      <div className="px-5 pb-5 pt-5 border-b border-[var(--border)]">
-        <h1 className="text-lg font-bold text-[var(--text)]">Portfolio Tracker</h1>
-        <p className="text-xs text-[var(--muted)] mt-1">Suivi temps reel</p>
+    <nav className="w-[280px] glass-panel border-r border-[var(--border)] flex flex-col fixed top-0 left-0 bottom-0 z-50 max-md:hidden">
+      <div className="px-6 pb-5 pt-6 border-b border-[var(--border)]">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-9 h-9 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center text-xs font-bold">PT</div>
+          <h1 className="text-lg font-bold text-[var(--text)]">Portfolio Tracker</h1>
+        </div>
+        <p className="text-xs text-[var(--muted)]">Vue macro & analytics de portefeuille</p>
       </div>
 
-      <div className="flex-1 px-2.5 py-3 overflow-y-auto">
+      <div className="flex-1 px-3 py-4 overflow-y-auto">
         {navItems.map((section) => (
-          <div key={section.section} className="mb-4">
-            <div className="text-[11px] uppercase text-[var(--muted)] px-3 tracking-wider font-semibold mb-1">
+          <div key={section.section} className="mb-5 last:mb-0">
+            <div className="text-[10px] uppercase text-[var(--muted)] px-3 tracking-[0.18em] font-semibold mb-2">
               {section.section}
             </div>
-            {section.items.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                  isActive(item.href)
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
-                }`}
-              >
-                {'icon' in item ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                  </svg>
-                ) : (
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} />
-                )}
-                {item.label}
-              </Link>
-            ))}
+            <div className="space-y-1">
+              {section.items.map((item) => (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    isActive(item.href)
+                      ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
+                      : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {'icon' in item ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" />
+                      <rect x="14" y="14" width="7" height="7" rx="1" />
+                    </svg>
+                  ) : (
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} />
+                  )}
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="px-5 py-3 border-t border-[var(--border)] text-[11px] text-[var(--muted)]">
+      <div className="px-5 py-4 border-t border-[var(--border)] text-[11px] text-[var(--muted)]">
         <ThemeToggle />
-        <div className="mt-3">
-        <span className="inline-block w-2 h-2 rounded-full bg-[#10b981] mr-1.5 animate-pulse" />
-        Donnees Yahoo Finance
-        <br />
-        <span>{lastUpdate ?? '--'}</span>
+        <div className="mt-3 bg-[var(--panel-hover)] rounded-xl p-3">
+          <div className="font-medium text-[var(--text)] mb-1">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#10b981] mr-1.5 animate-pulse" />
+            Flux Yahoo Finance
+          </div>
+          <span>{lastUpdate ?? '--'}</span>
         </div>
       </div>
     </nav>
