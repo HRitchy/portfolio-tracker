@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card';
+import { useToast } from '@/components/ui/Toast';
 import {
   getAssetAdvice,
   getAssetClassLabel,
@@ -22,17 +23,19 @@ import { fmtPct } from '@/lib/formatting';
 
 function useFearGreed(): number | null {
   const [score, setScore] = useState<number | null>(null);
+  const { showToast } = useToast();
   useEffect(() => {
     fetch('/api/feargreed', { signal: AbortSignal.timeout(20000) })
       .then((r) => r.json())
       .then((d) => setScore(d.fear_and_greed?.score ?? null))
-      .catch(() => {});
-  }, []);
+      .catch(() => showToast('Fear & Greed Index indisponible', 'warning'));
+  }, [showToast]);
   return score;
 }
 
 function useHYSpread(): number | null {
   const [spread, setSpread] = useState<number | null>(null);
+  const { showToast } = useToast();
   useEffect(() => {
     fetch('/api/fred', { signal: AbortSignal.timeout(20000) })
       .then((r) => r.json())
@@ -40,9 +43,10 @@ function useHYSpread(): number | null {
         const obs = d.observations ?? [];
         const latest = obs.find((o: { value: string }) => o.value !== '.');
         if (latest) setSpread(parseFloat(latest.value));
+        else showToast('HY Spread indisponible', 'warning');
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => showToast('HY Spread (FRED) indisponible', 'warning'));
+  }, [showToast]);
   return spread;
 }
 

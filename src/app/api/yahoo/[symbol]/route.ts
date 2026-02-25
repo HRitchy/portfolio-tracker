@@ -3,11 +3,16 @@ import dns from 'node:dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
+const ALLOWED_SYMBOLS = new Set(['MWRE.DE', 'BTC-EUR', 'GLDA.DE', '^VIX', 'EUR=X']);
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ symbol: string }> }
 ) {
   const { symbol } = await params;
+  if (!ALLOWED_SYMBOLS.has(symbol)) {
+    return NextResponse.json({ error: 'Symbol not allowed' }, { status: 400 });
+  }
   const days = parseInt(request.nextUrl.searchParams.get('days') ?? '500');
   const period1 = Math.floor((Date.now() - 86400000 * days) / 1000);
   const period2 = Math.floor(Date.now() / 1000);

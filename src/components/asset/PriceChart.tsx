@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
@@ -18,15 +18,28 @@ function calcEvolution(series: { close: number }[]): number | null {
 
 export default function PriceChart({ data, config }: { data: ProcessedAsset; config: AssetConfig }) {
   const [days, setDays] = useState(180);
-  const series = (() => {
+  const series = useMemo(() => {
     if (days >= 9999) return data.series;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return data.series.filter((s) => s.dateObj >= cutoff);
-  })();
+  }, [data.series, days]);
   const priceColor = config.color;
   const priceAreaColor = config.colorBg;
   const evolution = calcEvolution(series);
+
+  const chartData = useMemo(() => ({
+    datasets: [{
+      label: config.name,
+      data: series.map((s) => ({ x: s.dateObj.getTime(), y: s.close })),
+      borderColor: priceColor,
+      backgroundColor: priceAreaColor,
+      borderWidth: 2,
+      pointRadius: 0,
+      fill: true,
+      tension: 0.1,
+    }],
+  }), [series, config.name, priceColor, priceAreaColor]);
 
   return (
     <Card>
@@ -39,21 +52,7 @@ export default function PriceChart({ data, config }: { data: ProcessedAsset; con
         )}
       </div>
       <div className="relative h-[350px] w-full">
-        <Line
-          data={{
-            datasets: [{
-              label: config.name,
-              data: series.map((s) => ({ x: s.dateObj.getTime(), y: s.close })),
-              borderColor: priceColor,
-              backgroundColor: priceAreaColor,
-              borderWidth: 2,
-              pointRadius: 0,
-              fill: true,
-              tension: 0.1,
-            }],
-          }}
-          options={chartOpts('Cours') as never}
-        />
+        <Line data={chartData} options={chartOpts('Cours') as never} />
       </div>
     </Card>
   );
