@@ -50,7 +50,6 @@ export default function DashboardPage() {
       ) : (
         <>
           <section className="data-card p-5 md:p-6 mb-4">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--muted)] mb-4 font-semibold">Synthese du jour</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-xl border border-[var(--border)] bg-[var(--panel-hover)] p-4">
                 <div className="text-xs text-[var(--muted)] mb-1">Performance moyenne</div>
