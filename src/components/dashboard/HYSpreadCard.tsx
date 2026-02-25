@@ -25,7 +25,10 @@ export default function HYSpreadCard() {
 
   useEffect(() => {
     fetch('/api/fred', { signal: AbortSignal.timeout(20000) })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => setObs(d.observations ?? null))
       .catch(() => setError(true));
   }, []);
