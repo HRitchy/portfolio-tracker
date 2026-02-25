@@ -74,6 +74,56 @@ export function calcRSI(series: SeriesPoint[], period: number): (number | null)[
   return out;
 }
 
+/**
+ * Calculates drawdown from peak for each point in the series.
+ * Returns an array of negative percentages (0 = at peak, -X% = X% below peak).
+ */
+export function calcDrawdown(series: SeriesPoint[]): (number | null)[] {
+  const out: (number | null)[] = new Array(series.length).fill(null);
+  let peak = -Infinity;
+  for (let i = 0; i < series.length; i++) {
+    const c = series[i].close;
+    if (c > peak) peak = c;
+    out[i] = +((c - peak) / peak * 100).toFixed(2);
+  }
+  return out;
+}
+
+/**
+ * Calculates Bollinger Bands (middle = SMA, upper/lower = SMA +/- k*stddev).
+ * Default: 20-period SMA with 2 standard deviations.
+ */
+export function calcBollinger(series: SeriesPoint[], window = 20, k = 2): {
+  upper: (number | null)[];
+  middle: (number | null)[];
+  lower: (number | null)[];
+} {
+  const L = series.length;
+  const upper: (number | null)[] = new Array(L).fill(null);
+  const middle: (number | null)[] = new Array(L).fill(null);
+  const lower: (number | null)[] = new Array(L).fill(null);
+
+  for (let i = window - 1; i < L; i++) {
+    let sum = 0;
+    for (let j = i - window + 1; j <= i; j++) {
+      sum += series[j].close;
+    }
+    const mean = sum / window;
+
+    let sqSum = 0;
+    for (let j = i - window + 1; j <= i; j++) {
+      const diff = series[j].close - mean;
+      sqSum += diff * diff;
+    }
+    const stddev = Math.sqrt(sqSum / window);
+
+    middle[i] = +mean.toFixed(6);
+    upper[i] = +(mean + k * stddev).toFixed(6);
+    lower[i] = +(mean - k * stddev).toFixed(6);
+  }
+  return { upper, middle, lower };
+}
+
 export function processAsset(key: AssetKey, result: YahooResult): ProcessedAsset | null {
   const series = extractCleanSeries(result);
   if (series.length === 0) return null;
@@ -92,6 +142,15 @@ export function processAsset(key: AssetKey, result: YahooResult): ProcessedAsset
     data.rsi7 = calcRSI(series, 7);
     data.rsi14 = calcRSI(series, 14);
     data.rsi28 = calcRSI(series, 28);
+  }
+  if (cfg.hasDrawdown) {
+    data.drawdown = calcDrawdown(series);
+  }
+  if (cfg.hasBollinger) {
+    const bb = calcBollinger(series, 20, 2);
+    data.bollingerUpper = bb.upper;
+    data.bollingerMiddle = bb.middle;
+    data.bollingerLower = bb.lower;
   }
   return data;
 }

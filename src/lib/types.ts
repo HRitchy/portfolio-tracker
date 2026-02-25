@@ -7,6 +7,8 @@ export interface AssetConfig {
   hasRSI: boolean;
   hasMM: boolean;
   hasMM200?: boolean;
+  hasDrawdown: boolean;
+  hasBollinger: boolean;
 }
 
 export interface SeriesPoint {
@@ -25,6 +27,10 @@ export interface ProcessedAsset {
   rsi7?: (number | null)[];
   rsi14?: (number | null)[];
   rsi28?: (number | null)[];
+  drawdown?: (number | null)[];
+  bollingerUpper?: (number | null)[];
+  bollingerMiddle?: (number | null)[];
+  bollingerLower?: (number | null)[];
 }
 
 export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';

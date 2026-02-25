@@ -10,11 +10,13 @@ import PriceChart from '@/components/asset/PriceChart';
 import MovingAverageChart from '@/components/asset/MovingAverageChart';
 import RSIChart from '@/components/asset/RSIChart';
 import AssetVariationChart from '@/components/asset/AssetVariationChart';
+import DrawdownChart from '@/components/asset/DrawdownChart';
+import BollingerChart from '@/components/asset/BollingerChart';
 import DataTable from '@/components/asset/DataTable';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import RefreshButton from '@/components/ui/RefreshButton';
 
-type Tab = 'cours' | 'mm' | 'rsi' | 'variations' | 'donnees';
+type Tab = 'cours' | 'mm' | 'rsi' | 'drawdown' | 'bollinger' | 'variations' | 'donnees';
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
@@ -60,6 +62,8 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
     { id: 'cours', label: 'Cours', show: true },
     { id: 'mm', label: 'Moyennes Mobiles', show: config.hasMM },
     { id: 'rsi', label: 'RSI', show: config.hasRSI },
+    { id: 'drawdown', label: 'Drawdown', show: config.hasDrawdown },
+    { id: 'bollinger', label: 'Bollinger', show: config.hasBollinger },
     { id: 'variations', label: 'Variations', show: true },
     { id: 'donnees', label: 'Donnees', show: true },
   ];
@@ -112,6 +116,8 @@ export default function AssetPage() {
           {tab === 'cours' && <PriceChart data={data} config={config} />}
           {tab === 'mm' && config.hasMM && <MovingAverageChart data={data} config={config} assetKey={key} />}
           {tab === 'rsi' && config.hasRSI && <RSIChart data={data} assetKey={key} />}
+          {tab === 'drawdown' && config.hasDrawdown && <DrawdownChart data={data} config={config} />}
+          {tab === 'bollinger' && config.hasBollinger && <BollingerChart data={data} config={config} assetKey={key} />}
           {tab === 'variations' && <AssetVariationChart data={data} />}
           {tab === 'donnees' && <DataTable data={data} config={config} assetKey={key} />}
         </>
