@@ -1,6 +1,7 @@
 export interface AssetConfig {
   symbol: string;
   name: string;
+  assetClass: string;
 
   color: string;
   colorBg: string;
@@ -34,6 +35,15 @@ export interface ProcessedAsset {
 }
 
 export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
+
+export type Advice = 'Achat' | 'Vente' | 'Conservation';
+
+export interface AssetAdvice {
+  key: AssetKey;
+  advice: Advice;
+  score: number;
+  reasons: string[];
+}
 
 export type Store = Partial<Record<AssetKey, ProcessedAsset | null>>;
 

@@ -1,12 +1,12 @@
 import { AssetConfig, AssetKey } from './types';
 
 export const ASSETS: Record<AssetKey, AssetConfig> = {
-  mwre:   { symbol: 'MWRE.DE', name: 'MSCI World',      color: 'rgb(99,102,241)',  colorBg: 'rgba(99,102,241,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
-  btc:    { symbol: 'BTC-EUR', name: 'Bitcoin',          color: 'rgb(247,147,26)',  colorBg: 'rgba(247,147,26,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
-  glda:   { symbol: 'GLDA.DE', name: 'Or (GLDA)',        color: 'rgb(234,179,8)',   colorBg: 'rgba(234,179,8,0.1)',   hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
+  mwre:   { symbol: 'MWRE.DE', name: 'MSCI World',      assetClass: 'Actions',   color: 'rgb(99,102,241)',  colorBg: 'rgba(99,102,241,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
+  btc:    { symbol: 'BTC-EUR', name: 'Bitcoin',          assetClass: 'Crypto',    color: 'rgb(247,147,26)',  colorBg: 'rgba(247,147,26,0.1)',  hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
+  glda:   { symbol: 'GLDA.DE', name: 'Or (GLDA)',        assetClass: 'Métaux',    color: 'rgb(234,179,8)',   colorBg: 'rgba(234,179,8,0.1)',   hasRSI: true,  hasMM: true,  hasDrawdown: true,  hasBollinger: true  },
 
-  vix:    { symbol: '^VIX',    name: 'VIX',              color: 'rgb(239,68,68)',   colorBg: 'rgba(239,68,68,0.1)',   hasRSI: false, hasMM: true, hasMM200: false, hasDrawdown: false, hasBollinger: false },
-  eurusd: { symbol: 'EUR=X',   name: 'USD/EUR',          color: 'rgb(59,130,246)',  colorBg: 'rgba(59,130,246,0.1)',  hasRSI: false, hasMM: false, hasDrawdown: false, hasBollinger: false },
+  vix:    { symbol: '^VIX',    name: 'VIX',              assetClass: 'Volatilité', color: 'rgb(239,68,68)',   colorBg: 'rgba(239,68,68,0.1)',   hasRSI: false, hasMM: true, hasMM200: false, hasDrawdown: false, hasBollinger: false },
+  eurusd: { symbol: 'EUR=X',   name: 'USD/EUR',          assetClass: 'Devises',    color: 'rgb(59,130,246)',  colorBg: 'rgba(59,130,246,0.1)',  hasRSI: false, hasMM: false, hasDrawdown: false, hasBollinger: false },
 };
 
 export const TIMEZONE = 'Indian/Reunion';

@@ -8,6 +8,7 @@ import RSIOverview from '@/components/dashboard/RSIOverview';
 import DrawdownOverview from '@/components/dashboard/DrawdownOverview';
 import HYSpreadCard from '@/components/dashboard/HYSpreadCard';
 import FearGreedCard from '@/components/dashboard/FearGreedCard';
+import AdviceOverview from '@/components/dashboard/AdviceOverview';
 import RefreshButton from '@/components/ui/RefreshButton';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -50,6 +51,9 @@ export default function DashboardPage() {
 
           <RSIOverview store={store} />
           <DrawdownOverview store={store} />
+          <div className="mt-4">
+            <AdviceOverview store={store} />
+          </div>
         </>
       )}
     </>
