@@ -51,14 +51,18 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const newStore: Store = {};
 
-    const results = await Promise.all(
+    const results = await Promise.allSettled(
       ASSET_KEYS.map(async (key: AssetKey) => {
         const result = await fetchAssetData(ASSETS[key].symbol);
         return { key, data: result ? processAsset(key, result) : null };
       })
     );
-    results.forEach(({ key, data }) => {
-      newStore[key] = data;
+    results.forEach((res) => {
+      if (res.status === 'fulfilled') {
+        newStore[res.value.key] = res.value.data;
+      } else {
+        console.error('[PortfolioContext] Échec fetch actif :', res.reason);
+      }
     });
 
     const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });

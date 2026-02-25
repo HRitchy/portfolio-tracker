@@ -16,7 +16,11 @@ export async function GET() {
     return NextResponse.json({ fear_and_greed: fg }, {
       headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600' },
     });
-  } catch {
+  } catch (err) {
+    console.error('[/api/feargreed]', {
+      message: err instanceof Error ? err.message : String(err),
+      ts: new Date().toISOString(),
+    });
     return NextResponse.json({ error: 'Fetch failed' }, { status: 502 });
   }
 }

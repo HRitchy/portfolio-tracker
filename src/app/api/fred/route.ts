@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { env } from '@/lib/env';
 
 type Observation = { date: string; value: string };
 
@@ -26,7 +27,7 @@ async function fetchFromFREDCsv(): Promise<Observation[]> {
 }
 
 export async function GET() {
-  const apiKey = process.env.FRED_API_KEY;
+  const apiKey = env.FRED_API_KEY;
 
   if (apiKey) {
     try {
@@ -34,7 +35,11 @@ export async function GET() {
       return NextResponse.json({ observations }, {
         headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
       });
-    } catch {
+    } catch (err) {
+      console.warn('[/api/fred] Clé API FRED en échec, bascule sur CSV public :', {
+        message: err instanceof Error ? err.message : String(err),
+        ts: new Date().toISOString(),
+      });
       // Fall through to CSV fallback
     }
   }
@@ -45,7 +50,11 @@ export async function GET() {
     return NextResponse.json({ observations }, {
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
     });
-  } catch {
+  } catch (err) {
+    console.error('[/api/fred] CSV public en échec :', {
+      message: err instanceof Error ? err.message : String(err),
+      ts: new Date().toISOString(),
+    });
     return NextResponse.json({ error: 'Fetch failed' }, { status: 502 });
   }
 }

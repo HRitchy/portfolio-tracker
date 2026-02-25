@@ -8,7 +8,13 @@ export async function fetchAssetData(symbol: string, days = 500): Promise<YahooR
     if (!resp.ok) return null;
     const data = await resp.json();
     return data.result ?? null;
-  } catch {
+  } catch (err) {
+    console.error('[fetcher] fetchAssetData échoué :', {
+      symbol,
+      days,
+      message: err instanceof Error ? err.message : String(err),
+      ts: new Date().toISOString(),
+    });
     return null;
   }
 }
