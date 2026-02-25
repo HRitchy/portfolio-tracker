@@ -18,7 +18,12 @@ function calcEvolution(series: { close: number }[]): number | null {
 
 export default function PriceChart({ data, config }: { data: ProcessedAsset; config: AssetConfig }) {
   const [days, setDays] = useState(180);
-  const series = days >= 9999 ? data.series : data.series.slice(-days);
+  const series = (() => {
+    if (days >= 9999) return data.series;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return data.series.filter((s) => s.dateObj >= cutoff);
+  })();
   const priceColor = config.color;
   const priceAreaColor = config.colorBg;
   const evolution = calcEvolution(series);
