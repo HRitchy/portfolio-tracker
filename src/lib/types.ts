@@ -37,12 +37,40 @@ export interface ProcessedAsset {
 export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
 
 export type Advice = 'Achat' | 'Vente' | 'Conservation';
+export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Tres forte';
+export type MarketRegime = 'Capitulation' | 'Peur' | 'Neutre' | 'Euphorie' | 'Exuberance';
+
+export interface MarketContext {
+  fearGreed: number | null;
+  vixLevel: number | null;
+  vixMA50: number | null;
+  hySpread: number | null;
+  regime: MarketRegime;
+  regimeScore: number;
+  regimeReasons: string[];
+}
+
+export interface AssetMetrics {
+  drawdown: number | null;
+  rsi14: number | null;
+  rsi7: number | null;
+  rsi28: number | null;
+  distFromMA200Pct: number | null;
+  distFromMA50Pct: number | null;
+  bollingerPctB: number | null;
+  perf30d: number | null;
+  perf90d: number | null;
+  volatility30d: number | null;
+}
 
 export interface AssetAdvice {
   key: AssetKey;
   advice: Advice;
   score: number;
+  conviction: Conviction;
   reasons: string[];
+  buffettMaxim: string;
+  metrics: AssetMetrics;
 }
 
 export type Store = Partial<Record<AssetKey, ProcessedAsset | null>>;
