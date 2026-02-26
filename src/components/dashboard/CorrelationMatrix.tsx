@@ -61,10 +61,13 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
     return result;
   }, [store]);
 
-  const keys = PORTFOLIO_KEYS.filter((k) => returns[k]?.length > 0);
-  if (keys.length < 2) return null;
+  const keys = useMemo(
+    () => PORTFOLIO_KEYS.filter((k) => returns[k]?.length > 0),
+    [returns]
+  );
 
   const matrix = useMemo(() => {
+    if (keys.length < 2) return null;
     const m: Record<string, Record<string, number | null>> = {};
     for (const a of keys) {
       m[a] = {};
@@ -75,6 +78,8 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
     }
     return m;
   }, [keys, returns]);
+
+  if (!matrix || keys.length < 2) return null;
 
   return (
     <Card title="Matrice de correlation (rendements quotidiens)">

@@ -19,9 +19,7 @@ export default function PortfolioSummary({ store }: { store: Store }) {
     const items = PORTFOLIO_KEYS.map((key) => {
       const d = store[key];
       if (!d?.series?.length) return null;
-      const perf1d = d.series.length >= 2
-        ? ((d.series[d.series.length - 1].close - d.series[d.series.length - 2].close) / d.series[d.series.length - 2].close) * 100
-        : null;
+      const perf1d = calcPerf(d.series, 1);
       const perf7d = calcPerf(d.series, 5);
       const perf30d = calcPerf(d.series, 22);
       const perf90d = calcPerf(d.series, 66);
