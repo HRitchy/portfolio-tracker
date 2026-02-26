@@ -18,7 +18,7 @@ import { fmtPct } from '@/lib/formatting';
 
 function ConvictionScore({ conviction, score }: { conviction: AssetAdvice['conviction']; score: number }) {
   const absoluteScore = Math.abs(score);
-  const displayedScore = `+${absoluteScore}`;
+  const displayedScore = `${absoluteScore}`;
 
   return (
     <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction} (score absolu ${absoluteScore})`}>
