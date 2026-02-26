@@ -17,11 +17,12 @@ import { Store, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
 function ConvictionScore({ conviction, score }: { conviction: AssetAdvice['conviction']; score: number }) {
-  const rawScore = `${score > 0 ? '+' : ''}${score}`;
+  const absoluteScore = Math.abs(score);
+  const displayedScore = `+${absoluteScore}`;
 
   return (
-    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction} (score brut ${rawScore})`}>
-      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span> ({rawScore})
+    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction} (score absolu ${absoluteScore})`}>
+      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span> ({displayedScore})
     </div>
   );
 }
