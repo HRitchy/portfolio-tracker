@@ -15,14 +15,14 @@ export default function DrawdownOverview({ store }: { store: Store }) {
       return v < min ? v : min;
     }, null);
     const severity = current < -20 ? '#ef4444' : current < -10 ? '#f59e0b' : current < -5 ? '#eab308' : '#10b981';
-    const label = current < -20 ? 'Critique' : current < -10 ? 'Modere' : current < -5 ? 'Leger' : 'Faible';
+    const label = current < -20 ? 'Critique' : current < -10 ? 'Modéré' : current < -5 ? 'Léger' : 'Faible';
     return { key, name: ASSETS[key].name, current, maxDD, severity, label };
   }).filter(Boolean);
 
   return (
     <Card title="Drawdown - Vue d'ensemble" className="mb-0">
       {items.length === 0 ? (
-        <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnee Drawdown</div>
+        <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnée Drawdown</div>
       ) : (
         items.map((item) => item && (
           <div key={item.key} className="flex items-center gap-3 py-2">

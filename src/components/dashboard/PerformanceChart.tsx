@@ -39,7 +39,7 @@ export default function PerformanceChart({ store }: { store: Store }) {
   if (datasets.length === 0) return null;
 
   return (
-    <Card title="Performance comparee (normalise base 100)">
+    <Card title="Performance comparée (normalisé base 100)">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
         <PeriodSelector activeDays={days} onChange={setDays} />
       </div>

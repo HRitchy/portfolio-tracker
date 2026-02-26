@@ -122,7 +122,7 @@ describe('extractCleanSeries', () => {
       timestamp: [1, 2, 3, 4],
       indicators: { quote: [{ close: [null, null, 50.5, 60.0] }] },
     };
-    // @ts-expect-error — partial data for test
+
     const series = extractCleanSeries(result);
     expect(series).toHaveLength(2);
     expect(series[0].close).toBe(50.5);
@@ -134,14 +134,14 @@ describe('extractCleanSeries', () => {
       timestamp: [1, 2, 3],
       indicators: { quote: [{ close: [0, 100, 200] }] },
     };
-    // @ts-expect-error — partial data for test
+
     const series = extractCleanSeries(result);
     expect(series).toHaveLength(2);
   });
 
   it('returns empty array for empty timestamps', () => {
     const result = { timestamp: [], indicators: { quote: [{ close: [] }] } };
-    // @ts-expect-error — partial data for test
+
     const series = extractCleanSeries(result);
     expect(series).toHaveLength(0);
   });
@@ -151,7 +151,7 @@ describe('extractCleanSeries', () => {
       timestamp: [1700000000, 1700086400],
       indicators: { quote: [{ close: [42.5, 43.0] }] },
     };
-    // @ts-expect-error — partial data for test
+
     const series = extractCleanSeries(result);
     expect(series[0].ts).toBe(1700000000);
     expect(series[1].ts).toBe(1700086400);

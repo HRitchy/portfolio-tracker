@@ -9,14 +9,14 @@ export default function RSIOverview({ store }: { store: Store }) {
     const val = d.rsi14[d.rsi14.length - 1];
     if (val == null) return null;
     const color = val > 70 ? '#ef4444' : val < 30 ? '#10b981' : '#6366f1';
-    const label = val > 70 ? 'Surachete' : val < 30 ? 'Survendu' : 'Neutre';
+    const label = val > 70 ? 'Suracheté' : val < 30 ? 'Survendu' : 'Neutre';
     return { key, name: ASSETS[key].name, val, color, label };
   }).filter(Boolean);
 
   return (
     <Card title="RSI - Vue d'ensemble" className="mb-0">
       {items.length === 0 ? (
-        <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnee RSI</div>
+        <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnée RSI</div>
       ) : (
         items.map((item) => item && (
           <div key={item.key} className="flex items-center gap-3 py-2">

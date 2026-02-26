@@ -100,7 +100,7 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
       </Card>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
-          <div className="text-xs text-[var(--muted)] mb-2">Bande superieure</div>
+          <div className="text-xs text-[var(--muted)] mb-2">Bande supérieure</div>
           <div className="text-[22px] font-bold">{lastUpper != null ? fmtPrice(lastUpper, digits) : '--'}</div>
         </div>
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
@@ -108,7 +108,7 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
           <div className="text-[22px] font-bold">{lastMiddle != null ? fmtPrice(lastMiddle, digits) : '--'}</div>
         </div>
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
-          <div className="text-xs text-[var(--muted)] mb-2">Bande inferieure</div>
+          <div className="text-xs text-[var(--muted)] mb-2">Bande inférieure</div>
           <div className="text-[22px] font-bold">{lastLower != null ? fmtPrice(lastLower, digits) : '--'}</div>
         </div>
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">

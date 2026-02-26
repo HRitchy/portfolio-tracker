@@ -2,13 +2,40 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
+function useRelativeTime(lastUpdate: string | null): string {
+  const [relative, setRelative] = useState('--');
+
+  const compute = useCallback(() => {
+    if (!lastUpdate) return '--';
+    const parts = lastUpdate.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2}):?(\d{2})?/);
+    if (!parts) return lastUpdate;
+    const d = new Date(+parts[3], +parts[2] - 1, +parts[1], +parts[4], +parts[5], +(parts[6] ?? 0));
+    const diffMs = Date.now() - d.getTime();
+    if (diffMs < 0 || isNaN(diffMs)) return lastUpdate;
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 60) return 'À l\'instant';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `Il y a ${min} min`;
+    const hr = Math.floor(min / 60);
+    return `Il y a ${hr}h${min % 60 > 0 ? `${String(min % 60).padStart(2, '0')}` : ''}`;
+  }, [lastUpdate]);
+
+  useEffect(() => {
+    setRelative(compute());
+    const interval = setInterval(() => setRelative(compute()), 30_000);
+    return () => clearInterval(interval);
+  }, [compute]);
+
+  return relative;
+}
+
 const navItems = [
   {
-    section: 'Vue generale',
+    section: 'Vue générale',
     items: [{ key: 'dashboard', href: '/', label: 'Dashboard', icon: true }],
   },
   {
@@ -31,6 +58,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { lastUpdate } = usePortfolio();
+  const relativeTime = useRelativeTime(lastUpdate);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -180,7 +208,7 @@ export default function Sidebar() {
               <span className="inline-block w-2 h-2 rounded-full bg-[#10b981] mr-1.5 animate-pulse" aria-hidden="true" />
               Flux Yahoo Finance
             </div>
-            <span>{lastUpdate ?? '--'}</span>
+            <span title={lastUpdate ?? undefined}>{relativeTime}</span>
           </div>
         </div>
       </nav>
