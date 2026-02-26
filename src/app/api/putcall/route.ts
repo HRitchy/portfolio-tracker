@@ -3,6 +3,19 @@ import { env } from '@/lib/env';
 
 type PCRObservation = { date: string; value: string };
 
+function isValidValue(value: string): boolean {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed);
+}
+
+function normalizeLatestObservations(observations: PCRObservation[], limit = 5): PCRObservation[] {
+  return observations
+    .filter((obs) => obs.date && isValidValue(obs.value))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-limit)
+    .reverse();
+}
+
 function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObservation[] {
   const lines = text
     .trim()
@@ -22,13 +35,15 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
   }
 
   const dataLines = lines.slice(1);
-  return dataLines.slice(-5).reverse().map((line) => {
+  const parsed = dataLines.map((line) => {
     const cols = line.split(',');
     return {
       date: cols[dateCol]?.trim().replace(/^"|"$/g, '') ?? '',
       value: cols[ratioCol]?.trim().replace(/^"|"$/g, '') ?? '',
     };
   });
+
+  return normalizeLatestObservations(parsed);
 }
 
 async function fetchFromCBOE(): Promise<PCRObservation[]> {
@@ -47,7 +62,7 @@ async function fetchFromFREDApi(apiKey: string): Promise<PCRObservation[]> {
   const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!resp.ok) throw new Error(`FRED API error: ${resp.status}`);
   const data = await resp.json();
-  return data?.observations ?? [];
+  return normalizeLatestObservations(data?.observations ?? []);
 }
 
 async function fetchFromFREDCsv(): Promise<PCRObservation[]> {
