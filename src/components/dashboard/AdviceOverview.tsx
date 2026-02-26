@@ -21,7 +21,7 @@ import { fmtPct } from '@/lib/formatting';
    Conviction dots component
    ───────────────────────────────────────────── */
 
-function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice: string }) {
+function ConvictionDots({ conviction, advice, score }: { conviction: Conviction; advice: string; score: number }) {
   const level = convictionLevel(conviction);
   const activeColor =
     advice === 'Achat' ? 'bg-emerald-500' :
@@ -39,7 +39,7 @@ function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice
           aria-hidden="true"
         />
       ))}
-      <span className="text-[10px] text-[var(--muted)] ml-1">{conviction}</span>
+      <span className="text-[10px] text-[var(--muted)] ml-1">{score}</span>
     </div>
   );
 }
@@ -165,9 +165,9 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
         </div>
         <div className="flex flex-col items-end gap-1">
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
-            {item.advice}
+            {item.score > 0 ? '+' : ''}{item.score}
           </div>
-          <ConvictionDots conviction={item.conviction} advice={item.advice} />
+          <ConvictionDots conviction={item.conviction} advice={item.advice} score={item.score} />
         </div>
       </div>
 
