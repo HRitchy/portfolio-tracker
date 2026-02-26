@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server';
-import { env } from '@/lib/env';
 
 type PCRObservation = { date: string; value: string };
-
-const STATIC_FALLBACK_OBSERVATIONS: PCRObservation[] = [
-  { date: '2024-12-31', value: '0.76' },
-  { date: '2024-12-30', value: '0.79' },
-  { date: '2024-12-27', value: '0.81' },
-  { date: '2024-12-26', value: '0.83' },
-  { date: '2024-12-24', value: '0.78' },
-];
 
 function isValidValue(value: string): boolean {
   const parsed = Number.parseFloat(value);
@@ -24,7 +15,7 @@ function normalizeLatestObservations(observations: PCRObservation[], limit = 5):
     .reverse();
 }
 
-function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObservation[] {
+function parseLatestObservationsFromCsv(text: string): PCRObservation[] {
   const lines = text
     .trim()
     .split(/\r?\n/)
@@ -36,14 +27,13 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
     .split(',')
     .map((h) => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '').toUpperCase());
   const dateCol = header.findIndex((h) => h.includes('DATE'));
-  const ratioCol = header.findIndex((h) => h.includes('RATIO') || h === 'TOTAL_PC' || h === seriesId.toUpperCase());
+  const ratioCol = header.findIndex((h) => h.includes('RATIO') || h === 'TOTAL_PC');
 
   if (dateCol < 0 || ratioCol < 0) {
     throw new Error(`CSV: missing columns (header: ${header.join(',')})`);
   }
 
-  const dataLines = lines.slice(1);
-  const parsed = dataLines.map((line) => {
+  const parsed = lines.slice(1).map((line) => {
     const cols = line.split(',');
     return {
       date: cols[dateCol]?.trim().replace(/^"|"$/g, '') ?? '',
@@ -62,73 +52,27 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
   });
   if (!resp.ok) throw new Error(`CBOE CSV error: ${resp.status}`);
   const text = await resp.text();
-  return parseLatestObservationsFromCsv(text, 'TOTAL_PC');
-}
-
-async function fetchFromFREDApi(apiKey: string): Promise<PCRObservation[]> {
-  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=PUTCALL&api_key=${apiKey}&file_type=json&sort_order=desc&limit=5`;
-  const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (!resp.ok) throw new Error(`FRED API error: ${resp.status}`);
-  const data = await resp.json();
-  return normalizeLatestObservations(data?.observations ?? []);
-}
-
-async function fetchFromFREDCsv(): Promise<PCRObservation[]> {
-  const url = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=PUTCALL';
-  const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (!resp.ok) throw new Error(`FRED CSV error: ${resp.status}`);
-  const text = await resp.text();
-  return parseLatestObservationsFromCsv(text, 'PUTCALL');
+  return parseLatestObservationsFromCsv(text);
 }
 
 export async function GET() {
-  const apiKey = env.FRED_API_KEY;
-
   try {
     const observations = await fetchFromCBOE();
-    return NextResponse.json({ observations }, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    });
+    return NextResponse.json(
+      { observations },
+      { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' } }
+    );
   } catch (err) {
-    console.warn('[/api/putcall] CBOE CSV en échec, bascule sur FRED :', {
-      message: err instanceof Error ? err.message : String(err),
-      ts: new Date().toISOString(),
-    });
-  }
-
-  if (apiKey) {
-    try {
-      const observations = await fetchFromFREDApi(apiKey);
-      return NextResponse.json({ observations }, {
-        headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-      });
-    } catch (err) {
-      console.warn('[/api/putcall] Clé API FRED en échec, bascule sur CSV public :', {
-        message: err instanceof Error ? err.message : String(err),
-        ts: new Date().toISOString(),
-      });
-    }
-  }
-
-  try {
-    const observations = await fetchFromFREDCsv();
-    return NextResponse.json({ observations }, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    });
-  } catch (err) {
-    console.error('[/api/putcall] Fallback FRED CSV en échec :', {
+    console.error('[/api/putcall] CBOE requis mais indisponible :', {
       message: err instanceof Error ? err.message : String(err),
       ts: new Date().toISOString(),
     });
 
     return NextResponse.json(
       {
-        observations: STATIC_FALLBACK_OBSERVATIONS,
-        warning: 'Live data unavailable, using embedded fallback snapshot.',
+        error: 'CBOE put/call data unavailable',
       },
-      {
-        headers: { 'Cache-Control': 'public, max-age=300' },
-      }
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 }
