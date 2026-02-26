@@ -3,11 +3,22 @@
 const SOURCES = [
   {
     name: 'CBOE',
-    url: 'https://cdn.cboe.com/api/global/us_indices/daily_prices/TOTAL_PC.csv',
+    url: 'https://cdn.cboe.com/resources/options/volume_and_call_put_ratios/totalpc.csv',
     parse: (text) => {
       const lines = text.trim().split(/\r?\n/).filter(Boolean);
       if (lines.length < 2) throw new Error('CSV vide');
-      const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, '').toUpperCase());
+      // Auto-detect header row (CBOE CSVs have metadata lines before the header)
+      let headerIdx = -1;
+      let headers = [];
+      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        const cols = lines[i].split(',').map((h) => h.trim().replace(/^"|"$/g, '').toUpperCase());
+        if (cols.some((h) => h.includes('DATE'))) {
+          headerIdx = i;
+          headers = cols;
+          break;
+        }
+      }
+      if (headerIdx < 0) throw new Error('En-tête introuvable dans les 10 premières lignes');
       const dateCol = headers.findIndex((h) => h.includes('DATE'));
       const ratioCol = headers.findIndex((h) => h.includes('RATIO') || h === 'TOTAL_PC');
       if (dateCol < 0 || ratioCol < 0) throw new Error(`Colonnes introuvables: ${headers.join(', ')}`);

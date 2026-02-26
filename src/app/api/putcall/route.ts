@@ -25,6 +25,18 @@ function normalizeLatestObservations(observations: PCRObservation[], limit = 5):
     .reverse();
 }
 
+/** Normalise a date string to YYYY-MM-DD regardless of input format. */
+function normalizeDate(raw: string): string {
+  // Handle MM/DD/YYYY (CBOE format)
+  const mdyMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdyMatch) {
+    const [, m, d, y] = mdyMatch;
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  // Already YYYY-MM-DD or other ISO-like format — return as-is
+  return raw;
+}
+
 function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObservation[] {
   const lines = text
     .trim()
@@ -33,21 +45,39 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
 
   if (lines.length < 2) throw new Error('CSV: no data rows');
 
-  const header = lines[0]
-    .split(',')
-    .map((h) => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '').toUpperCase());
+  // Auto-detect header row: find the first line whose columns contain "DATE".
+  // This handles CBOE CSVs that have metadata lines before the actual header.
+  let headerIdx = -1;
+  let header: string[] = [];
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const cols = lines[i]
+      .split(',')
+      .map((h) => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '').toUpperCase());
+    if (cols.some((h) => h.includes('DATE'))) {
+      headerIdx = i;
+      header = cols;
+      break;
+    }
+  }
+
+  if (headerIdx < 0) {
+    throw new Error(`CSV: no header row found in first 10 lines`);
+  }
+
   const dateCol = header.findIndex((h) => h.includes('DATE'));
-  const ratioCol = header.findIndex((h) => h.includes('RATIO') || h === 'TOTAL_PC' || h === seriesId.toUpperCase());
+  const ratioCol = header.findIndex(
+    (h) => h.includes('RATIO') || h === 'TOTAL_PC' || h === seriesId.toUpperCase(),
+  );
 
   if (dateCol < 0 || ratioCol < 0) {
     throw new Error(`CSV: missing columns (header: ${header.join(',')})`);
   }
 
-  const dataLines = lines.slice(1);
+  const dataLines = lines.slice(headerIdx + 1);
   const parsed = dataLines.map((line) => {
     const cols = line.split(',');
     return {
-      date: cols[dateCol]?.trim().replace(/^"|"$/g, '') ?? '',
+      date: normalizeDate(cols[dateCol]?.trim().replace(/^"|"$/g, '') ?? ''),
       value: cols[ratioCol]?.trim().replace(/^"|"$/g, '') ?? '',
     };
   });
@@ -56,7 +86,7 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
 }
 
 async function fetchFromCBOE(): Promise<PCRObservation[]> {
-  const url = 'https://cdn.cboe.com/api/global/us_indices/daily_prices/TOTAL_PC.csv';
+  const url = 'https://cdn.cboe.com/resources/options/volume_and_call_put_ratios/totalpc.csv';
   const resp = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
     signal: AbortSignal.timeout(15000),
