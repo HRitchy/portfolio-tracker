@@ -1,6 +1,6 @@
 'use client';
 
-import { useMacro } from '@/context/MacroContext';
+import { useMacro, type PutCallSource } from '@/context/MacroContext';
 
 function getRatioColor(v: number): string {
   if (v >= 1.2) return '#10b981';
@@ -18,8 +18,23 @@ function getRatioLabel(v: number): string {
   return 'Complaisance extrême';
 }
 
+function sourceLabel(source: PutCallSource | null): string | null {
+  switch (source) {
+    case 'cboe':
+      return 'Source: CBOE (officiel)';
+    case 'fred_api':
+      return 'Source: FRED API (peut être décalé)';
+    case 'fred_csv':
+      return 'Source: FRED CSV (peut être décalé)';
+    case 'static_fallback':
+      return 'Source: fallback interne (non live)';
+    default:
+      return null;
+  }
+}
+
 export default function PutCallRatioCard() {
-  const { pcrObs: obs, putCallRatioError: error } = useMacro();
+  const { pcrObs: obs, pcrSource, putCallRatioError: error } = useMacro();
 
   const latestIdx = obs?.findIndex((o) => o.value !== '.' && o.value !== '') ?? -1;
   const latest = latestIdx >= 0 ? obs![latestIdx] : null;
@@ -67,8 +82,12 @@ export default function PutCallRatioCard() {
               {getRatioLabel(val)}
             </span>
           </div>
-          {latest?.date && (
-            <div className="text-[11px] text-[var(--muted)] mt-1">{latest.date}</div>
+          {(latest?.date || pcrSource) && (
+            <div className="text-[11px] text-[var(--muted)] mt-1">
+              {latest?.date ?? ''}
+              {latest?.date && pcrSource ? ' • ' : ''}
+              {sourceLabel(pcrSource) ?? ''}
+            </div>
           )}
         </>
       )}
