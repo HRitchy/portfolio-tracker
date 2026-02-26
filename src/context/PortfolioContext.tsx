@@ -24,6 +24,17 @@ const PortfolioContext = createContext<PortfolioContextType>({
   refreshAll: async () => {},
 });
 
+function rehydrateDates(store: Store): void {
+  for (const key of Object.keys(store) as AssetKey[]) {
+    const asset = store[key];
+    if (asset?.series) {
+      for (const point of asset.series) {
+        point.dateObj = new Date(point.ts * 1000);
+      }
+    }
+  }
+}
+
 function loadSnapshot(): { store: Store; lastUpdate: string } | null {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
@@ -31,6 +42,9 @@ function loadSnapshot(): { store: Store; lastUpdate: string } | null {
     const parsed = JSON.parse(raw);
     // Ignore stale snapshots
     if (parsed.savedAt && Date.now() - parsed.savedAt > SNAPSHOT_TTL_MS) return null;
+    if (parsed.store) {
+      rehydrateDates(parsed.store);
+    }
     return parsed;
   } catch {
     return null;

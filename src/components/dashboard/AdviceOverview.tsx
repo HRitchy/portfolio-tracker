@@ -244,7 +244,9 @@ export default function AdviceOverview({ store }: { store: Store }) {
   const hySpread = useMemo(() => {
     if (!hyObs) return null;
     const latest = hyObs.find((o) => o.value !== '.');
-    return latest ? parseFloat(latest.value) : null;
+    if (!latest) return null;
+    const parsed = parseFloat(latest.value);
+    return Number.isFinite(parsed) ? parsed : null;
   }, [hyObs]);
 
   const { advices, marketContext } = useMemo(

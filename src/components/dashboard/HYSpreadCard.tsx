@@ -17,10 +17,15 @@ function getSpreadLabel(v: number): string {
 export default function HYSpreadCard() {
   const { hyObs: obs, hySpreadError: error } = useMacro();
 
-  const latest = obs?.find((o) => o.value !== '.');
-  const val = latest ? parseFloat(latest.value) : null;
-  const prev = obs && obs.length >= 2 ? obs.find((o, i) => i > 0 && o.value !== '.') : null;
-  const prevVal = prev ? parseFloat(prev.value) : null;
+  const latestIdx = obs?.findIndex((o) => o.value !== '.') ?? -1;
+  const latest = latestIdx >= 0 ? obs![latestIdx] : null;
+  const valRaw = latest ? parseFloat(latest.value) : NaN;
+  const val = Number.isFinite(valRaw) ? valRaw : null;
+  const prev = latestIdx >= 0
+    ? obs?.find((o, i) => i > latestIdx && o.value !== '.') ?? null
+    : null;
+  const prevValRaw = prev ? parseFloat(prev.value) : NaN;
+  const prevVal = Number.isFinite(prevValRaw) ? prevValRaw : null;
   const delta = val != null && prevVal != null ? val - prevVal : null;
 
   return (
