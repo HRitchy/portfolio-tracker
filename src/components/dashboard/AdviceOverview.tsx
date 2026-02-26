@@ -72,6 +72,12 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
               <div className="font-bold text-sm">{mkt.hySpread.toFixed(2)}%</div>
             </div>
           )}
+          {mkt.putCallRatio != null && (
+            <div className="text-center">
+              <div className="text-[10px] text-[var(--muted)] uppercase">P/C Ratio</div>
+              <div className="font-bold text-sm">{mkt.putCallRatio.toFixed(2)}</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -221,7 +227,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
    ───────────────────────────────────────────── */
 
 export default function AdviceOverview({ store }: { store: Store }) {
-  const { fearGreedData, hyObs } = useMacro();
+  const { fearGreedData, hyObs, pcrObs } = useMacro();
 
   const fearGreed = fearGreedData?.score ?? null;
   const hySpread = useMemo(() => {
@@ -232,9 +238,17 @@ export default function AdviceOverview({ store }: { store: Store }) {
     return Number.isFinite(parsed) ? parsed : null;
   }, [hyObs]);
 
+  const putCallRatio = useMemo(() => {
+    if (!pcrObs) return null;
+    const latest = pcrObs.find((o) => o.value !== '.' && o.value !== '');
+    if (!latest) return null;
+    const parsed = parseFloat(latest.value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [pcrObs]);
+
   const { advices, marketContext } = useMemo(
-    () => getAssetAdvice(store, fearGreed, hySpread),
-    [store, fearGreed, hySpread]
+    () => getAssetAdvice(store, fearGreed, hySpread, putCallRatio),
+    [store, fearGreed, hySpread, putCallRatio]
   );
 
   return (

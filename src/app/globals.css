@@ -147,6 +147,7 @@ body,
 .stagger-4 { animation-delay: 0.20s; }
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.30s; }
+.stagger-7 { animation-delay: 0.35s; }
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out both;
