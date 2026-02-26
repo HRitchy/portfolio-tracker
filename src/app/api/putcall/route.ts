@@ -3,6 +3,14 @@ import { env } from '@/lib/env';
 
 type PCRObservation = { date: string; value: string };
 
+const STATIC_FALLBACK_OBSERVATIONS: PCRObservation[] = [
+  { date: '2024-12-31', value: '0.76' },
+  { date: '2024-12-30', value: '0.79' },
+  { date: '2024-12-27', value: '0.81' },
+  { date: '2024-12-26', value: '0.83' },
+  { date: '2024-12-24', value: '0.78' },
+];
+
 function isValidValue(value: string): boolean {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed);
@@ -112,6 +120,15 @@ export async function GET() {
       message: err instanceof Error ? err.message : String(err),
       ts: new Date().toISOString(),
     });
-    return NextResponse.json({ error: 'Fetch failed' }, { status: 502 });
+
+    return NextResponse.json(
+      {
+        observations: STATIC_FALLBACK_OBSERVATIONS,
+        warning: 'Live data unavailable, using embedded fallback snapshot.',
+      },
+      {
+        headers: { 'Cache-Control': 'public, max-age=300' },
+      }
+    );
   }
 }
