@@ -14,11 +14,13 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
   const lines = text.trim().split('\n');
   if (lines.length < 2) throw new Error('CBOE CSV: no data rows');
 
-  const header = lines[0].split(',').map((h) => h.trim().toUpperCase());
-  const dateCol = header.findIndex((h) => h === 'TRADE_DATE' || h === 'DATE');
+  // Strip surrounding double-quotes before matching, in case CBOE delivers quoted CSV headers.
+  const header = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, '').toUpperCase());
+  const dateCol = header.findIndex((h) => h.includes('DATE'));
   const ratioCol = header.findIndex((h) => h.includes('RATIO') || h === 'TOTAL_PC');
 
   if (dateCol < 0 || ratioCol < 0) {
+    console.error('[/api/putcall] CBOE CSV: en-têtes reçus :', header);
     throw new Error(`CBOE CSV: colonnes introuvables (header: ${header.join(',')})`);
   }
 
@@ -26,8 +28,9 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
   return dataLines.slice(-5).reverse().map((line) => {
     const cols = line.split(',');
     return {
-      date: cols[dateCol].trim(),
-      value: cols[ratioCol].trim(),
+      // Strip surrounding double-quotes from data values as well.
+      date: cols[dateCol].trim().replace(/^"|"$/g, ''),
+      value: cols[ratioCol].trim().replace(/^"|"$/g, ''),
     };
   });
 }
