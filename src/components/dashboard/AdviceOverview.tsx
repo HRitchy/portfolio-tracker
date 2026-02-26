@@ -262,7 +262,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div>
             <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
-              Point 3 · Score final -&gt; recommandation
+              Recommandation
             </p>
             <ul className="space-y-1 text-[var(--muted)] list-none">
               <li><span className="font-semibold text-[var(--text)]">Score ≥ +4</span> : Achat</li>
