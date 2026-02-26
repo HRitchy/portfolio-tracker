@@ -46,7 +46,7 @@ export default function VolatilityChart({ store }: { store: Store }) {
   if (datasets.length === 0) return null;
 
   return (
-    <Card title="Volatilite realisee glissante (30j, annualisee)">
+    <Card title="Volatilité réalisée glissante (30j, annualisée)">
       <div className="relative h-[300px] w-full">
         <Line
           data={{ datasets: datasets as never[] }}

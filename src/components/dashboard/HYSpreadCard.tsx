@@ -9,7 +9,7 @@ function getSpreadColor(v: number): string {
 }
 
 function getSpreadLabel(v: number): string {
-  if (v >= 5) return 'Stress eleve';
+  if (v >= 5) return 'Stress élevé';
   if (v >= 4) return 'Vigilance';
   return 'Normal';
 }

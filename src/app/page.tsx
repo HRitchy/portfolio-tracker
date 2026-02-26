@@ -25,7 +25,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 fade-in">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Cockpit Portfolio</h2>
-          <div className="text-sm text-[var(--muted)] mt-1">Performance, risque et momentum en un coup d&apos;oeil.</div>
+          <div className="text-sm text-[var(--muted)] mt-1">Performance, risque et momentum en un coup d&apos;œil.</div>
         </div>
         <RefreshButton />
       </div>

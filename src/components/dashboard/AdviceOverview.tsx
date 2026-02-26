@@ -40,7 +40,7 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
           <div className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-1">
-            Lecture contrarienne du marche
+            Lecture contrarienne du marché
           </div>
           <div className="flex items-center gap-2">
             <span
@@ -93,7 +93,7 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
         />
       </div>
       <div className="flex justify-between text-[10px] text-[var(--muted)]">
-        <span>Exuberance (vendre)</span>
+        <span>Exubérance (vendre)</span>
         <span>Score: {mkt.regimeScore > 0 ? '+' : ''}{mkt.regimeScore}</span>
         <span>Capitulation (acheter)</span>
       </div>
@@ -238,7 +238,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
   );
 
   return (
-    <Card title="Strategie contrarienne — Conseils a la Warren Buffett" className="mb-0">
+    <Card title="Stratégie contrarienne — Conseils à la Warren Buffett" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
       <div className="rounded-xl border border-[var(--border)] p-4 mb-4 bg-[var(--bg-soft)]/30">
@@ -275,7 +275,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
       </div>
 
       <p className="text-[10px] text-[var(--muted)] mt-4 text-center">
-        Approche contrarienne inspiree de Warren Buffett. Ne constitue pas un conseil financier personnalise.
+        Approche contrarienne inspirée de Warren Buffett. Ne constitue pas un conseil financier personnalisé.
       </p>
     </Card>
   );

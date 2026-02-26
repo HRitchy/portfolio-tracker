@@ -63,7 +63,7 @@ function Sparkline({ series, color }: { series: { close: number }[]; color: stri
       role="img"
       aria-label="Graphique sparkline des 30 derniers jours"
     />
-  );;
+  );
 }
 
 const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey; data: ProcessedAsset | null | undefined }) {
@@ -101,7 +101,7 @@ const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey
           <div className={`text-sm font-semibold ${colorMap[direction]}`}>
             {last ? fmtPct(last.variation) : '--'}
           </div>
-          <div className="text-[11px] text-[var(--muted)]">Derniere seance</div>
+          <div className="text-[11px] text-[var(--muted)]">Dernière séance</div>
         </div>
       </div>
     </Link>

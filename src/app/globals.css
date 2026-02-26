@@ -74,6 +74,16 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
+/* Smooth theme transition */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+body,
+.data-card,
+.glass-panel {
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 /* Focus visible pour la navigation clavier */
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -151,5 +161,28 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Print-friendly styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  nav, .fixed, button, .spinner {
+    display: none !important;
+  }
+  main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  .data-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+  canvas {
+    max-width: 100% !important;
   }
 }

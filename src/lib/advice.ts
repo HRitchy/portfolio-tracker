@@ -17,26 +17,26 @@ import {
 const MAXIMS_BUY = [
   'Soyez avide quand les autres sont craintifs.',
   "Le prix est ce que vous payez, la valeur est ce que vous obtenez.",
-  "Les opportunites viennent rarement. Quand il pleut de l'or, sortez le seau, pas le de a coudre.",
-  'La bourse transfere la richesse des impatients vers les patients.',
-  "C'est quand la maree se retire qu'on decouvre qui nageait nu — achetez les survivants.",
+  "Les opportunités viennent rarement. Quand il pleut de l'or, sortez le seau, pas le dé à coudre.",
+  'La bourse transfère la richesse des impatients vers les patients.',
+  "C'est quand la marée se retire qu'on découvre qui nageait nu — achetez les survivants.",
   "Le meilleur moment pour acheter, c'est quand personne n'en veut.",
-  "Si vous attendez les rouges-gorges, le printemps sera termine.",
-  "Achetez une entreprise formidable a un prix raisonnable plutot qu'une entreprise raisonnable a un prix formidable.",
+  "Si vous attendez les rouges-gorges, le printemps sera terminé.",
+  "Achetez une entreprise formidable à un prix raisonnable plutôt qu'une entreprise raisonnable à un prix formidable.",
 ];
 
 const MAXIMS_SELL = [
   'Soyez craintif quand les autres sont avides.',
-  "Ce n'est qu'a maree basse qu'on voit qui nageait nu.",
+  "Ce n'est qu'à marée basse qu'on voit qui nageait nu.",
   "Quand tout le monde est euphorique, le risque est a son maximum.",
   "Le risque vient de ne pas savoir ce que l'on fait.",
 ];
 
 const MAXIMS_HOLD = [
-  "Notre periode de detention preferee est pour toujours.",
-  "Quelqu'un est assis a l'ombre aujourd'hui parce que quelqu'un a plante un arbre il y a longtemps.",
-  "Ne faites rien, restez assis. La patience est la cle.",
-  "Si vous n'etes pas pret a detenir une action 10 ans, n'envisagez meme pas de la detenir 10 minutes.",
+  "Notre période de détention préférée est pour toujours.",
+  "Quelqu'un est assis à l'ombre aujourd'hui parce que quelqu'un a planté un arbre il y a longtemps.",
+  "Ne faites rien, restez assis. La patience est la clé.",
+  "Si vous n'êtes pas prêt à détenir une action 10 ans, n'envisagez même pas de la détenir 10 minutes.",
 ];
 
 function pickMaxim(list: string[]): string {
@@ -85,21 +85,21 @@ export function buildMarketContext(
   if (fearGreed != null) {
     if (fearGreed <= 20) {
       regimeScore += 4;
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : peur extreme — forte opportunite contrarienne.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : peur extrême — forte opportunité contrarienne.`);
     } else if (fearGreed <= 35) {
       regimeScore += 2;
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : peur significative — zone d'accumulation.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : peur significative — zone d'accumulation.`);
     } else if (fearGreed <= 50) {
       regimeScore += 1;
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : sentiment prudent, leger biais acheteur.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : sentiment prudent, léger biais acheteur.`);
     } else if (fearGreed <= 65) {
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : sentiment neutre/optimiste.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : sentiment neutre/optimiste.`);
     } else if (fearGreed <= 80) {
       regimeScore -= 2;
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : avidite — prudence recommandee.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : avidité — prudence recommandée.`);
     } else {
       regimeScore -= 4;
-      regimeReasons.push(`Fear & Greed a ${Math.round(fearGreed)} : avidite extreme — le marche est dangereux.`);
+      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : avidité extrême — le marché est dangereux.`);
     }
   }
 
@@ -107,19 +107,19 @@ export function buildMarketContext(
   if (vixLevel != null) {
     if (vixLevel >= 35) {
       regimeScore += 3;
-      regimeReasons.push(`VIX a ${vixLevel.toFixed(1)} : panique — historiquement, les meilleurs points d'entree.`);
+      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : panique — historiquement, les meilleurs points d'entrée.`);
     } else if (vixLevel >= 25) {
       regimeScore += 2;
-      regimeReasons.push(`VIX a ${vixLevel.toFixed(1)} : stress eleve, opportunite pour les patients.`);
+      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : stress élevé, opportunité pour les patients.`);
     } else if (vixLevel >= 20) {
       regimeScore += 1;
-      regimeReasons.push(`VIX a ${vixLevel.toFixed(1)} : volatilite moderee, vigilance mais pas de panique.`);
+      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : volatilité modérée, vigilance mais pas de panique.`);
     } else if (vixLevel <= 12) {
       regimeScore -= 3;
-      regimeReasons.push(`VIX a ${vixLevel.toFixed(1)} : complaisance extreme — risque sous-estime.`);
+      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : complaisance extrême — risque sous-estimé.`);
     } else if (vixLevel <= 15) {
       regimeScore -= 1;
-      regimeReasons.push(`VIX a ${vixLevel.toFixed(1)} : volatilite basse, possible complaisance.`);
+      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : volatilité basse, possible complaisance.`);
     }
 
     // VIX vs its own MA50 (spike detection)
@@ -133,19 +133,19 @@ export function buildMarketContext(
   if (hySpread != null) {
     if (hySpread >= 7) {
       regimeScore += 3;
-      regimeReasons.push(`HY Spread a ${hySpread.toFixed(2)}% : stress credit majeur — achat agressif des actifs qualite.`);
+      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : stress crédit majeur — achat agressif des actifs qualité.`);
     } else if (hySpread >= 5) {
       regimeScore += 2;
-      regimeReasons.push(`HY Spread a ${hySpread.toFixed(2)}% : stress credit eleve — zone d'opportunite.`);
+      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : stress crédit élevé — zone d'opportunité.`);
     } else if (hySpread >= 4) {
       regimeScore += 1;
-      regimeReasons.push(`HY Spread a ${hySpread.toFixed(2)}% : vigilance credit, pas de panique.`);
+      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : vigilance crédit, pas de panique.`);
     } else if (hySpread <= 2.5) {
       regimeScore -= 2;
-      regimeReasons.push(`HY Spread a ${hySpread.toFixed(2)}% : spreads tres comprimes — euphorie credit.`);
+      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : spreads très comprimés — euphorie crédit.`);
     } else if (hySpread <= 3) {
       regimeScore -= 1;
-      regimeReasons.push(`HY Spread a ${hySpread.toFixed(2)}% : spreads faibles, complaisance possible.`);
+      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : spreads faibles, complaisance possible.`);
     }
   }
 
@@ -240,9 +240,9 @@ function scoreAsset(
   if (macroContribution !== 0) {
     score += macroContribution;
     if (macroContribution > 0) {
-      reasons.push(`Regime macro « ${mkt.regime} » : biais contrariant acheteur (+${macroContribution}).`);
+      reasons.push(`Régime macro « ${mkt.regime} » : biais contrariant acheteur (+${macroContribution}).`);
     } else {
-      reasons.push(`Regime macro « ${mkt.regime} » : biais contrariant vendeur (${macroContribution}).`);
+      reasons.push(`Régime macro « ${mkt.regime} » : biais contrariant vendeur (${macroContribution}).`);
     }
   }
 
@@ -253,16 +253,16 @@ function scoreAsset(
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : territoire de capitulation — « sang dans les rues ».`);
     } else if (metrics.drawdown <= -25) {
       score += 3;
-      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction majeure — forte decote pour un contrariant.`);
+      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction majeure — forte décote pour un contrariant.`);
     } else if (metrics.drawdown <= -15) {
       score += 2;
-      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction significative — decote attractive.`);
+      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction significative — décote attractive.`);
     } else if (metrics.drawdown <= -8) {
       score += 1;
-      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : recul modere, debut de zone d'interet.`);
+      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : recul modéré, début de zone d'intérêt.`);
     } else if (metrics.drawdown > -2) {
       score -= 1;
-      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : proche des sommets — peu de marge de securite.`);
+      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : proche des sommets — peu de marge de sécurité.`);
     }
   }
 
@@ -271,13 +271,13 @@ function scoreAsset(
     const d = metrics.distFromMA200Pct;
     if (d <= -25) {
       score += 3;
-      reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : decote majeure vs tendance long terme.`);
+      reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : décote majeure vs tendance long terme.`);
     } else if (d <= -15) {
       score += 2;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : zone de valeur pour un investisseur patient.`);
     } else if (d <= -8) {
       score += 1;
-      reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : leger discount long terme.`);
+      reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : léger discount long terme.`);
     } else if (d >= 30) {
       score -= 2;
       reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM200 : surchauffe, loin de la valeur moyenne.`);
@@ -294,26 +294,26 @@ function scoreAsset(
 
     if (allOversold) {
       score += 3;
-      reasons.push(`RSI survendu sur 3 horizons (${metrics.rsi7.toFixed(0)}/${metrics.rsi14.toFixed(0)}/${metrics.rsi28.toFixed(0)}) : exces vendeur confirme.`);
+      reasons.push(`RSI survendu sur 3 horizons (${metrics.rsi7.toFixed(0)}/${metrics.rsi14.toFixed(0)}/${metrics.rsi28.toFixed(0)}) : excès vendeur confirmé.`);
     } else if (metrics.rsi14 < 30) {
       score += 2;
-      reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : actif survendu, rebond probable.`);
+      reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : actif survendu, rebond probable.`);
     } else if (metrics.rsi14 < 40) {
       score += 1;
-      reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : momentum faible, approche de zone survendue.`);
+      reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : momentum faible, approche de zone survendue.`);
     } else if (allOverbought) {
       score -= 3;
-      reasons.push(`RSI surachete sur 3 horizons (${metrics.rsi7.toFixed(0)}/${metrics.rsi14.toFixed(0)}/${metrics.rsi28.toFixed(0)}) : exces acheteur confirme.`);
+      reasons.push(`RSI suracheté sur 3 horizons (${metrics.rsi7.toFixed(0)}/${metrics.rsi14.toFixed(0)}/${metrics.rsi28.toFixed(0)}) : excès acheteur confirmé.`);
     } else if (metrics.rsi14 > 75) {
       score -= 2;
-      reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : actif surachete, risque de correction.`);
+      reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : actif suracheté, risque de correction.`);
     } else if (metrics.rsi14 > 65) {
       score -= 1;
-      reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : momentum eleve, extension possible.`);
+      reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : momentum élevé, extension possible.`);
     }
   } else if (metrics.rsi14 != null) {
-    if (metrics.rsi14 < 30) { score += 2; reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : survendu.`); }
-    else if (metrics.rsi14 > 75) { score -= 2; reasons.push(`RSI14 a ${metrics.rsi14.toFixed(0)} : surachete.`); }
+    if (metrics.rsi14 < 30) { score += 2; reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : survendu.`); }
+    else if (metrics.rsi14 > 75) { score -= 2; reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : suracheté.`); }
   }
 
   // ── E. Bollinger %B (mean-reversion signal) ──
@@ -337,10 +337,10 @@ function scoreAsset(
   if (metrics.perf30d != null) {
     if (metrics.perf30d <= -20) {
       score += 2;
-      reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : chute brutale — potentiel de reversion.`);
+      reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : chute brutale — potentiel de réversion.`);
     } else if (metrics.perf30d <= -10) {
       score += 1;
-      reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : baisse marquee, interet contrariant.`);
+      reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : baisse marquée, intérêt contrariant.`);
     } else if (metrics.perf30d >= 20) {
       score -= 1;
       reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally vertical, risque de prise de profit.`);
@@ -352,7 +352,7 @@ function scoreAsset(
     const d = metrics.distFromMA50Pct;
     if (d <= -15) {
       score += 2;
-      reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : dislocation court terme, opportunite tactique.`);
+      reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : dislocation court terme, opportunité tactique.`);
     } else if (d <= -8) {
       score += 1;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : discount court terme.`);
@@ -404,7 +404,7 @@ export function getAssetAdvice(
         advice: 'Conservation' as Advice,
         score: 0,
         conviction: 'Faible' as Conviction,
-        reasons: ['Donnees insuffisantes pour emettre un signal fiable.'],
+        reasons: ['Données insuffisantes pour émettre un signal fiable.'],
         buffettMaxim: pickMaxim(MAXIMS_HOLD),
         metrics,
       };
@@ -413,7 +413,7 @@ export function getAssetAdvice(
     const { score, reasons } = scoreAsset(metrics, mkt);
 
     if (reasons.length === 0) {
-      reasons.push('Signaux techniques et macro mitiges : neutralite privilegiee.');
+      reasons.push('Signaux techniques et macro mitigés : neutralité privilégiée.');
     }
 
     const advice = scoreToAdvice(score);
@@ -448,10 +448,10 @@ export function adviceBorderColor(advice: Advice): string {
 
 export function getAdviceDescription(advice: Advice): string {
   if (advice === 'Achat')
-    return "Strategie contrarienne : les conditions de peur et de decote creent une fenetre d'accumulation.";
+    return "Stratégie contrarienne : les conditions de peur et de décote créent une fenêtre d'accumulation.";
   if (advice === 'Vente')
-    return "Strategie contrarienne : l'euphorie et la surchauffe imposent un allegement defensif.";
-  return "Patience : aucun exces ne justifie d'agir. Buffett attendrait.";
+    return "Stratégie contrarienne : l'euphorie et la surchauffe imposent un allègement défensif.";
+  return "Patience : aucun excès ne justifie d'agir. Buffett attendrait.";
 }
 
 export function getAssetClassLabel(key: keyof typeof ASSETS): string {
@@ -479,10 +479,10 @@ export function regimeColor(regime: MarketRegime): string {
 
 export function regimeContrarianLabel(regime: MarketRegime): string {
   switch (regime) {
-    case 'Capitulation': return 'Opportunite majeure';
+    case 'Capitulation': return 'Opportunité majeure';
     case 'Peur': return "Zone d'accumulation";
     case 'Neutre': return 'Patience';
     case 'Euphorie': return 'Prudence';
-    case 'Exuberance': return 'Danger — alleger';
+    case 'Exuberance': return 'Danger — alléger';
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, lazy, Suspense } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { ASSETS } from '@/lib/config';
@@ -61,9 +61,9 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
 
   const cards = [
     { label: 'Dernier cours', value: fmtPrice(last?.close, digits), sub: last?.date ?? '', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },
-    { label: 'Variation', value: fmtPct(last?.variation), sub: 'vs jour precedent', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },
-    { label: 'Plus haut', value: fmtPrice(high, digits), sub: 'sur la periode', color: 'text-[var(--text)]' },
-    { label: 'Plus bas', value: fmtPrice(low, digits), sub: 'sur la periode', color: 'text-[var(--text)]' },
+    { label: 'Variation', value: fmtPct(last?.variation), sub: 'vs jour précédent', color: (last?.variation ?? 0) >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' },
+    { label: 'Plus haut', value: fmtPrice(high, digits), sub: 'sur la période', color: 'text-[var(--text)]' },
+    { label: 'Plus bas', value: fmtPrice(low, digits), sub: 'sur la période', color: 'text-[var(--text)]' },
   ];
 
   return (
@@ -87,16 +87,44 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
     { id: 'drawdown', label: 'Drawdown', show: config.hasDrawdown },
     { id: 'bollinger', label: 'Bollinger', show: config.hasBollinger },
     { id: 'variations', label: 'Variations', show: true },
-    { id: 'donnees', label: 'Donnees', show: true },
+    { id: 'donnees', label: 'Données', show: true },
   ];
 
+  const visibleTabs = tabs.filter((t) => t.show);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    const idx = visibleTabs.findIndex((t) => t.id === active);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = visibleTabs[(idx + 1) % visibleTabs.length];
+      onChange(next.id);
+      (e.currentTarget.querySelector(`[data-tab="${next.id}"]`) as HTMLElement)?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = visibleTabs[(idx - 1 + visibleTabs.length) % visibleTabs.length];
+      onChange(prev.id);
+      (e.currentTarget.querySelector(`[data-tab="${prev.id}"]`) as HTMLElement)?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      onChange(visibleTabs[0].id);
+      (e.currentTarget.querySelector(`[data-tab="${visibleTabs[0].id}"]`) as HTMLElement)?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      const last = visibleTabs[visibleTabs.length - 1];
+      onChange(last.id);
+      (e.currentTarget.querySelector(`[data-tab="${last.id}"]`) as HTMLElement)?.focus();
+    }
+  }, [active, onChange, visibleTabs]);
+
   return (
-    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1 fade-in">
-      {tabs.filter((t) => t.show).map((t) => (
+    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1 fade-in" onKeyDown={handleKeyDown}>
+      {visibleTabs.map((t) => (
         <button
           key={t.id}
           role="tab"
+          data-tab={t.id}
           aria-selected={active === t.id}
+          tabIndex={active === t.id ? 0 : -1}
           onClick={() => onChange(t.id)}
           className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
@@ -132,7 +160,7 @@ export default function AssetPage() {
       {!data && loading ? (
         <SkeletonAssetPage />
       ) : !data ? (
-        <div className="text-[var(--muted)]">Aucune donnee disponible pour {config.name}.</div>
+        <div className="text-[var(--muted)]">Aucune donnée disponible pour {config.name}.</div>
       ) : (
         <>
           <StatCards data={data} assetKey={key} />

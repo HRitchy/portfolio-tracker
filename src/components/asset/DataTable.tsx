@@ -39,7 +39,7 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${assetKey}_donnees.csv`;
+    a.download = `${assetKey}_données.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }, [data, config, assetKey]);
@@ -48,12 +48,12 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
     <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
       <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
         <div className="text-[13px] text-[var(--muted)] uppercase tracking-wide font-semibold">
-          Dernieres donnees
+          Dernières données
         </div>
         <button
           onClick={handleExportCsv}
           className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-lg bg-[var(--panel-hover)] text-[var(--nav-text)] hover:text-[var(--text)] hover:bg-[var(--border)] transition-colors"
-          aria-label="Exporter les donnees en CSV"
+          aria-label="Exporter les données en CSV"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

@@ -82,7 +82,7 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
   if (!matrix || keys.length < 2) return null;
 
   return (
-    <Card title="Matrice de correlation (rendements quotidiens)">
+    <Card title="Matrice de corrélation (rendements quotidiens)">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -125,7 +125,7 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
       </div>
       <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-[var(--muted)]">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-2 rounded-sm" style={{ background: 'var(--success-soft)' }} /> Forte correlation
+          <span className="w-3 h-2 rounded-sm" style={{ background: 'var(--success-soft)' }} /> Forte corrélation
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-2 rounded-sm" style={{ background: 'var(--panel-hover)' }} /> Faible

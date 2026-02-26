@@ -3,11 +3,11 @@
 import { useMacro } from '@/context/MacroContext';
 
 function getRatingLabel(score: number): string {
-  if (score <= 25) return 'Peur extreme';
+  if (score <= 25) return 'Peur extrême';
   if (score <= 45) return 'Peur';
   if (score <= 55) return 'Neutre';
-  if (score <= 75) return 'Avidite';
-  return 'Avidite extreme';
+  if (score <= 75) return 'Avidité';
+  return 'Avidité extrême';
 }
 
 function getRatingColor(score: number): string {
@@ -16,6 +16,52 @@ function getRatingColor(score: number): string {
   if (score <= 55) return '#eab308';
   if (score <= 75) return '#84cc16';
   return '#10b981';
+}
+
+function GaugeArc({ score, color }: { score: number; color: string }) {
+  const radius = 50;
+  const stroke = 8;
+  const cx = 60;
+  const cy = 55;
+  const startAngle = Math.PI;
+  const endAngle = 2 * Math.PI;
+  const totalArc = endAngle - startAngle;
+  const scoreAngle = startAngle + (score / 100) * totalArc;
+
+  const arcPath = (start: number, end: number) => {
+    const x1 = cx + radius * Math.cos(start);
+    const y1 = cy + radius * Math.sin(start);
+    const x2 = cx + radius * Math.cos(end);
+    const y2 = cy + radius * Math.sin(end);
+    const large = end - start > Math.PI ? 1 : 0;
+    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2}`;
+  };
+
+  const needleX = cx + (radius - 12) * Math.cos(scoreAngle);
+  const needleY = cy + (radius - 12) * Math.sin(scoreAngle);
+
+  return (
+    <svg viewBox="0 0 120 65" className="w-full max-w-[160px] mx-auto" aria-hidden="true">
+      <path
+        d={arcPath(startAngle, endAngle)}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+      />
+      <path
+        d={arcPath(startAngle, scoreAngle)}
+        fill="none"
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+      />
+      <circle cx={needleX} cy={needleY} r={4} fill={color} />
+      <text x={cx} y={cy + 2} textAnchor="middle" fill={color} fontSize="18" fontWeight="bold">
+        {Math.round(score)}
+      </text>
+    </svg>
+  );
 }
 
 export default function FearGreedCard() {
@@ -39,26 +85,8 @@ export default function FearGreedCard() {
         <div className="text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
       ) : (
         <>
-          <div className="flex items-end gap-2">
-            <span className="text-[28px] font-bold" style={{ color }} aria-label={`Score ${Math.round(score)} sur 100`}>
-              {Math.round(score)}
-            </span>
-            <span className="text-sm text-[var(--muted)] mb-1" aria-hidden="true">/ 100</span>
-          </div>
-          <div
-            className="w-full h-2 rounded-full bg-[var(--border)] mt-2 overflow-hidden"
-            role="progressbar"
-            aria-valuenow={Math.round(score)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Fear & Greed: ${label}`}
-          >
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${score}%`, background: color }}
-            />
-          </div>
-          <div className="flex items-center gap-2 mt-2">
+          <GaugeArc score={score} color={color} />
+          <div className="flex items-center justify-center gap-2 mt-1">
             <span
               className="text-[13px] font-medium"
               style={{ color: delta != null && delta > 0 ? '#10b981' : delta != null && delta < 0 ? '#ef4444' : 'var(--muted)' }}

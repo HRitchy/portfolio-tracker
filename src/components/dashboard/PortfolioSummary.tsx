@@ -45,7 +45,7 @@ export default function PortfolioSummary({ store }: { store: Store }) {
   ];
 
   return (
-    <Card title="Synthese performance portefeuille">
+    <Card title="Synthèse performance portefeuille">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-[13px]">
           <thead>
