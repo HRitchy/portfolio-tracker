@@ -10,7 +10,6 @@ import DrawdownOverview from '@/components/dashboard/DrawdownOverview';
 import VolatilityChart from '@/components/dashboard/VolatilityChart';
 import CorrelationMatrix from '@/components/dashboard/CorrelationMatrix';
 import HYSpreadCard from '@/components/dashboard/HYSpreadCard';
-import PutCallRatioCard from '@/components/dashboard/PutCallRatioCard';
 import FearGreedCard from '@/components/dashboard/FearGreedCard';
 import AdviceOverview from '@/components/dashboard/AdviceOverview';
 import RefreshButton from '@/components/ui/RefreshButton';
@@ -53,9 +52,6 @@ export default function DashboardPage() {
               <HYSpreadCard />
             </div>
             <div className="fade-in stagger-6">
-              <PutCallRatioCard />
-            </div>
-            <div className="fade-in stagger-7">
               <FearGreedCard />
             </div>
           </div>
