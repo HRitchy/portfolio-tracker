@@ -37,8 +37,8 @@ export interface ProcessedAsset {
 export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
 
 export type Advice = 'Achat' | 'Vente' | 'Conservation';
-export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Tres forte';
-export type MarketRegime = 'Capitulation' | 'Peur' | 'Neutre' | 'Euphorie' | 'Exuberance';
+export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Très forte';
+export type MarketRegime = 'Capitulation' | 'Peur' | 'Neutre' | 'Euphorie' | 'Exubérance';
 
 export interface MarketContext {
   fearGreed: number | null;

@@ -28,7 +28,7 @@ const MAXIMS_BUY = [
 const MAXIMS_SELL = [
   'Soyez craintif quand les autres sont avides.',
   "Ce n'est qu'à marée basse qu'on voit qui nageait nu.",
-  "Quand tout le monde est euphorique, le risque est a son maximum.",
+  "Quand tout le monde est euphorique, le risque est à son maximum.",
   "Le risque vient de ne pas savoir ce que l'on fait.",
 ];
 
@@ -156,7 +156,7 @@ export function buildMarketContext(
   else if (regimeScore >= 2) regime = 'Peur';
   else if (regimeScore > -2) regime = 'Neutre';
   else if (regimeScore > -6) regime = 'Euphorie';
-  else regime = 'Exuberance';
+  else regime = 'Exubérance';
 
   return { fearGreed, vixLevel, vixMA50, hySpread, regime, regimeScore, regimeReasons };
 }
@@ -320,16 +320,16 @@ function scoreAsset(
   if (metrics.bollingerPctB != null) {
     if (metrics.bollingerPctB <= 0) {
       score += 2;
-      reasons.push(`Prix sous la bande basse Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : exces vendeur statistique.`);
+      reasons.push(`Prix sous la bande basse Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : excès vendeur statistique.`);
     } else if (metrics.bollingerPctB <= 15) {
       score += 1;
-      reasons.push(`Prix pres de la bande basse Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : zone de survente.`);
+      reasons.push(`Prix près de la bande basse Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : zone de survente.`);
     } else if (metrics.bollingerPctB >= 100) {
       score -= 2;
-      reasons.push(`Prix au-dessus de la bande haute Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : exces acheteur statistique.`);
+      reasons.push(`Prix au-dessus de la bande haute Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : excès acheteur statistique.`);
     } else if (metrics.bollingerPctB >= 85) {
       score -= 1;
-      reasons.push(`Prix pres de la bande haute Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : zone de surachat.`);
+      reasons.push(`Prix près de la bande haute Bollinger (%B=${metrics.bollingerPctB.toFixed(0)}%) : zone de surachat.`);
     }
   }
 
@@ -377,7 +377,7 @@ function scoreToAdvice(score: number): Advice {
 
 function scoreToConviction(score: number): Conviction {
   const abs = Math.abs(score);
-  if (abs >= 10) return 'Tres forte';
+  if (abs >= 10) return 'Très forte';
   if (abs >= 7) return 'Forte';
   if (abs >= 4) return 'Moyenne';
   return 'Faible';
@@ -460,7 +460,7 @@ export function getAssetClassLabel(key: keyof typeof ASSETS): string {
 
 export function convictionLevel(conviction: Conviction): number {
   switch (conviction) {
-    case 'Tres forte': return 4;
+    case 'Très forte': return 4;
     case 'Forte': return 3;
     case 'Moyenne': return 2;
     case 'Faible': return 1;
@@ -473,7 +473,7 @@ export function regimeColor(regime: MarketRegime): string {
     case 'Peur': return '#34d399';
     case 'Neutre': return '#eab308';
     case 'Euphorie': return '#f97316';
-    case 'Exuberance': return '#ef4444';
+    case 'Exubérance': return '#ef4444';
   }
 }
 
@@ -483,6 +483,6 @@ export function regimeContrarianLabel(regime: MarketRegime): string {
     case 'Peur': return "Zone d'accumulation";
     case 'Neutre': return 'Patience';
     case 'Euphorie': return 'Prudence';
-    case 'Exuberance': return 'Danger — alléger';
+    case 'Exubérance': return 'Danger — alléger';
   }
 }
