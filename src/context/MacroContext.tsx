@@ -23,7 +23,7 @@ export interface PCRObservation {
   value: string;
 }
 
-export type PutCallSource = 'cboe' | 'fred_api' | 'fred_csv' | 'static_fallback';
+export type PutCallSource = 'cboe' | 'cboe_page' | 'fred_api' | 'fred_csv' | 'static_fallback';
 
 interface MacroContextType {
   fearGreedData: FearGreedData | null;
