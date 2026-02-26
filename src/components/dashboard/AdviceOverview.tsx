@@ -9,37 +9,17 @@ import {
   getAdviceDescription,
   adviceTone,
   adviceBorderColor,
-  convictionLevel,
   regimeColor,
   regimeContrarianLabel,
 } from '@/lib/advice';
 import { ASSETS } from '@/lib/config';
-import { Store, MarketContext, AssetAdvice, Conviction } from '@/lib/types';
+import { Store, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
-/* ─────────────────────────────────────────────
-   Conviction dots component
-   ───────────────────────────────────────────── */
-
-function ConvictionDots({ conviction, advice, score }: { conviction: Conviction; advice: string; score: number }) {
-  const level = convictionLevel(conviction);
-  const activeColor =
-    advice === 'Achat' ? 'bg-emerald-500' :
-    advice === 'Vente' ? 'bg-red-500' :
-    'bg-yellow-500';
-
+function ConvictionScore({ score }: { score: number }) {
   return (
-    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction}`}>
-      {[1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className={`w-2 h-2 rounded-full transition-all ${
-            i <= level ? activeColor : 'bg-[var(--border)]'
-          }`}
-          aria-hidden="true"
-        />
-      ))}
-      <span className="text-[10px] text-[var(--muted)] ml-1">{score}</span>
+    <div className="text-[10px] text-[var(--muted)]" aria-label={`Score de conviction: ${score}`}>
+      Conviction: <span className="font-semibold text-[var(--text)]">{score > 0 ? '+' : ''}{score}</span>
     </div>
   );
 }
@@ -167,7 +147,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
             {item.score > 0 ? '+' : ''}{item.score}
           </div>
-          <ConvictionDots conviction={item.conviction} advice={item.advice} score={item.score} />
+          <ConvictionScore score={item.score} />
         </div>
       </div>
 
