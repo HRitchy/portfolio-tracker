@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 
 type PCRObservation = { date: string; value: string };
+type PutCallSource = 'cboe' | 'fred_api' | 'fred_csv' | 'static_fallback';
 
 const STATIC_FALLBACK_OBSERVATIONS: PCRObservation[] = [
   { date: '2024-12-31', value: '0.76' },
@@ -84,11 +85,20 @@ async function fetchFromFREDCsv(): Promise<PCRObservation[]> {
 export async function GET() {
   const apiKey = env.FRED_API_KEY;
 
+  const jsonResponse = (observations: PCRObservation[], source: PutCallSource, warning?: string) => NextResponse.json(
+    warning ? { observations, source, warning } : { observations, source },
+    {
+      headers: {
+        'Cache-Control': source === 'static_fallback'
+          ? 'public, max-age=300'
+          : 'public, s-maxage=3600, stale-while-revalidate=7200',
+      },
+    }
+  );
+
   try {
     const observations = await fetchFromCBOE();
-    return NextResponse.json({ observations }, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    });
+    return jsonResponse(observations, 'cboe');
   } catch (err) {
     console.warn('[/api/putcall] CBOE CSV en échec, bascule sur FRED :', {
       message: err instanceof Error ? err.message : String(err),
@@ -99,9 +109,7 @@ export async function GET() {
   if (apiKey) {
     try {
       const observations = await fetchFromFREDApi(apiKey);
-      return NextResponse.json({ observations }, {
-        headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-      });
+      return jsonResponse(observations, 'fred_api');
     } catch (err) {
       console.warn('[/api/putcall] Clé API FRED en échec, bascule sur CSV public :', {
         message: err instanceof Error ? err.message : String(err),
@@ -112,23 +120,17 @@ export async function GET() {
 
   try {
     const observations = await fetchFromFREDCsv();
-    return NextResponse.json({ observations }, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
-    });
+    return jsonResponse(observations, 'fred_csv');
   } catch (err) {
     console.error('[/api/putcall] Fallback FRED CSV en échec :', {
       message: err instanceof Error ? err.message : String(err),
       ts: new Date().toISOString(),
     });
 
-    return NextResponse.json(
-      {
-        observations: STATIC_FALLBACK_OBSERVATIONS,
-        warning: 'Live data unavailable, using embedded fallback snapshot.',
-      },
-      {
-        headers: { 'Cache-Control': 'public, max-age=300' },
-      }
+    return jsonResponse(
+      STATIC_FALLBACK_OBSERVATIONS,
+      'static_fallback',
+      'Live data unavailable, using embedded fallback snapshot.'
     );
   }
 }
