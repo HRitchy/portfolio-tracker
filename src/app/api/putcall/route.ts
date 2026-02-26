@@ -85,6 +85,25 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
   return normalizeLatestObservations(parsed);
 }
 
+/**
+ * Maximum age (in calendar days) we accept for CBOE CSV data.
+ * CBOE doesn't publish on weekends/holidays, so 7 days is a generous but
+ * safe threshold. If the latest observation is older than this we treat the
+ * CSV as stale and fall through to the next source.
+ */
+const MAX_DATA_AGE_DAYS = 7;
+
+function assertFresh(observations: PCRObservation[], sourceName: string): void {
+  if (observations.length === 0) return;
+  const latestDate = new Date(observations[0].date);
+  const diffDays = (Date.now() - latestDate.getTime()) / 86_400_000;
+  if (diffDays > MAX_DATA_AGE_DAYS) {
+    throw new Error(
+      `${sourceName} data is stale: latest date is ${observations[0].date} (${Math.floor(diffDays)} days old)`,
+    );
+  }
+}
+
 /** Common browser-like headers to reduce bot-detection 403s from CBOE CDN. */
 const BROWSER_HEADERS: Record<string, string> = {
   'User-Agent':
@@ -102,7 +121,9 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
   });
   if (!resp.ok) throw new Error(`CBOE CSV error: ${resp.status}`);
   const text = await resp.text();
-  return parseLatestObservationsFromCsv(text, 'TOTAL_PC');
+  const observations = parseLatestObservationsFromCsv(text, 'TOTAL_PC');
+  assertFresh(observations, 'CBOE CSV');
+  return observations;
 }
 
 /**
