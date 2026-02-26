@@ -13,7 +13,8 @@
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:putcall": "node scripts/check-putcall.mjs"
   },
   "dependencies": {
     "chart.js": "^4.5.1",
