@@ -253,13 +253,13 @@ export default function AdviceOverview({ store }: { store: Store }) {
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-500 min-w-[80px] justify-center">
                   Achat
                 </span>
-                <span className="text-[var(--muted)]">Score ≥ +4</span>
+                <span className="text-[var(--muted)]">≥ +4</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-500/15 text-red-500 min-w-[80px] justify-center">
                   Vente
                 </span>
-                <span className="text-[var(--muted)]">Score ≤ −4</span>
+                <span className="text-[var(--muted)]">≤ −4</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--muted)]/15 text-[var(--muted)] min-w-[80px] justify-center">
@@ -277,20 +277,12 @@ export default function AdviceOverview({ store }: { store: Store }) {
             </p>
             <ul className="space-y-2 list-none">
               {[
-                { label: 'Faible',      range: '|score| < 4',       dots: 1, color: 'bg-slate-400' },
-                { label: 'Moyenne',     range: '|score| de 4 à 6',  dots: 2, color: 'bg-yellow-400' },
-                { label: 'Forte',       range: '|score| de 7 à 9',  dots: 3, color: 'bg-orange-400' },
-                { label: 'Très forte',  range: '|score| ≥ 10',      dots: 4, color: 'bg-red-500'    },
-              ].map(({ label, range, dots, color }) => (
+                { label: 'Faible',      range: '< 4'       },
+                { label: 'Moyenne',     range: 'de 4 à 6'  },
+                { label: 'Forte',       range: 'de 7 à 9'  },
+                { label: 'Très forte',  range: '≥ 10'      },
+              ].map(({ label, range }) => (
                 <li key={label} className="flex items-center gap-2">
-                  <span className="flex gap-0.5 w-[52px] shrink-0">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-2 flex-1 rounded-sm ${i < dots ? color : 'bg-[var(--border)]'}`}
-                      />
-                    ))}
-                  </span>
                   <span className="font-semibold text-[var(--text)] w-[62px] shrink-0">{label}</span>
                   <span className="text-[var(--muted)]">{range}</span>
                 </li>
