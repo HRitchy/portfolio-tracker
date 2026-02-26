@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 
 type PCRObservation = { date: string; value: string };
-type PutCallSource = 'cboe' | 'fred_api' | 'fred_csv' | 'static_fallback';
+type PutCallSource = 'cboe' | 'cboe_page' | 'fred_api' | 'fred_csv' | 'static_fallback';
 
 const STATIC_FALLBACK_OBSERVATIONS: PCRObservation[] = [
   { date: '2024-12-31', value: '0.76' },
@@ -85,15 +85,63 @@ function parseLatestObservationsFromCsv(text: string, seriesId: string): PCRObse
   return normalizeLatestObservations(parsed);
 }
 
+/** Common browser-like headers to reduce bot-detection 403s from CBOE CDN. */
+const BROWSER_HEADERS: Record<string, string> = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  Accept: 'text/csv,text/html,application/xhtml+xml,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  Referer: 'https://www.cboe.com/',
+};
+
 async function fetchFromCBOE(): Promise<PCRObservation[]> {
   const url = 'https://cdn.cboe.com/resources/options/volume_and_call_put_ratios/totalpc.csv';
   const resp = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    headers: BROWSER_HEADERS,
     signal: AbortSignal.timeout(15000),
   });
   if (!resp.ok) throw new Error(`CBOE CSV error: ${resp.status}`);
   const text = await resp.text();
   return parseLatestObservationsFromCsv(text, 'TOTAL_PC');
+}
+
+/**
+ * Scrape the CBOE Daily Market Statistics HTML page.
+ * The page shows a table with TOTAL PUT/CALL RATIO in the first data column
+ * ("Exchange Listed"). This serves as a fallback when the CBOE CDN CSV is blocked.
+ */
+async function fetchFromCBOEPage(): Promise<PCRObservation[]> {
+  const url = 'https://www.cboe.com/us/options/market_statistics/daily/';
+  const resp = await fetch(url, {
+    headers: {
+      ...BROWSER_HEADERS,
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!resp.ok) throw new Error(`CBOE page error: ${resp.status}`);
+  const html = await resp.text();
+
+  // Find the PUT/CALL RATIO row in the HTML table.
+  // Expected structure: <td>Put/Call Ratio</td><td>0.85</td>...
+  const ratioMatch = html.match(
+    /put\/?call\s*ratio[^<]*<\/(?:td|th)>\s*<td[^>]*>\s*([\d.]+)/i,
+  );
+  if (!ratioMatch) throw new Error('CBOE page: PUT/CALL RATIO not found in HTML');
+
+  const value = ratioMatch[1];
+  if (!isValidValue(value)) throw new Error(`CBOE page: invalid ratio value "${value}"`);
+
+  // Extract the report date from the page (ISO date in input, or MM/DD/YYYY text).
+  const isoDate = html.match(/value="(\d{4}-\d{2}-\d{2})"/);
+  const mdyDate = html.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+  const date = isoDate
+    ? isoDate[1]
+    : mdyDate
+      ? normalizeDate(mdyDate[1])
+      : new Date().toISOString().slice(0, 10);
+
+  return [{ date, value }];
 }
 
 async function fetchFromFREDApi(apiKey: string): Promise<PCRObservation[]> {
@@ -126,16 +174,29 @@ export async function GET() {
     }
   );
 
+  // 1. CBOE CSV (primary — direct CDN file)
   try {
     const observations = await fetchFromCBOE();
     return jsonResponse(observations, 'cboe');
   } catch (err) {
-    console.warn('[/api/putcall] CBOE CSV en échec, bascule sur FRED :', {
+    console.warn('[/api/putcall] CBOE CSV en échec, tentative page HTML :', {
       message: err instanceof Error ? err.message : String(err),
       ts: new Date().toISOString(),
     });
   }
 
+  // 2. CBOE HTML page scraping (fallback when CDN CSV is blocked)
+  try {
+    const observations = await fetchFromCBOEPage();
+    return jsonResponse(observations, 'cboe_page');
+  } catch (err) {
+    console.warn('[/api/putcall] CBOE page en échec, bascule sur FRED :', {
+      message: err instanceof Error ? err.message : String(err),
+      ts: new Date().toISOString(),
+    });
+  }
+
+  // 3. FRED API (requires API key)
   if (apiKey) {
     try {
       const observations = await fetchFromFREDApi(apiKey);

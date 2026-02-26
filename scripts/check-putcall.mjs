@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 
+const BROWSER_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept-Language': 'en-US,en;q=0.9',
+  Referer: 'https://www.cboe.com/',
+};
+
 const SOURCES = [
   {
-    name: 'CBOE',
+    name: 'CBOE CSV',
     url: 'https://cdn.cboe.com/resources/options/volume_and_call_put_ratios/totalpc.csv',
+    headers: { ...BROWSER_HEADERS, Accept: 'text/csv,*/*;q=0.8' },
     parse: (text) => {
       const lines = text.trim().split(/\r?\n/).filter(Boolean);
       if (lines.length < 2) throw new Error('CSV vide');
@@ -30,8 +38,29 @@ const SOURCES = [
     },
   },
   {
+    name: 'CBOE Page',
+    url: 'https://www.cboe.com/us/options/market_statistics/daily/',
+    headers: { ...BROWSER_HEADERS, Accept: 'text/html,application/xhtml+xml,*/*;q=0.8' },
+    parse: (html) => {
+      // Find PUT/CALL RATIO row in the HTML table
+      const ratioMatch = html.match(
+        /put\/?call\s*ratio[^<]*<\/(?:td|th)>\s*<td[^>]*>\s*([\d.]+)/i,
+      );
+      if (!ratioMatch) throw new Error('PUT/CALL RATIO introuvable dans le HTML');
+      const value = Number.parseFloat(ratioMatch[1]);
+
+      // Extract date
+      const isoDate = html.match(/value="(\d{4}-\d{2}-\d{2})"/);
+      const mdyDate = html.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+      const date = isoDate ? isoDate[1] : mdyDate ? mdyDate[1] : 'unknown';
+
+      return { date, value };
+    },
+  },
+  {
     name: 'FRED CSV',
     url: 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=PUTCALL',
+    headers: { ...BROWSER_HEADERS, Accept: 'text/csv,*/*;q=0.8' },
     parse: (text) => {
       const lines = text.trim().split(/\r?\n/).filter(Boolean);
       if (lines.length < 2) throw new Error('CSV vide');
@@ -46,10 +75,7 @@ const SOURCES = [
 
 async function fetchLatest(source) {
   const response = await fetch(source.url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
-      Accept: 'text/csv,*/*;q=0.8',
-    },
+    headers: source.headers ?? {},
     signal: AbortSignal.timeout(15000),
   });
 

@@ -22,6 +22,8 @@ function sourceLabel(source: PutCallSource | null): string | null {
   switch (source) {
     case 'cboe':
       return 'Source: CBOE (officiel)';
+    case 'cboe_page':
+      return 'Source: CBOE page (officiel)';
     case 'fred_api':
       return 'Source: FRED API (peut être décalé)';
     case 'fred_csv':
