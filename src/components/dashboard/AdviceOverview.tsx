@@ -29,7 +29,7 @@ function ConvictionDots({ conviction, advice, score }: { conviction: Conviction;
     'bg-yellow-500';
 
   return (
-    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction} (|score|=${Math.abs(score)})`}>
+    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction} (niveau ${level}/4)`}>
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
@@ -39,7 +39,7 @@ function ConvictionDots({ conviction, advice, score }: { conviction: Conviction;
           aria-hidden="true"
         />
       ))}
-      <span className="text-[10px] text-[var(--muted)] ml-1">|score| {Math.abs(score)}</span>
+      <span className="text-[10px] text-[var(--muted)] ml-1">{level}/4</span>
     </div>
   );
 }
@@ -165,7 +165,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
         </div>
         <div className="flex flex-col items-end gap-1">
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
-            Score {item.score > 0 ? '+' : ''}{item.score}
+            {item.score > 0 ? '+' : ''}{item.score}
           </div>
           <ConvictionDots conviction={item.conviction} advice={item.advice} score={item.score} />
         </div>
