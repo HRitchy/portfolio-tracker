@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Card from '@/components/ui/Card';
-import { useToast } from '@/components/ui/Toast';
+import { useMacro } from '@/context/MacroContext';
 import {
   getAssetAdvice,
   getAssetClassLabel,
@@ -18,39 +18,6 @@ import { Store, MarketContext, AssetAdvice, Conviction } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
 /* ─────────────────────────────────────────────
-   Hooks to fetch macro data for the advice engine
-   ───────────────────────────────────────────── */
-
-function useFearGreed(): number | null {
-  const [score, setScore] = useState<number | null>(null);
-  const { showToast } = useToast();
-  useEffect(() => {
-    fetch('/api/feargreed', { signal: AbortSignal.timeout(20000) })
-      .then((r) => r.json())
-      .then((d) => setScore(d.fear_and_greed?.score ?? null))
-      .catch(() => showToast('Fear & Greed Index indisponible', 'warning'));
-  }, [showToast]);
-  return score;
-}
-
-function useHYSpread(): number | null {
-  const [spread, setSpread] = useState<number | null>(null);
-  const { showToast } = useToast();
-  useEffect(() => {
-    fetch('/api/fred', { signal: AbortSignal.timeout(20000) })
-      .then((r) => r.json())
-      .then((d) => {
-        const obs = d.observations ?? [];
-        const latest = obs.find((o: { value: string }) => o.value !== '.');
-        if (latest) setSpread(parseFloat(latest.value));
-        else showToast('HY Spread indisponible', 'warning');
-      })
-      .catch(() => showToast('HY Spread (FRED) indisponible', 'warning'));
-  }, [showToast]);
-  return spread;
-}
-
-/* ─────────────────────────────────────────────
    Conviction dots component
    ───────────────────────────────────────────── */
 
@@ -62,13 +29,14 @@ function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice
     'bg-yellow-500';
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction}`}>
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
           className={`w-2 h-2 rounded-full transition-all ${
             i <= level ? activeColor : 'bg-[var(--border)]'
           }`}
+          aria-hidden="true"
         />
       ))}
       <span className="text-[10px] text-[var(--muted)] ml-1">{conviction}</span>
@@ -125,7 +93,14 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
       </div>
 
       {/* Score bar */}
-      <div className="w-full h-2 rounded-full bg-[var(--border)] overflow-hidden mb-2">
+      <div
+        className="w-full h-2 rounded-full bg-[var(--border)] overflow-hidden mb-2"
+        role="progressbar"
+        aria-valuenow={mkt.regimeScore}
+        aria-valuemin={-10}
+        aria-valuemax={10}
+        aria-label={`Score de regime: ${mkt.regimeScore}`}
+      >
         <div
           className="h-full rounded-full transition-all"
           style={{
@@ -145,7 +120,7 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
         <ul className="mt-3 text-xs text-[var(--muted)] space-y-1 list-none">
           {mkt.regimeReasons.map((r) => (
             <li key={r} className="flex items-start gap-1.5">
-              <span className="mt-0.5 shrink-0 w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+              <span className="mt-0.5 shrink-0 w-1.5 h-1.5 rounded-full" style={{ background: color }} aria-hidden="true" />
               {r}
             </li>
           ))}
@@ -181,7 +156,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
   const m = item.metrics;
 
   return (
-    <div className={`rounded-xl border ${adviceBorderColor(item.advice)} p-4 bg-[var(--bg-soft)]/30`}>
+    <article className={`rounded-xl border ${adviceBorderColor(item.advice)} p-4 bg-[var(--bg-soft)]/30`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
@@ -242,7 +217,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
               item.advice === 'Achat' ? 'bg-emerald-500' :
               item.advice === 'Vente' ? 'bg-red-500' :
               'bg-yellow-500'
-            }`} />
+            }`} aria-hidden="true" />
             {reason}
           </li>
         ))}
@@ -254,7 +229,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           &laquo; {item.buffettMaxim} &raquo; — W. Buffett
         </p>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -263,16 +238,25 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
    ───────────────────────────────────────────── */
 
 export default function AdviceOverview({ store }: { store: Store }) {
-  const fearGreed = useFearGreed();
-  const hySpread = useHYSpread();
+  const { fearGreedData, hyObs } = useMacro();
 
-  const { advices, marketContext } = getAssetAdvice(store, fearGreed, hySpread);
+  const fearGreed = fearGreedData?.score ?? null;
+  const hySpread = useMemo(() => {
+    if (!hyObs) return null;
+    const latest = hyObs.find((o) => o.value !== '.');
+    return latest ? parseFloat(latest.value) : null;
+  }, [hyObs]);
+
+  const { advices, marketContext } = useMemo(
+    () => getAssetAdvice(store, fearGreed, hySpread),
+    [store, fearGreed, hySpread]
+  );
 
   return (
     <Card title="Strategie contrarienne — Conseils a la Warren Buffett" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {advices.map((item) => (
           <AssetAdviceCard key={item.key} item={item} />
         ))}

@@ -14,7 +14,8 @@
   --accent-hover: #4338ca;
   --success: #059669;
   --success-soft: #d1fae5;
-  --danger: #dc2626;
+  /* Darker red for WCAG AA contrast (5.1:1 on white, vs 3.9:1 for #dc2626) */
+  --danger: #b91c1c;
   --danger-soft: #fee2e2;
   --scroll-track: #edf2ff;
   --scroll-thumb: #c7d2fe;
@@ -139,4 +140,16 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out both;
+}
+
+/* Respect user motion preferences — disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
