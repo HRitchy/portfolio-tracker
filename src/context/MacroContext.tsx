@@ -18,41 +18,26 @@ export interface HYObservation {
   value: string;
 }
 
-export interface PCRObservation {
-  date: string;
-  value: string;
-}
-
-export type PutCallSource = 'cboe' | 'cboe_page' | 'fred_api' | 'fred_csv' | 'static_fallback';
 
 interface MacroContextType {
   fearGreedData: FearGreedData | null;
   hyObs: HYObservation[] | null;
-  pcrObs: PCRObservation[] | null;
-  pcrSource: PutCallSource | null;
   fearGreedError: boolean;
   hySpreadError: boolean;
-  putCallRatioError: boolean;
 }
 
 const MacroContext = createContext<MacroContextType>({
   fearGreedData: null,
   hyObs: null,
-  pcrObs: null,
-  pcrSource: null,
   fearGreedError: false,
   hySpreadError: false,
-  putCallRatioError: false,
 });
 
 export function MacroProvider({ children }: { children: ReactNode }) {
   const [fearGreedData, setFearGreedData] = useState<FearGreedData | null>(null);
   const [hyObs, setHyObs] = useState<HYObservation[] | null>(null);
-  const [pcrObs, setPcrObs] = useState<PCRObservation[] | null>(null);
-  const [pcrSource, setPcrSource] = useState<PutCallSource | null>(null);
   const [fearGreedError, setFearGreedError] = useState(false);
   const [hySpreadError, setHySpreadError] = useState(false);
-  const [putCallRatioError, setPutCallRatioError] = useState(false);
 
   const { showToast } = useToast();
   // Use a ref so the effect doesn't re-run when showToast reference changes
@@ -84,26 +69,12 @@ export function MacroProvider({ children }: { children: ReactNode }) {
         }
       });
 
-    fetchWithRetry('/api/putcall', controller.signal)
-      .then((r) => r.json())
-      .then((d) => {
-        setPcrObs(d.observations ?? null);
-        setPcrSource(d.source ?? null);
-      })
-      .catch((err) => {
-        if (!controller.signal.aborted) {
-          console.error('[MacroContext] Put/Call Ratio fetch failed:', err);
-          setPutCallRatioError(true);
-          showToastRef.current('Put/Call Ratio (CBOE) indisponible', 'warning');
-        }
-      });
-
     return () => controller.abort();
   }, []);
 
   return (
     <MacroContext.Provider
-      value={{ fearGreedData, hyObs, pcrObs, pcrSource, fearGreedError, hySpreadError, putCallRatioError }}
+      value={{ fearGreedData, hyObs, fearGreedError, hySpreadError }}
     >
       {children}
     </MacroContext.Provider>

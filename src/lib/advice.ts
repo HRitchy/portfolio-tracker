@@ -71,7 +71,6 @@ export function buildMarketContext(
   store: Store,
   fearGreed: number | null,
   hySpread: number | null,
-  putCallRatio: number | null = null,
 ): MarketContext {
   const vixData = store.vix;
   const vixLevel = vixData?.series?.length
@@ -150,25 +149,6 @@ export function buildMarketContext(
     }
   }
 
-  // ── Put/Call Ratio (contrarian: high PCR = fear/puts = buy, low PCR = complaisance = sell) ──
-  if (putCallRatio != null) {
-    if (putCallRatio >= 1.2) {
-      regimeScore += 3;
-      regimeReasons.push(`Put/Call Ratio à ${putCallRatio.toFixed(2)} : peur extrême sur les options — forte opportunité contrarienne.`);
-    } else if (putCallRatio >= 1.0) {
-      regimeScore += 2;
-      regimeReasons.push(`Put/Call Ratio à ${putCallRatio.toFixed(2)} : sentiment baissier sur les options — zone d'accumulation.`);
-    } else if (putCallRatio >= 0.7) {
-      regimeReasons.push(`Put/Call Ratio à ${putCallRatio.toFixed(2)} : ratio neutre, pas de signal directionnel.`);
-    } else if (putCallRatio >= 0.5) {
-      regimeScore -= 2;
-      regimeReasons.push(`Put/Call Ratio à ${putCallRatio.toFixed(2)} : complaisance sur les options — prudence recommandée.`);
-    } else {
-      regimeScore -= 3;
-      regimeReasons.push(`Put/Call Ratio à ${putCallRatio.toFixed(2)} : complaisance extrême sur les options — risque sous-estimé.`);
-    }
-  }
-
   regimeScore = clamp(regimeScore, -10, 10);
 
   let regime: MarketRegime;
@@ -178,7 +158,7 @@ export function buildMarketContext(
   else if (regimeScore > -6) regime = 'Euphorie';
   else regime = 'Exubérance';
 
-  return { fearGreed, vixLevel, vixMA50, hySpread, putCallRatio, regime, regimeScore, regimeReasons };
+  return { fearGreed, vixLevel, vixMA50, hySpread, regime, regimeScore, regimeReasons };
 }
 
 /* ─────────────────────────────────────────────
@@ -411,9 +391,8 @@ export function getAssetAdvice(
   store: Store,
   fearGreed: number | null = null,
   hySpread: number | null = null,
-  putCallRatio: number | null = null,
 ): { advices: AssetAdvice[]; marketContext: MarketContext } {
-  const mkt = buildMarketContext(store, fearGreed, hySpread, putCallRatio);
+  const mkt = buildMarketContext(store, fearGreed, hySpread);
 
   const advices: AssetAdvice[] = PORTFOLIO_KEYS.map((key) => {
     const data = store[key];
