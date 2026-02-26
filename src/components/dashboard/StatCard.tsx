@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, memo } from 'react';
 import { fmtPrice, fmtPct, chgClass, getDigitsForKey } from '@/lib/formatting';
 import { AssetKey, ProcessedAsset } from '@/lib/types';
 import { ASSETS } from '@/lib/config';
@@ -56,10 +56,17 @@ function Sparkline({ series, color }: { series: { close: number }[]; color: stri
     ctx.globalAlpha = 1;
   }, [series, color]);
 
-  return <canvas ref={canvasRef} className="w-full h-[40px]" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full h-[40px]"
+      role="img"
+      aria-label="Graphique sparkline des 30 derniers jours"
+    />
+  );;
 }
 
-export default function StatCard({ assetKey, data }: { assetKey: AssetKey; data: ProcessedAsset | null | undefined }) {
+const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey; data: ProcessedAsset | null | undefined }) {
   const cfg = ASSETS[assetKey];
   const series = data?.series;
   const last = series?.length ? series[series.length - 1] : undefined;
@@ -99,4 +106,6 @@ export default function StatCard({ assetKey, data }: { assetKey: AssetKey; data:
       </div>
     </Link>
   );
-}
+});
+
+export default StatCard;

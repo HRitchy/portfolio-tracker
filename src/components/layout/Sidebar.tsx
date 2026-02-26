@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
@@ -32,11 +32,47 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { lastUpdate } = usePortfolio();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
 
   // Fermer le drawer mobile lors d'un changement de route
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  // Focus trap + Escape key when mobile drawer is open
+  useEffect(() => {
+    if (!mobileOpen) {
+      hamburgerRef.current?.focus();
+      return;
+    }
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const focusable = nav.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    focusable[0]?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const els = Array.from(focusable);
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -47,6 +83,7 @@ export default function Sidebar() {
     <>
       {/* Bouton hamburger — visible uniquement sur mobile */}
       <button
+        ref={hamburgerRef}
         onClick={() => setMobileOpen(true)}
         aria-label="Ouvrir le menu de navigation"
         aria-expanded={mobileOpen}
@@ -71,8 +108,10 @@ export default function Sidebar() {
 
       {/* Sidebar — drawer sur mobile, fixe sur desktop */}
       <nav
+        ref={navRef}
         id="sidebar-nav"
         aria-label="Navigation principale"
+        aria-modal={mobileOpen || undefined}
         className={`w-[280px] glass-panel border-r border-[var(--border)] flex flex-col fixed top-0 left-0 bottom-0 z-50 transition-transform duration-300
           md:translate-x-0
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}

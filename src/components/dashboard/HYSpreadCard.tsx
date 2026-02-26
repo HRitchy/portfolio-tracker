@@ -1,11 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-interface Observation {
-  date: string;
-  value: string;
-}
+import { useMacro } from '@/context/MacroContext';
 
 function getSpreadColor(v: number): string {
   if (v >= 5) return '#ef4444';
@@ -20,18 +15,7 @@ function getSpreadLabel(v: number): string {
 }
 
 export default function HYSpreadCard() {
-  const [obs, setObs] = useState<Observation[] | null>(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/fred', { signal: AbortSignal.timeout(20000) })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d) => setObs(d.observations ?? null))
-      .catch(() => setError(true));
-  }, []);
+  const { hyObs: obs, hySpreadError: error } = useMacro();
 
   const latest = obs?.find((o) => o.value !== '.');
   const val = latest ? parseFloat(latest.value) : null;
@@ -42,16 +26,20 @@ export default function HYSpreadCard() {
   return (
     <div className="data-card p-5">
       <div className="text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
-        <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
+        <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} aria-hidden="true" />
         HY Spread (ICE BofA)
       </div>
       {error ? (
         <div className="text-[var(--muted)] text-sm">Indisponible</div>
       ) : val == null ? (
-        <div className="text-[28px] font-bold text-[var(--muted)]">--</div>
+        <div className="text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
       ) : (
         <>
-          <div className="text-[28px] font-bold" style={{ color: getSpreadColor(val) }}>
+          <div
+            className="text-[28px] font-bold"
+            style={{ color: getSpreadColor(val) }}
+            aria-label={`HY Spread: ${val.toFixed(2)} pourcent, ${getSpreadLabel(val)}`}
+          >
             {val.toFixed(2)}%
           </div>
           <div className="flex items-center gap-2 mt-1">

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
 
 interface ToastMessage {
   id: number;
@@ -16,13 +16,13 @@ const ToastContext = createContext<ToastContextType>({ showToast: () => {} });
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  let nextId = 0;
+  const nextIdRef = useRef(0);
 
   const showToast = useCallback((text: string, type: ToastMessage['type'] = 'error') => {
-    const id = ++nextId;
+    const id = ++nextIdRef.current;
     setToasts((prev) => [...prev, { id, text, type }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const dismiss = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

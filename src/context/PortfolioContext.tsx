@@ -6,8 +6,9 @@ import { ASSETS, ASSET_KEYS, TIMEZONE } from '@/lib/config';
 import { fetchAssetData } from '@/lib/fetcher';
 import { processAsset } from '@/lib/calculations';
 
-const SESSION_KEY = 'portfolio_snapshot';
+const LOCAL_KEY = 'portfolio_snapshot';
 const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+const SNAPSHOT_TTL_MS = 12 * 60 * 60 * 1000; // 12 heures
 
 interface PortfolioContextType {
   store: Store;
@@ -25,9 +26,12 @@ const PortfolioContext = createContext<PortfolioContextType>({
 
 function loadSnapshot(): { store: Store; lastUpdate: string } | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(LOCAL_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Ignore stale snapshots
+    if (parsed.savedAt && Date.now() - parsed.savedAt > SNAPSHOT_TTL_MS) return null;
+    return parsed;
   } catch {
     return null;
   }
@@ -35,9 +39,9 @@ function loadSnapshot(): { store: Store; lastUpdate: string } | null {
 
 function saveSnapshot(store: Store, lastUpdate: string) {
   try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ store, lastUpdate }));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({ store, lastUpdate, savedAt: Date.now() }));
   } catch {
-    // sessionStorage can be unavailable (private mode quotas)
+    // localStorage can be unavailable (private mode quotas)
   }
 }
 
