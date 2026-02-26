@@ -45,7 +45,7 @@ export default function PriceChart({ data, config }: { data: ProcessedAsset; con
     <Card>
       <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
         <PeriodSelector activeDays={days} onChange={setDays} />
-        {evolution != null && (
+        {evolution != null && data.key !== 'vix' && (
           <div className={`text-lg font-bold ${evolution >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
             {evolution >= 0 ? '+' : ''}{evolution.toFixed(2)}%
           </div>
