@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 
+export const dynamic = 'force-dynamic';
+
 type PCRObservation = { date: string; value: string };
 type PutCallSource = 'cboe' | 'cboe_page' | 'fred_api' | 'fred_csv' | 'static_fallback';
 
@@ -116,6 +118,7 @@ const BROWSER_HEADERS: Record<string, string> = {
 async function fetchFromCBOE(): Promise<PCRObservation[]> {
   const url = 'https://cdn.cboe.com/resources/options/volume_and_call_put_ratios/totalpc.csv';
   const resp = await fetch(url, {
+    cache: 'no-store',
     headers: BROWSER_HEADERS,
     signal: AbortSignal.timeout(15000),
   });
@@ -126,6 +129,21 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
   return observations;
 }
 
+function stripTags(value: string): string {
+  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function extractRatioFromCBOEPage(html: string): string {
+  const rowMatch = html.match(/<tr[^>]*>[\s\S]*?(?:total\s*)?put\/?\s*call\s*ratio[\s\S]*?<\/tr>/i);
+  if (!rowMatch) throw new Error('CBOE page: PUT/CALL RATIO row not found in HTML');
+
+  const cells = [...rowMatch[0].matchAll(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi)].map((match) => stripTags(match[1]));
+  const numericCell = cells.find((cell) => /^\d*\.?\d+$/.test(cell));
+  if (!numericCell) throw new Error('CBOE page: ratio cell not found in PUT/CALL row');
+  if (!isValidValue(numericCell)) throw new Error(`CBOE page: invalid ratio value "${numericCell}"`);
+  return numericCell;
+}
+
 /**
  * Scrape the CBOE Daily Market Statistics HTML page.
  * The page shows a table with TOTAL PUT/CALL RATIO in the first data column
@@ -134,6 +152,7 @@ async function fetchFromCBOE(): Promise<PCRObservation[]> {
 async function fetchFromCBOEPage(): Promise<PCRObservation[]> {
   const url = 'https://www.cboe.com/us/options/market_statistics/daily/';
   const resp = await fetch(url, {
+    cache: 'no-store',
     headers: {
       ...BROWSER_HEADERS,
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -143,15 +162,7 @@ async function fetchFromCBOEPage(): Promise<PCRObservation[]> {
   if (!resp.ok) throw new Error(`CBOE page error: ${resp.status}`);
   const html = await resp.text();
 
-  // Find the PUT/CALL RATIO row in the HTML table.
-  // Expected structure: <td>Put/Call Ratio</td><td>0.85</td>...
-  const ratioMatch = html.match(
-    /put\/?call\s*ratio[^<]*<\/(?:td|th)>\s*<td[^>]*>\s*([\d.]+)/i,
-  );
-  if (!ratioMatch) throw new Error('CBOE page: PUT/CALL RATIO not found in HTML');
-
-  const value = ratioMatch[1];
-  if (!isValidValue(value)) throw new Error(`CBOE page: invalid ratio value "${value}"`);
+  const value = extractRatioFromCBOEPage(html);
 
   // Extract the report date from the page (ISO date in input, or MM/DD/YYYY text).
   const isoDate = html.match(/value="(\d{4}-\d{2}-\d{2})"/);
@@ -167,7 +178,7 @@ async function fetchFromCBOEPage(): Promise<PCRObservation[]> {
 
 async function fetchFromFREDApi(apiKey: string): Promise<PCRObservation[]> {
   const url = `https://api.stlouisfed.org/fred/series/observations?series_id=PUTCALL&api_key=${apiKey}&file_type=json&sort_order=desc&limit=5`;
-  const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  const resp = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
   if (!resp.ok) throw new Error(`FRED API error: ${resp.status}`);
   const data = await resp.json();
   return normalizeLatestObservations(data?.observations ?? []);
@@ -175,7 +186,7 @@ async function fetchFromFREDApi(apiKey: string): Promise<PCRObservation[]> {
 
 async function fetchFromFREDCsv(): Promise<PCRObservation[]> {
   const url = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=PUTCALL';
-  const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  const resp = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
   if (!resp.ok) throw new Error(`FRED CSV error: ${resp.status}`);
   const text = await resp.text();
   return parseLatestObservationsFromCsv(text, 'PUTCALL');
