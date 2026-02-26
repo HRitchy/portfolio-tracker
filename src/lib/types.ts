@@ -45,6 +45,7 @@ export interface MarketContext {
   vixLevel: number | null;
   vixMA50: number | null;
   hySpread: number | null;
+  putCallRatio: number | null;
   regime: MarketRegime;
   regimeScore: number;
   regimeReasons: string[];
