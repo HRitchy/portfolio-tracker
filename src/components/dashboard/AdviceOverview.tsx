@@ -21,7 +21,7 @@ import { fmtPct } from '@/lib/formatting';
    Conviction dots component
    ───────────────────────────────────────────── */
 
-function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice: string }) {
+function ConvictionDots({ conviction, advice, score }: { conviction: Conviction; advice: string; score: number }) {
   const level = convictionLevel(conviction);
   const activeColor =
     advice === 'Achat' ? 'bg-emerald-500' :
@@ -29,7 +29,7 @@ function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice
     'bg-yellow-500';
 
   return (
-    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction}`}>
+    <div className="flex items-center gap-1" aria-label={`Conviction: ${conviction} (|score|=${Math.abs(score)})`}>
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
@@ -39,7 +39,7 @@ function ConvictionDots({ conviction, advice }: { conviction: Conviction; advice
           aria-hidden="true"
         />
       ))}
-      <span className="text-[10px] text-[var(--muted)] ml-1">{conviction}</span>
+      <span className="text-[10px] text-[var(--muted)] ml-1">|score| {Math.abs(score)}</span>
     </div>
   );
 }
@@ -165,9 +165,9 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
         </div>
         <div className="flex flex-col items-end gap-1">
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
-            {item.advice}
+            Score {item.score > 0 ? '+' : ''}{item.score}
           </div>
-          <ConvictionDots conviction={item.conviction} advice={item.advice} />
+          <ConvictionDots conviction={item.conviction} advice={item.advice} score={item.score} />
         </div>
       </div>
 
@@ -257,6 +257,33 @@ export default function AdviceOverview({ store }: { store: Store }) {
   return (
     <Card title="Strategie contrarienne — Conseils a la Warren Buffett" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
+
+      <div className="rounded-xl border border-[var(--border)] p-4 mb-4 bg-[var(--bg-soft)]/30">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div>
+            <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
+              Point 3 · Score final -&gt; recommandation
+            </p>
+            <ul className="space-y-1 text-[var(--muted)] list-none">
+              <li><span className="font-semibold text-[var(--text)]">Score ≥ +4</span> : Achat</li>
+              <li><span className="font-semibold text-[var(--text)]">Score ≤ -4</span> : Vente</li>
+              <li><span className="font-semibold text-[var(--text)]">-3 a +3</span> : Conservation</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
+              Point 4 · Niveau de conviction
+            </p>
+            <ul className="space-y-1 text-[var(--muted)] list-none">
+              <li><span className="font-semibold text-[var(--text)]">Faible</span> : |score| &lt; 4</li>
+              <li><span className="font-semibold text-[var(--text)]">Moyenne</span> : |score| de 4 a 6</li>
+              <li><span className="font-semibold text-[var(--text)]">Forte</span> : |score| de 7 a 9</li>
+              <li><span className="font-semibold text-[var(--text)]">Tres forte</span> : |score| ≥ 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {advices.map((item) => (
