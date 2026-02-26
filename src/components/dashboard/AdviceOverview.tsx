@@ -258,6 +258,33 @@ export default function AdviceOverview({ store }: { store: Store }) {
     <Card title="Strategie contrarienne — Conseils a la Warren Buffett" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
+      <div className="rounded-xl border border-[var(--border)] p-4 mb-4 bg-[var(--bg-soft)]/30">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div>
+            <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
+              Point 3 · Score final -&gt; recommandation
+            </p>
+            <ul className="space-y-1 text-[var(--muted)] list-none">
+              <li><span className="font-semibold text-[var(--text)]">Score ≥ +4</span> : Achat</li>
+              <li><span className="font-semibold text-[var(--text)]">Score ≤ -4</span> : Vente</li>
+              <li><span className="font-semibold text-[var(--text)]">-3 a +3</span> : Conservation</li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
+              Point 4 · Niveau de conviction
+            </p>
+            <ul className="space-y-1 text-[var(--muted)] list-none">
+              <li><span className="font-semibold text-[var(--text)]">Faible</span> : |score| &lt; 4</li>
+              <li><span className="font-semibold text-[var(--text)]">Moyenne</span> : |score| de 4 a 6</li>
+              <li><span className="font-semibold text-[var(--text)]">Forte</span> : |score| de 7 a 9</li>
+              <li><span className="font-semibold text-[var(--text)]">Tres forte</span> : |score| ≥ 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {advices.map((item) => (
           <AssetAdviceCard key={item.key} item={item} />
