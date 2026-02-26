@@ -273,7 +273,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
 
           <div>
             <p className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-2">
-              Point 4 · Niveau de conviction
+              Niveau de conviction
             </p>
             <ul className="space-y-1 text-[var(--muted)] list-none">
               <li><span className="font-semibold text-[var(--text)]">Faible</span> : |score| &lt; 4</li>
