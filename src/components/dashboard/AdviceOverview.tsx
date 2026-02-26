@@ -16,10 +16,12 @@ import { ASSETS } from '@/lib/config';
 import { Store, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
-function ConvictionScore({ conviction }: { conviction: AssetAdvice['conviction'] }) {
+function ConvictionScore({ conviction, score }: { conviction: AssetAdvice['conviction']; score: number }) {
+  const rawScore = `${score > 0 ? '+' : ''}${score}`;
+
   return (
-    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction}`}>
-      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span>
+    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction} (score brut ${rawScore})`}>
+      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span> ({rawScore})
     </div>
   );
 }
@@ -147,7 +149,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
             {item.score > 0 ? '+' : ''}{item.score}
           </div>
-          <ConvictionScore conviction={item.conviction} />
+          <ConvictionScore conviction={item.conviction} score={item.score} />
         </div>
       </div>
 
