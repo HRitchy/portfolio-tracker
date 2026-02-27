@@ -22,7 +22,7 @@ function ConvictionScore({
   advice: AssetAdvice['advice'];
   conviction: AssetAdvice['conviction'];
 }) {
-  if (advice === 'Conservation') return null;
+  if (advice === 'Conserver') return null;
 
   return (
     <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction}`}>

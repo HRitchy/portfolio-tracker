@@ -36,7 +36,7 @@ export interface ProcessedAsset {
 
 export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
 
-export type Advice = 'Achat' | 'Vente' | 'Conservation';
+export type Advice = 'Renforcer' | 'Alléger' | 'Conserver';
 export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Très forte';
 export type MarketRegime = 'Capitulation' | 'Peur' | 'Neutre' | 'Euphorie' | 'Exubérance';
 
