@@ -2,6 +2,7 @@
 
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
+import { chartOpts } from '@/lib/chartSetup';
 import { ProcessedAsset, AssetConfig, AssetKey } from '@/lib/types';
 import { fmtPrice, getDigitsForKey } from '@/lib/formatting';
 import Card from '@/components/ui/Card';
@@ -27,6 +28,8 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
   const pctB = lastClose != null && lastUpper != null && lastLower != null && lastUpper !== lastLower
     ? +((lastClose - lastLower) / (lastUpper - lastLower) * 100).toFixed(2)
     : null;
+
+  const baseOptions = chartOpts('Cours');
 
   return (
     <>
@@ -76,22 +79,18 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
               ],
             }}
             options={{
-              responsive: true,
-              maintainAspectRatio: false,
+              ...baseOptions,
               interaction: { mode: 'index', intersect: false },
               plugins: {
-                legend: { position: 'top' },
+                ...baseOptions.plugins,
                 tooltip: {
-                  backgroundColor: 'rgba(26,29,39,0.95)',
-                  borderColor: '#2e3347',
-                  borderWidth: 1,
+                  ...baseOptions.plugins?.tooltip,
                 },
               },
               scales: {
-                x: { type: 'time', time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' }, grid: { display: false } },
+                x: baseOptions.scales?.x,
                 y: {
-                  grid: { color: 'rgba(46,51,71,0.5)' },
-                  title: { display: true, text: 'Cours' },
+                  ...baseOptions.scales?.y,
                 },
               },
             } as never}
