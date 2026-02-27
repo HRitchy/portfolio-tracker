@@ -13,17 +13,9 @@ export const metadata: Metadata = {
   description: 'Suivi temps réel de portefeuille boursier',
 };
 
-// Inline script to prevent FOUC (Flash of Unstyled Content) on theme load.
-// Runs synchronously before React hydration to apply the saved theme.
-const themeScript = `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')}catch(e){}})()`;
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <head>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
       <body className="flex">
         <ThemeProvider>
           <ToastProvider>
