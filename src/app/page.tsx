@@ -1,7 +1,7 @@
 'use client';
 
 import { usePortfolio } from '@/context/PortfolioContext';
-import { PORTFOLIO_KEYS, INDICATOR_KEYS } from '@/lib/config';
+import { PORTFOLIO_KEYS } from '@/lib/config';
 import StatCard from '@/components/dashboard/StatCard';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 import RSIOverview from '@/components/dashboard/RSIOverview';
@@ -41,15 +41,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
-            {INDICATOR_KEYS.map((key, i) => (
-              <div key={key} className={`fade-in stagger-${i + 4}`}>
-                <StatCard assetKey={key} data={store[key]} />
-              </div>
-            ))}
-            <div className="fade-in stagger-5">
+            <div className="fade-in stagger-4">
               <HYSpreadCard />
             </div>
-            <div className="fade-in stagger-6">
+            <div className="fade-in stagger-5">
               <FearGreedCard />
             </div>
           </div>
