@@ -11,6 +11,19 @@ import PeriodSelector from '@/components/ui/PeriodSelector';
 
 export default function PerformanceChart({ store }: { store: Store }) {
   const [days, setDays] = useState(180);
+  const options = useMemo(() => {
+    const baseOptions = chartOpts('Base 100');
+    return {
+      ...baseOptions,
+      plugins: {
+        ...baseOptions.plugins,
+        tooltip: {
+          ...baseOptions.plugins?.tooltip,
+          enabled: false,
+        },
+      },
+    };
+  }, []);
 
   const datasets = useMemo(() => {
     const cutoff = days >= 9999 ? null : new Date(Date.now() - days * 86400000);
@@ -44,7 +57,7 @@ export default function PerformanceChart({ store }: { store: Store }) {
         <PeriodSelector activeDays={days} onChange={setDays} />
       </div>
       <div className="relative h-[350px] w-full">
-        <Line data={{ datasets: datasets as never[] }} options={chartOpts('Base 100') as never} />
+        <Line data={{ datasets: datasets as never[] }} options={options as never} />
       </div>
     </Card>
   );

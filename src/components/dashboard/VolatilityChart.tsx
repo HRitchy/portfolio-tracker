@@ -25,6 +25,20 @@ function rollingVolatility(prices: number[], window: number, annualFactor: numbe
 }
 
 export default function VolatilityChart({ store }: { store: Store }) {
+  const options = useMemo(() => {
+    const baseOptions = chartOpts('Volatilite (%)');
+    return {
+      ...baseOptions,
+      plugins: {
+        ...baseOptions.plugins,
+        tooltip: {
+          ...baseOptions.plugins?.tooltip,
+          enabled: false,
+        },
+      },
+    };
+  }, []);
+
   const datasets = useMemo(() => {
     return PORTFOLIO_KEYS.map((key) => {
       const d = store[key];
@@ -51,7 +65,7 @@ export default function VolatilityChart({ store }: { store: Store }) {
       <div className="relative h-[300px] w-full">
         <Line
           data={{ datasets: datasets as never[] }}
-          options={chartOpts('Volatilite (%)') as never}
+          options={options as never}
         />
       </div>
     </Card>
