@@ -436,7 +436,7 @@ export function getAssetAdvice(
 
 export function adviceTone(advice: Advice): string {
   if (advice === 'Renforcer') return 'text-[var(--success)] bg-[var(--success-soft)]';
-  if (advice === 'Alléger') return 'text-[var(--danger)] bg-[var(--danger-soft)]';
+  if (advice === 'Alléger') return 'text-[var(--muted)] bg-[var(--panel-hover)]';
   return 'text-[var(--muted)] bg-[var(--panel-hover)]';
 }
 
