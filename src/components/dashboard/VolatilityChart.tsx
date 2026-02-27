@@ -52,6 +52,7 @@ export default function VolatilityChart({ store }: { store: Store }) {
         borderColor: ASSETS[key].color,
         borderWidth: 1.5,
         pointRadius: 0,
+        pointHoverRadius: 0,
         fill: false,
         tension: 0.2,
       };
