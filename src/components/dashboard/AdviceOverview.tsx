@@ -15,13 +15,10 @@ import { ASSETS } from '@/lib/config';
 import { Store, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
-function ConvictionScore({ conviction, score }: { conviction: AssetAdvice['conviction']; score: number }) {
-  const absoluteScore = Math.abs(score);
-  const displayedScore = `${absoluteScore}`;
-
+function ConvictionScore({ conviction }: { conviction: AssetAdvice['conviction'] }) {
   return (
-    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction} (score absolu ${absoluteScore})`}>
-      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span> ({displayedScore})
+    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction}`}>
+      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span>
     </div>
   );
 }
@@ -147,10 +144,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${toneClass}`}>
             {item.advice}
           </span>
-          <div className="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--panel-hover)] text-[var(--text)]">
-            {item.score > 0 ? '+' : ''}{item.score}
-          </div>
-          <ConvictionScore conviction={item.conviction} score={item.score} />
+          <ConvictionScore conviction={item.conviction} />
         </div>
       </div>
 
