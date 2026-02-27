@@ -4,25 +4,18 @@ import { useMemo } from 'react';
 import { Store } from '@/lib/types';
 import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
 import { fmtPct } from '@/lib/formatting';
+import { calcPerfFromCalendarDays } from '@/lib/calculations';
 import Card from '@/components/ui/Card';
-
-function calcPerf(prices: { close: number }[], daysBack: number): number | null {
-  if (prices.length < daysBack + 1) return null;
-  const recent = prices[prices.length - 1].close;
-  const past = prices[prices.length - 1 - daysBack].close;
-  if (past === 0) return null;
-  return ((recent - past) / past) * 100;
-}
 
 export default function PortfolioSummary({ store }: { store: Store }) {
   const summary = useMemo(() => {
     const items = PORTFOLIO_KEYS.map((key) => {
       const d = store[key];
       if (!d?.series?.length) return null;
-      const perf1d = calcPerf(d.series, 1);
-      const perf7d = calcPerf(d.series, 5);
-      const perf30d = calcPerf(d.series, 22);
-      const perf90d = calcPerf(d.series, 66);
+      const perf1d = calcPerfFromCalendarDays(d.series, 1);
+      const perf7d = calcPerfFromCalendarDays(d.series, 7);
+      const perf30d = calcPerfFromCalendarDays(d.series, 30);
+      const perf90d = calcPerfFromCalendarDays(d.series, 90);
       return { key, name: ASSETS[key].name, color: ASSETS[key].color, perf1d, perf7d, perf30d, perf90d };
     }).filter(Boolean) as { key: string; name: string; color: string; perf1d: number | null; perf7d: number | null; perf30d: number | null; perf90d: number | null }[];
 
@@ -40,6 +33,7 @@ export default function PortfolioSummary({ store }: { store: Store }) {
 
   return (
     <Card title="Synthèse performance portefeuille">
+      <p className="mb-3 text-xs text-[var(--muted)]">Les variations sont calculées en jours calendaires (1S = 7 jours, 1M = 30 jours, 3M = 90 jours).</p>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-[13px]">
           <thead>

@@ -2,6 +2,20 @@ import { AssetKey, ProcessedAsset, SeriesPoint, YahooResult } from './types';
 import { ASSETS } from './config';
 import { tsToDate } from './formatting';
 
+export function calcPerfFromCalendarDays(
+  series: Pick<SeriesPoint, 'dateObj' | 'close'>[],
+  days: number
+): number | null {
+  if (series.length < 2) return null;
+
+  const latest = series[series.length - 1];
+  const cutoff = new Date(latest.dateObj.getTime() - days * 86400000);
+  const reference = series.find((point) => point.dateObj >= cutoff);
+
+  if (!reference || reference.close === 0) return null;
+  return ((latest.close - reference.close) / reference.close) * 100;
+}
+
 export function extractCleanSeries(result: YahooResult): SeriesPoint[] {
   const ts = result.timestamp || [];
   const cl = result.indicators?.quote?.[0]?.close || [];
