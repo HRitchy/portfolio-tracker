@@ -15,7 +15,15 @@ import { ASSETS } from '@/lib/config';
 import { Store, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
-function ConvictionScore({ conviction }: { conviction: AssetAdvice['conviction'] }) {
+function ConvictionScore({
+  advice,
+  conviction,
+}: {
+  advice: AssetAdvice['advice'];
+  conviction: AssetAdvice['conviction'];
+}) {
+  if (advice === 'Conservation') return null;
+
   return (
     <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction}`}>
       Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span>
@@ -144,7 +152,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${toneClass}`}>
             {item.advice}
           </span>
-          <ConvictionScore conviction={item.conviction} />
+          <ConvictionScore advice={item.advice} conviction={item.conviction} />
         </div>
       </div>
 
