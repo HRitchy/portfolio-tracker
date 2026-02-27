@@ -31,12 +31,6 @@ export default function PortfolioSummary({ store }: { store: Store }) {
 
   if (summary.length === 0) return null;
 
-  const avgPerf = (field: 'perf1d' | 'perf7d' | 'perf30d' | 'perf90d') => {
-    const vals = summary.map((s) => s[field]).filter((v): v is number => v != null);
-    if (vals.length === 0) return null;
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
-  };
-
   const periods = [
     { label: '1J', field: 'perf1d' as const },
     { label: '1S', field: 'perf7d' as const },
@@ -74,18 +68,6 @@ export default function PortfolioSummary({ store }: { store: Store }) {
                 })}
               </tr>
             ))}
-            <tr className="bg-[var(--panel-hover)]/50">
-              <td className="px-3 py-2.5 font-bold text-[var(--text)]">Moyenne</td>
-              {periods.map((p) => {
-                const v = avgPerf(p.field);
-                const color = v == null ? 'text-[var(--muted)]' : v >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]';
-                return (
-                  <td key={p.label} className={`px-3 py-2.5 text-right font-bold ${color}`}>
-                    {v != null ? fmtPct(v) : '--'}
-                  </td>
-                );
-              })}
-            </tr>
           </tbody>
         </table>
       </div>
