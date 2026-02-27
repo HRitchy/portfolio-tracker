@@ -12,8 +12,9 @@ export function fmtPrice(v: number | null | undefined, digits = 2): string {
 
 export function fmtPct(v: number | null | undefined): string {
   if (v == null) return '--';
-  const sign = v >= 0 ? '+' : '';
-  return sign + v.toFixed(2) + '%';
+  const rounded = Math.round(v * 100) / 100;
+  const sign = rounded > 0 ? '+' : '';
+  return sign + rounded.toFixed(2) + '%';
 }
 
 export function chgClass(v: number | null | undefined): 'up' | 'down' | 'neutral' {

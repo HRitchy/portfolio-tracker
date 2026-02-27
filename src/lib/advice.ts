@@ -1,4 +1,5 @@
 import { ASSETS, PORTFOLIO_KEYS } from './config';
+import { calcPerfFromCalendarDays } from './calculations';
 import {
   Advice,
   AssetAdvice,
@@ -165,7 +166,7 @@ export function buildMarketContext(
    2. Per-asset metrics extraction
    ───────────────────────────────────────────── */
 
-function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
+export function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
   const data = store[key];
   if (!data?.series?.length) {
     return {
@@ -183,11 +184,9 @@ function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
   const bbUpper = last(data.bollingerUpper);
   const bbLower = last(data.bollingerLower);
 
-  // Perf 30d / 90d
-  const i30 = Math.max(0, idx - 30);
-  const i90 = Math.max(0, idx - 90);
-  const perf30d = idx > 30 ? pct(price, data.series[i30].close) : null;
-  const perf90d = idx > 90 ? pct(price, data.series[i90].close) : null;
+  // Perf 30d / 90d (calendar days, not data-point indices)
+  const perf30d = calcPerfFromCalendarDays(data.series, 30);
+  const perf90d = calcPerfFromCalendarDays(data.series, 90);
 
   // 30-day realized volatility (annualized)
   let volatility30d: number | null = null;
@@ -200,7 +199,8 @@ function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
     if (returns.length > 0) {
       const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
       const variance = returns.reduce((a, r) => a + (r - mean) ** 2, 0) / returns.length;
-      volatility30d = Math.sqrt(variance * 252) * 100;
+      const annualFactor = ASSETS[key].assetClass === 'Crypto' ? 365 : 252;
+      volatility30d = Math.sqrt(variance * annualFactor) * 100;
     }
   }
 
@@ -228,7 +228,7 @@ function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
    3. Contrarian scoring per asset
    ───────────────────────────────────────────── */
 
-function scoreAsset(
+export function scoreAsset(
   metrics: AssetMetrics,
   mkt: MarketContext,
 ): { score: number; reasons: string[] } {
