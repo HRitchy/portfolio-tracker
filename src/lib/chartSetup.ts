@@ -64,6 +64,7 @@ export function chartOpts(yLabel?: string) {
   const panel = getCssVar('--panel', '#1a1d27');
   const border = getCssVar('--border', '#2e3347');
   const navText = getCssVar('--nav-text', '#9da3b4');
+  const text = getCssVar('--text', '#e2e8f0');
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -75,6 +76,9 @@ export function chartOpts(yLabel?: string) {
         borderColor: border,
         borderWidth: 1,
         titleFont: { weight: 'bold' as const },
+        titleColor: text,
+        bodyColor: text,
+        footerColor: text,
       },
     },
     scales: {
