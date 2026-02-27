@@ -64,12 +64,6 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
               <div className="font-bold text-sm">{Math.round(mkt.fearGreed)}</div>
             </div>
           )}
-          {mkt.vixLevel != null && (
-            <div className="text-center">
-              <div className="text-[10px] text-[var(--muted)] uppercase">VIX</div>
-              <div className="font-bold text-sm">{mkt.vixLevel.toFixed(1)}</div>
-            </div>
-          )}
           {mkt.hySpread != null && (
             <div className="text-center">
               <div className="text-[10px] text-[var(--muted)] uppercase">HY Spread</div>
