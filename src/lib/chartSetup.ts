@@ -79,6 +79,15 @@ export function chartOpts(yLabel?: string) {
         titleColor: text,
         bodyColor: text,
         footerColor: text,
+        callbacks: {
+          label: (context: { dataset: { label?: string }; parsed: { y?: number | null } }) => {
+            const datasetLabel = context.dataset.label ?? '';
+            const value = context.parsed?.y;
+            if (value === null || value === undefined || Number.isNaN(value)) return datasetLabel;
+            const rounded = Math.round(value * 100) / 100;
+            return datasetLabel ? `${datasetLabel}: ${rounded}` : `${rounded}`;
+          },
+        },
       },
     },
     scales: {
