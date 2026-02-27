@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
@@ -55,6 +55,79 @@ const navItems = [
   },
 ];
 
+// Rendu partagé des sections de navigation.
+// getHref permet d'injecter l'onglet courant dans les liens d'actifs.
+function NavSections({
+  getHref,
+  pathname,
+}: {
+  getHref: (baseHref: string) => string;
+  pathname: string;
+}) {
+  function isActive(href: string) {
+    if (href === '/') return pathname === '/';
+    return pathname === href;
+  }
+
+  return (
+    <>
+      {navItems.map((section) => (
+        <div key={section.section} className="mb-5 last:mb-0">
+          <div className="text-[10px] uppercase text-[var(--muted)] px-3 tracking-[0.18em] font-semibold mb-2">
+            {section.section}
+          </div>
+          <div className="space-y-1">
+            {section.items.map((item) => (
+              <Link
+                key={item.key}
+                href={getHref(item.href)}
+                scroll={!item.href.startsWith('/asset/')}
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                  isActive(item.href)
+                    ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
+                    : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
+                }`}
+              >
+                {'icon' in item ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                ) : (
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} aria-hidden="true" />
+                )}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+// Composant interne qui lit l'onglet courant depuis l'URL
+// et l'intègre dans les liens vers les actifs.
+// Nécessite un Suspense parent (Next.js App Router + useSearchParams).
+function NavLinksWithTab({ pathname }: { pathname: string }) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
+
+  const getHref = useCallback(
+    (baseHref: string) => {
+      if (currentTab && baseHref.startsWith('/asset/')) {
+        return `${baseHref}?tab=${currentTab}`;
+      }
+      return baseHref;
+    },
+    [currentTab],
+  );
+
+  return <NavSections getHref={getHref} pathname={pathname} />;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { lastUpdate } = usePortfolio();
@@ -101,11 +174,6 @@ export default function Sidebar() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileOpen]);
-
-  function isActive(href: string) {
-    if (href === '/') return pathname === '/';
-    return pathname === href;
-  }
 
   return (
     <>
@@ -167,38 +235,14 @@ export default function Sidebar() {
         </div>
 
         <div className="flex-1 px-3 py-4 overflow-y-auto">
-          {navItems.map((section) => (
-            <div key={section.section} className="mb-5 last:mb-0">
-              <div className="text-[10px] uppercase text-[var(--muted)] px-3 tracking-[0.18em] font-semibold mb-2">
-                {section.section}
-              </div>
-              <div className="space-y-1">
-                {section.items.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
-                      isActive(item.href)
-                        ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
-                        : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    {'icon' in item ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                        <rect x="3" y="3" width="7" height="7" rx="1" />
-                        <rect x="14" y="3" width="7" height="7" rx="1" />
-                        <rect x="3" y="14" width="7" height="7" rx="1" />
-                        <rect x="14" y="14" width="7" height="7" rx="1" />
-                      </svg>
-                    ) : (
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} aria-hidden="true" />
-                    )}
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+          {/*
+            NavLinksWithTab lit l'onglet courant via useSearchParams pour le
+            propager dans les liens d'actifs. Le Suspense fournit un rendu sans
+            onglet le temps que le hook soit disponible (exigence Next.js App Router).
+          */}
+          <Suspense fallback={<NavSections getHref={(href) => href} pathname={pathname} />}>
+            <NavLinksWithTab pathname={pathname} />
+          </Suspense>
         </div>
 
         <div className="px-5 py-4 border-t border-[var(--border)] text-[11px] text-[var(--muted)]">

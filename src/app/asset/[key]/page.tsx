@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { ASSETS } from '@/lib/config';
@@ -141,11 +141,46 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
 
 export default function AssetPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const key = params.key as AssetKey;
   const { store, loading } = usePortfolio();
-  const [tab, setTab] = useState<Tab>('cours');
 
   const config = ASSETS[key];
+
+  // Onglets disponibles pour cet actif
+  const validTabs = useMemo<Set<Tab>>(() => {
+    const s = new Set<Tab>(['cours', 'variations', 'donnees']);
+    if (config?.hasMM) s.add('mm');
+    if (config?.hasRSI) s.add('rsi');
+    if (config?.hasDrawdown) s.add('drawdown');
+    if (config?.hasBollinger) s.add('bollinger');
+    return s;
+  }, [config]);
+
+  // L'onglet actif est lu depuis l'URL — fallback vers 'cours' si invalide
+  const rawTab = searchParams.get('tab') as Tab | null;
+  const tab: Tab = rawTab && validTabs.has(rawTab) ? rawTab : 'cours';
+
+  // Nettoyage de l'URL si l'onglet n'est pas disponible pour cet actif
+  useEffect(() => {
+    if (rawTab && !validTabs.has(rawTab)) {
+      router.replace(`/asset/${key}`, { scroll: false });
+    }
+  }, [key, rawTab, validTabs, router]);
+
+  // Changement d'onglet : mise à jour de l'URL sans recharger la page
+  const setTab = useCallback((newTab: Tab) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (newTab === 'cours') {
+      next.delete('tab');
+    } else {
+      next.set('tab', newTab);
+    }
+    const qs = next.toString();
+    router.replace(`/asset/${key}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [router, key, searchParams]);
+
   const data = store[key];
 
   if (!config) {
