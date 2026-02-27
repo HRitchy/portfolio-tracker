@@ -440,12 +440,6 @@ export function adviceTone(advice: Advice): string {
   return 'text-[var(--muted)] bg-[var(--panel-hover)]';
 }
 
-export function adviceBorderColor(advice: Advice): string {
-  if (advice === 'Achat') return 'border-emerald-500/40';
-  if (advice === 'Vente') return 'border-red-500/40';
-  return 'border-[var(--border)]';
-}
-
 export function getAdviceDescription(advice: Advice): string {
   if (advice === 'Achat')
     return "Stratégie contrarienne : les conditions de peur et de décote créent une fenêtre d'accumulation.";
@@ -456,15 +450,6 @@ export function getAdviceDescription(advice: Advice): string {
 
 export function getAssetClassLabel(key: keyof typeof ASSETS): string {
   return ASSETS[key].assetClass;
-}
-
-export function convictionLevel(conviction: Conviction): number {
-  switch (conviction) {
-    case 'Très forte': return 4;
-    case 'Forte': return 3;
-    case 'Moyenne': return 2;
-    case 'Faible': return 1;
-  }
 }
 
 export function regimeColor(regime: MarketRegime): string {
