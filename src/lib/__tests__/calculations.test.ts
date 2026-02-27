@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calcSMA, calcRSI, calcDrawdown, calcBollinger, extractCleanSeries } from '../calculations';
+import { calcSMA, calcRSI, calcDrawdown, calcBollinger, extractCleanSeries, calcPerfFromCalendarDays } from '../calculations';
 import type { SeriesPoint } from '../types';
 
 function makeSeries(closes: number[]): SeriesPoint[] {
@@ -12,6 +12,29 @@ function makeSeries(closes: number[]): SeriesPoint[] {
   }));
 }
 
+
+
+describe('calcPerfFromCalendarDays', () => {
+  it('uses the first point on or after cutoff date', () => {
+    const series = [
+      { ...makeSeries([100])[0], dateObj: new Date('2024-01-01T00:00:00Z'), close: 100 },
+      { ...makeSeries([120])[0], dateObj: new Date('2024-01-04T00:00:00Z'), close: 120 },
+      { ...makeSeries([140])[0], dateObj: new Date('2024-01-05T00:00:00Z'), close: 140 },
+    ];
+    const perf = calcPerfFromCalendarDays(series, 2);
+    expect(perf).toBeCloseTo((140 - 120) / 120 * 100);
+  });
+
+  it('returns null if there are fewer than 2 points', () => {
+    expect(calcPerfFromCalendarDays(makeSeries([100]), 7)).toBeNull();
+  });
+
+  it('returns null when reference close is zero', () => {
+    const series = makeSeries([100, 110, 120]);
+    series[1].close = 0;
+    expect(calcPerfFromCalendarDays(series, 1)).toBeNull();
+  });
+});
 describe('calcSMA', () => {
   it('returns null for indices before window is filled', () => {
     const sma = calcSMA(makeSeries([1, 2, 3, 4, 5]), 3);
