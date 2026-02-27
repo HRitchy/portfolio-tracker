@@ -7,8 +7,6 @@ import {
   getAssetAdvice,
   getAssetClassLabel,
   getAdviceDescription,
-  adviceTone,
-  adviceBorderColor,
   regimeColor,
   regimeContrarianLabel,
 } from '@/lib/advice';
@@ -117,11 +115,8 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
    Metric pill
    ───────────────────────────────────────────── */
 
-function MetricPill({ label, value, highlight }: { label: string; value: string; highlight?: 'good' | 'bad' | 'neutral' }) {
-  const pillColor =
-    highlight === 'good' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-    highlight === 'bad' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
-    'bg-[var(--panel-hover)] text-[var(--muted)]';
+function MetricPill({ label, value }: { label: string; value: string }) {
+  const pillColor = 'bg-[var(--panel-hover)] text-[var(--muted)]';
 
   return (
     <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${pillColor}`}>
@@ -139,7 +134,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
   const m = item.metrics;
 
   return (
-    <article className={`rounded-xl border ${adviceBorderColor(item.advice)} p-4 bg-[var(--bg-soft)]/30`}>
+    <article className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg-soft)]/30">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
@@ -147,7 +142,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <div className="font-semibold">{cfg.name}</div>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <div className={`text-xs font-semibold px-3 py-1 rounded-full ${adviceTone(item.advice)}`}>
+          <div className="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--panel-hover)] text-[var(--text)]">
             {item.score > 0 ? '+' : ''}{item.score}
           </div>
           <ConvictionScore conviction={item.conviction} score={item.score} />
@@ -163,28 +158,24 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <MetricPill
             label="Drawdown"
             value={`${m.drawdown.toFixed(1)}%`}
-            highlight={m.drawdown <= -15 ? 'good' : m.drawdown > -3 ? 'bad' : 'neutral'}
           />
         )}
         {m.rsi14 != null && (
           <MetricPill
             label="RSI14"
             value={m.rsi14.toFixed(0)}
-            highlight={m.rsi14 < 35 ? 'good' : m.rsi14 > 70 ? 'bad' : 'neutral'}
           />
         )}
         {m.distFromMA200Pct != null && (
           <MetricPill
             label="vs MM200"
             value={fmtPct(m.distFromMA200Pct)}
-            highlight={m.distFromMA200Pct <= -10 ? 'good' : m.distFromMA200Pct >= 20 ? 'bad' : 'neutral'}
           />
         )}
         {m.perf30d != null && (
           <MetricPill
             label="30j"
             value={fmtPct(m.perf30d)}
-            highlight={m.perf30d <= -10 ? 'good' : m.perf30d >= 20 ? 'bad' : 'neutral'}
           />
         )}
         {m.volatility30d != null && (
@@ -196,11 +187,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
       <ul className="text-xs text-[var(--muted)] space-y-1 list-none mb-3">
         {item.reasons.map((reason) => (
           <li key={reason} className="flex items-start gap-1.5">
-            <span className={`mt-1 shrink-0 w-1 h-1 rounded-full ${
-              item.advice === 'Achat' ? 'bg-emerald-500' :
-              item.advice === 'Vente' ? 'bg-red-500' :
-              'bg-yellow-500'
-            }`} aria-hidden="true" />
+            <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-[var(--muted)]" aria-hidden="true" />
             {reason}
           </li>
         ))}
