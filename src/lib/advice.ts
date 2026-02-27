@@ -370,9 +370,9 @@ export function scoreAsset(
    ───────────────────────────────────────────── */
 
 function scoreToAdvice(score: number): Advice {
-  if (score >= 4) return 'Achat';
-  if (score <= -4) return 'Vente';
-  return 'Conservation';
+  if (score >= 4) return 'Renforcer';
+  if (score <= -4) return 'Alléger';
+  return 'Conserver';
 }
 
 function scoreToConviction(score: number): Conviction {
@@ -401,7 +401,7 @@ export function getAssetAdvice(
     if (!data?.series?.length) {
       return {
         key,
-        advice: 'Conservation' as Advice,
+        advice: 'Conserver' as Advice,
         score: 0,
         conviction: 'Faible' as Conviction,
         reasons: ['Données insuffisantes pour émettre un signal fiable.'],
@@ -420,8 +420,8 @@ export function getAssetAdvice(
     const conviction = scoreToConviction(score);
 
     const buffettMaxim =
-      advice === 'Achat' ? pickMaxim(MAXIMS_BUY) :
-      advice === 'Vente' ? pickMaxim(MAXIMS_SELL) :
+      advice === 'Renforcer' ? pickMaxim(MAXIMS_BUY) :
+      advice === 'Alléger' ? pickMaxim(MAXIMS_SELL) :
       pickMaxim(MAXIMS_HOLD);
 
     return { key, advice, score, conviction, reasons, buffettMaxim, metrics };
@@ -435,15 +435,15 @@ export function getAssetAdvice(
    ───────────────────────────────────────────── */
 
 export function adviceTone(advice: Advice): string {
-  if (advice === 'Achat') return 'text-[var(--success)] bg-[var(--success-soft)]';
-  if (advice === 'Vente') return 'text-[var(--danger)] bg-[var(--danger-soft)]';
+  if (advice === 'Renforcer') return 'text-[var(--success)] bg-[var(--success-soft)]';
+  if (advice === 'Alléger') return 'text-[var(--danger)] bg-[var(--danger-soft)]';
   return 'text-[var(--muted)] bg-[var(--panel-hover)]';
 }
 
 export function getAdviceDescription(advice: Advice): string {
-  if (advice === 'Achat')
+  if (advice === 'Renforcer')
     return "Stratégie contrarienne : les conditions de peur et de décote créent une fenêtre d'accumulation.";
-  if (advice === 'Vente')
+  if (advice === 'Alléger')
     return "Stratégie contrarienne : l'euphorie et la surchauffe imposent un allègement défensif.";
   return "Patience : aucun excès ne justifie d'agir. Buffett attendrait.";
 }
