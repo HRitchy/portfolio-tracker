@@ -30,8 +30,29 @@ function getCssVar(name: string, fallback: string) {
   return value || fallback;
 }
 
-ChartJS.defaults.color = getCssVar('--nav-text', '#9da3b4');
-ChartJS.defaults.borderColor = getCssVar('--border', 'rgba(46,51,71,0.5)');
+function applyChartTheme() {
+  ChartJS.defaults.color = getCssVar('--nav-text', '#9da3b4');
+  ChartJS.defaults.borderColor = getCssVar('--border', 'rgba(46,51,71,0.5)');
+}
+
+applyChartTheme();
+
+if (typeof window !== 'undefined') {
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        applyChartTheme();
+        break;
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+}
+
 ChartJS.defaults.font.family = "'Segoe UI',system-ui,sans-serif";
 ChartJS.defaults.font.size = 11;
 ChartJS.defaults.plugins.legend.labels.boxWidth = 12;
@@ -39,6 +60,7 @@ ChartJS.defaults.plugins.legend.labels.padding = 16;
 (ChartJS.defaults.animation as Record<string, unknown>).duration = 500;
 
 export function chartOpts(yLabel?: string) {
+  applyChartTheme();
   const panel = getCssVar('--panel', '#1a1d27');
   const border = getCssVar('--border', '#2e3347');
   const navText = getCssVar('--nav-text', '#9da3b4');
