@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { useMacro } from '@/context/MacroContext';
 import {
+  adviceTone,
   getAssetAdvice,
   getAssetClassLabel,
   getAdviceDescription,
@@ -132,6 +133,7 @@ function MetricPill({ label, value }: { label: string; value: string }) {
 function AssetAdviceCard({ item }: { item: AssetAdvice }) {
   const cfg = ASSETS[item.key];
   const m = item.metrics;
+  const toneClass = adviceTone(item.advice);
 
   return (
     <article className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg-soft)]/30">
@@ -142,6 +144,9 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <div className="font-semibold">{cfg.name}</div>
         </div>
         <div className="flex flex-col items-end gap-1">
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${toneClass}`}>
+            {item.advice}
+          </span>
           <div className="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--panel-hover)] text-[var(--text)]">
             {item.score > 0 ? '+' : ''}{item.score}
           </div>
