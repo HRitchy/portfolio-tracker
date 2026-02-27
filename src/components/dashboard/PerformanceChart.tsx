@@ -43,6 +43,7 @@ export default function PerformanceChart({ store }: { store: Store }) {
         backgroundColor: ASSETS[key].colorBg,
         borderWidth: 2,
         pointRadius: 0,
+        pointHoverRadius: 0,
         fill: false,
         tension: 0.1,
       };
