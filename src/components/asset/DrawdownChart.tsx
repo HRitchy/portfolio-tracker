@@ -2,10 +2,12 @@
 
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
+import { chartOpts } from '@/lib/chartSetup';
 import { ProcessedAsset, AssetConfig } from '@/lib/types';
 import Card from '@/components/ui/Card';
 
-export default function DrawdownChart({ data, config }: { data: ProcessedAsset; config: AssetConfig }) {
+export default function DrawdownChart({ data, config: _config }: { data: ProcessedAsset; config: AssetConfig }) {
+  void _config;
   const s = data.series;
   const dd = data.drawdown ?? [];
   const currentDD = dd.length ? dd[dd.length - 1] : null;
@@ -14,6 +16,8 @@ export default function DrawdownChart({ data, config }: { data: ProcessedAsset; 
     if (min == null) return v;
     return v < min ? v : min;
   }, null);
+
+  const baseOptions = chartOpts('Drawdown (%)');
 
   return (
     <>
@@ -44,26 +48,22 @@ export default function DrawdownChart({ data, config }: { data: ProcessedAsset; 
               ],
             }}
             options={{
-              responsive: true,
-              maintainAspectRatio: false,
+              ...baseOptions,
               interaction: { mode: 'index', intersect: false },
               plugins: {
-                legend: { position: 'top' },
+                ...baseOptions.plugins,
                 tooltip: {
-                  backgroundColor: 'rgba(26,29,39,0.95)',
-                  borderColor: '#2e3347',
-                  borderWidth: 1,
+                  ...baseOptions.plugins?.tooltip,
                   callbacks: {
                     label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(2)}%`,
                   },
                 },
               },
               scales: {
-                x: { type: 'time', time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' }, grid: { display: false } },
+                x: baseOptions.scales?.x,
                 y: {
+                  ...baseOptions.scales?.y,
                   max: 0,
-                  grid: { color: 'rgba(46,51,71,0.5)' },
-                  title: { display: true, text: 'Drawdown (%)' },
                   ticks: { callback: (v: string | number) => `${v}%` },
                 },
               },

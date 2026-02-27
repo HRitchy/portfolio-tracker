@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
+import { chartOpts } from '@/lib/chartSetup';
 import { ProcessedAsset, AssetKey } from '@/lib/types';
 import Card from '@/components/ui/Card';
 
@@ -23,6 +24,8 @@ export default function RSIChart({ data, assetKey: _assetKey }: { data: Processe
     ],
   }), [s, data.rsi7, data.rsi14, data.rsi28]);
 
+  const baseOptions = chartOpts('RSI');
+
   return (
     <>
       <Card title="RSI - Court (7) / Moyen (14) / Long Terme (28)">
@@ -30,12 +33,12 @@ export default function RSIChart({ data, assetKey: _assetKey }: { data: Processe
           <Line
             data={chartData}
             options={{
-              responsive: true, maintainAspectRatio: false,
+              ...baseOptions,
               interaction: { mode: 'index', intersect: false },
-              plugins: { legend: { position: 'top' }, tooltip: { backgroundColor: 'rgba(26,29,39,0.95)', borderColor: '#2e3347', borderWidth: 1 } },
+              plugins: { ...baseOptions.plugins, tooltip: { ...baseOptions.plugins?.tooltip } },
               scales: {
-                x: { type: 'time', time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' }, grid: { display: false } },
-                y: { min: 0, max: 100, grid: { color: 'rgba(46,51,71,0.5)' }, title: { display: true, text: 'RSI' } },
+                x: baseOptions.scales?.x,
+                y: { ...baseOptions.scales?.y, min: 0, max: 100 },
               },
             } as never}
           />
