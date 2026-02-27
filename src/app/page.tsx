@@ -4,7 +4,6 @@ import { usePortfolio } from '@/context/PortfolioContext';
 import { PORTFOLIO_KEYS, INDICATOR_KEYS } from '@/lib/config';
 import StatCard from '@/components/dashboard/StatCard';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
-import PortfolioSummary from '@/components/dashboard/PortfolioSummary';
 import RSIOverview from '@/components/dashboard/RSIOverview';
 import DrawdownOverview from '@/components/dashboard/DrawdownOverview';
 import VolatilityChart from '@/components/dashboard/VolatilityChart';
@@ -18,7 +17,6 @@ import { SkeletonDashboard } from '@/components/ui/SkeletonCard';
 export default function DashboardPage() {
   const { store, loading } = usePortfolio();
   const hasData = Object.keys(store).length > 0;
-
 
   return (
     <>
@@ -58,10 +56,6 @@ export default function DashboardPage() {
 
           <div className="mt-4 fade-in">
             <PerformanceChart store={store} />
-          </div>
-
-          <div className="mt-4 fade-in">
-            <PortfolioSummary store={store} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
