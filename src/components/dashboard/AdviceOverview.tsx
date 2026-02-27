@@ -121,8 +121,10 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
    Metric pill
    ───────────────────────────────────────────── */
 
-function MetricPill({ label, value }: { label: string; value: string }) {
-  const pillColor = 'bg-[var(--panel-hover)] text-[var(--muted)]';
+function MetricPill({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  const pillColor = highlight
+    ? 'bg-[var(--success-soft)] text-[var(--success)]'
+    : 'bg-[var(--panel-hover)] text-[var(--muted)]';
 
   return (
     <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${pillColor}`}>
@@ -139,14 +141,29 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
   const cfg = ASSETS[item.key];
   const m = item.metrics;
   const toneClass = adviceTone(item.advice);
+  const isRenforcer = item.advice === 'Renforcer';
 
   return (
-    <article className="rounded-xl border border-[var(--border)] p-4 bg-[var(--bg-soft)]/30">
+    <article
+      className={`rounded-xl border p-4 ${
+        isRenforcer
+          ? 'border-[var(--success)]/50 bg-[var(--success-soft)]/20'
+          : 'border-[var(--border)] bg-[var(--bg-soft)]/30'
+      }`}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <div className="text-[10px] text-[var(--muted)] uppercase tracking-wide">{getAssetClassLabel(item.key)}</div>
-          <div className="font-semibold">{cfg.name}</div>
+          <div
+            className={`text-[10px] uppercase tracking-wide ${
+              isRenforcer ? 'text-[var(--success)]/70' : 'text-[var(--muted)]'
+            }`}
+          >
+            {getAssetClassLabel(item.key)}
+          </div>
+          <div className={`font-semibold ${isRenforcer ? 'text-[var(--success)]' : ''}`}>
+            {cfg.name}
+          </div>
         </div>
         <div className="flex flex-col items-end gap-1">
           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${toneClass}`}>
@@ -157,7 +174,13 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-[var(--muted)] mb-3">{getAdviceDescription(item.advice)}</p>
+      <p
+        className={`text-sm mb-3 ${
+          isRenforcer ? 'text-[var(--success)]/80' : 'text-[var(--muted)]'
+        }`}
+      >
+        {getAdviceDescription(item.advice)}
+      </p>
 
       {/* Key metrics row */}
       <div className="flex flex-wrap gap-1.5 mb-3">
@@ -165,44 +188,65 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
           <MetricPill
             label="Drawdown"
             value={`${m.drawdown.toFixed(1)}%`}
+            highlight={isRenforcer}
           />
         )}
         {m.rsi14 != null && (
           <MetricPill
             label="RSI14"
             value={m.rsi14.toFixed(0)}
+            highlight={isRenforcer}
           />
         )}
         {m.distFromMA200Pct != null && (
           <MetricPill
             label="vs MM200"
             value={fmtPct(m.distFromMA200Pct)}
+            highlight={isRenforcer}
           />
         )}
         {m.perf30d != null && (
           <MetricPill
             label="30j"
             value={fmtPct(m.perf30d)}
+            highlight={isRenforcer}
           />
         )}
         {m.volatility30d != null && (
-          <MetricPill label="Vol 30j" value={`${m.volatility30d}%`} />
+          <MetricPill label="Vol 30j" value={`${m.volatility30d}%`} highlight={isRenforcer} />
         )}
       </div>
 
       {/* Reasons */}
-      <ul className="text-xs text-[var(--muted)] space-y-1 list-none mb-3">
+      <ul
+        className={`text-xs space-y-1 list-none mb-3 ${
+          isRenforcer ? 'text-[var(--success)]/80' : 'text-[var(--muted)]'
+        }`}
+      >
         {item.reasons.map((reason) => (
           <li key={reason} className="flex items-start gap-1.5">
-            <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-[var(--muted)]" aria-hidden="true" />
+            <span
+              className={`mt-1 shrink-0 w-1 h-1 rounded-full ${
+                isRenforcer ? 'bg-[var(--success)]' : 'bg-[var(--muted)]'
+              }`}
+              aria-hidden="true"
+            />
             {reason}
           </li>
         ))}
       </ul>
 
       {/* Buffett maxim */}
-      <div className="border-t border-[var(--border)] pt-2">
-        <p className="text-[11px] italic text-[var(--muted)]">
+      <div
+        className={`border-t pt-2 ${
+          isRenforcer ? 'border-[var(--success)]/30' : 'border-[var(--border)]'
+        }`}
+      >
+        <p
+          className={`text-[11px] italic ${
+            isRenforcer ? 'text-[var(--success)]/70' : 'text-[var(--muted)]'
+          }`}
+        >
           &laquo; {item.buffettMaxim} &raquo; — W. Buffett
         </p>
       </div>
