@@ -140,27 +140,18 @@ function MetricPill({ label, value, highlight }: { label: string; value: string;
 function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig?: AssetConfig }) {
   const m = item.metrics;
   const toneClass = adviceTone(item.advice);
-  const isRenforcer = item.advice === 'Renforcer';
 
   return (
     <article
-      className={`rounded-xl border p-4 ${
-        isRenforcer
-          ? 'border-[var(--success)]/50 bg-[var(--success-soft)]/20'
-          : 'border-[var(--border)] bg-[var(--bg-soft)]/30'
-      }`}
+      className="rounded-xl border p-4 border-[var(--border)] bg-[var(--bg-soft)]/30"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <div
-            className={`text-[10px] uppercase tracking-wide ${
-              isRenforcer ? 'text-[var(--success)]/70' : 'text-[var(--muted)]'
-            }`}
-          >
+          <div className="text-[10px] uppercase tracking-wide text-[var(--muted)]">
             {assetConfig?.assetClass ?? ''}
           </div>
-          <div className={`font-semibold ${isRenforcer ? 'text-[var(--success)]' : ''}`}>
+          <div className="font-semibold">
             {assetConfig?.name ?? item.key}
           </div>
         </div>
@@ -173,11 +164,7 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
       </div>
 
       {/* Description */}
-      <p
-        className={`text-sm mb-3 ${
-          isRenforcer ? 'text-[var(--success)]/80' : 'text-[var(--muted)]'
-        }`}
-      >
+      <p className="text-sm mb-3 text-[var(--muted)]">
         {getAdviceDescription(item.advice)}
       </p>
 
@@ -187,65 +174,48 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
           <MetricPill
             label="Drawdown"
             value={`${m.drawdown.toFixed(1)}%`}
-            highlight={isRenforcer}
+            highlight={false}
           />
         )}
         {m.rsi14 != null && (
           <MetricPill
             label="RSI14"
             value={m.rsi14.toFixed(0)}
-            highlight={isRenforcer}
+            highlight={false}
           />
         )}
         {m.distFromMA200Pct != null && (
           <MetricPill
             label="vs MM200"
             value={fmtPct(m.distFromMA200Pct)}
-            highlight={isRenforcer}
+            highlight={false}
           />
         )}
         {m.perf30d != null && (
           <MetricPill
             label="30j"
             value={fmtPct(m.perf30d)}
-            highlight={isRenforcer}
+            highlight={false}
           />
         )}
         {m.volatility30d != null && (
-          <MetricPill label="Vol 30j" value={`${m.volatility30d}%`} highlight={isRenforcer} />
+          <MetricPill label="Vol 30j" value={`${m.volatility30d}%`} highlight={false} />
         )}
       </div>
 
       {/* Reasons */}
-      <ul
-        className={`text-xs space-y-1 list-none mb-3 ${
-          isRenforcer ? 'text-[var(--success)]/80' : 'text-[var(--muted)]'
-        }`}
-      >
+      <ul className="text-xs space-y-1 list-none mb-3 text-[var(--muted)]">
         {item.reasons.map((reason) => (
           <li key={reason} className="flex items-start gap-1.5">
-            <span
-              className={`mt-1 shrink-0 w-1 h-1 rounded-full ${
-                isRenforcer ? 'bg-[var(--success)]' : 'bg-[var(--muted)]'
-              }`}
-              aria-hidden="true"
-            />
+            <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-[var(--muted)]" aria-hidden="true" />
             {reason}
           </li>
         ))}
       </ul>
 
       {/* Buffett maxim */}
-      <div
-        className={`border-t pt-2 ${
-          isRenforcer ? 'border-[var(--success)]/30' : 'border-[var(--border)]'
-        }`}
-      >
-        <p
-          className={`text-[11px] italic ${
-            isRenforcer ? 'text-[var(--success)]/70' : 'text-[var(--muted)]'
-          }`}
-        >
+      <div className="border-t pt-2 border-[var(--border)]">
+        <p className="text-[11px] italic text-[var(--muted)]">
           &laquo; {item.buffettMaxim} &raquo; — W. Buffett
         </p>
       </div>
