@@ -51,7 +51,7 @@ export default function PriceChart({ data, config }: { data: ProcessedAsset; con
           </div>
         )}
       </div>
-      <div className="relative h-[350px] w-full">
+      <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
         <Line data={chartData} options={chartOpts('Cours') as never} />
       </div>
     </Card>

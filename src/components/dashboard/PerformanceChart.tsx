@@ -57,7 +57,7 @@ export default function PerformanceChart({ store }: { store: Store }) {
       <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
         <PeriodSelector activeDays={days} onChange={setDays} />
       </div>
-      <div className="relative h-[350px] w-full">
+      <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
         <Line data={{ datasets: datasets as never[] }} options={options as never} />
       </div>
     </Card>

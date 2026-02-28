@@ -74,15 +74,15 @@ export default function FearGreedCard() {
   const delta = score != null && prevClose != null ? score - prevClose : null;
 
   return (
-    <div className="data-card p-5">
-      <div className="text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
-        <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#8b5cf6' }} aria-hidden="true" />
+    <div className="data-card p-4 md:p-5 3xl:p-6">
+      <div className="text-[11px] md:text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
+        <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: '#8b5cf6' }} aria-hidden="true" />
         Fear &amp; Greed Index
       </div>
       {error ? (
         <div className="text-[var(--muted)] text-sm">Indisponible</div>
       ) : score == null ? (
-        <div className="text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
+        <div className="text-2xl md:text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
       ) : (
         <>
           <GaugeArc score={score} color={color} />

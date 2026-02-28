@@ -25,9 +25,9 @@ export default function DrawdownOverview({ store }: { store: Store }) {
         <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnée Drawdown</div>
       ) : (
         items.map((item) => item && (
-          <div key={item.key} className="flex items-center gap-3 py-2">
-            <div className="w-[120px] text-[13px] font-semibold">{item.name}</div>
-            <div className="flex-1 h-2 bg-[var(--border)] rounded relative overflow-visible">
+          <div key={item.key} className="flex items-center gap-2 md:gap-3 py-2">
+            <div className="w-[90px] md:w-[120px] text-xs md:text-[13px] font-semibold truncate shrink-0">{item.name}</div>
+            <div className="flex-1 h-2 bg-[var(--border)] rounded relative overflow-visible min-w-0">
               <div
                 className="h-full rounded"
                 style={{ width: `${Math.min(Math.abs(item.current), 100)}%`, background: item.severity, opacity: 0.3 }}
@@ -37,8 +37,8 @@ export default function DrawdownOverview({ store }: { store: Store }) {
                 style={{ left: `${Math.min(Math.abs(item.current), 100)}%`, background: item.severity, transform: 'translateX(-50%)' }}
               />
             </div>
-            <div className="w-[120px] text-right">
-              <span className="text-lg font-bold" style={{ color: item.severity }}>{item.current.toFixed(2)}%</span>
+            <div className="w-[100px] md:w-[120px] text-right shrink-0">
+              <span className="text-base md:text-lg font-bold" style={{ color: item.severity }}>{item.current.toFixed(2)}%</span>
               <div className="text-[10px] text-[var(--muted)]">{item.label} (max: {item.maxDD?.toFixed(1)}%)</div>
             </div>
           </div>

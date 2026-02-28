@@ -279,7 +279,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
     <Card title="Stratégie contrarienne — Conseils à la Warren Buffett" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 3xl:gap-5">
         {advices.map((item) => (
           <AssetAdviceCard key={item.key} item={item} />
         ))}

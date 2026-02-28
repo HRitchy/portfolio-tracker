@@ -63,7 +63,7 @@ export default function VolatilityChart({ store }: { store: Store }) {
 
   return (
     <Card title="Volatilité réalisée glissante (30j, annualisée)">
-      <div className="relative h-[300px] w-full">
+      <div className="relative h-[240px] md:h-[300px] 3xl:h-[400px] w-full">
         <Line
           data={{ datasets: datasets as never[] }}
           options={options as never}

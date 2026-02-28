@@ -34,7 +34,7 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
   return (
     <>
       <Card title="Bandes de Bollinger (20, 2)">
-        <div className="relative h-[350px] w-full">
+        <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
           <Line
             data={{
               datasets: [

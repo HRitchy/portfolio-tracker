@@ -20,10 +20,10 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-6 3xl:mb-8 gap-3 md:gap-4 fade-in">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Cockpit Portfolio</h2>
-          <div className="text-sm text-[var(--muted)] mt-1">Performance, risque et momentum en un coup d&apos;œil.</div>
+          <h2 className="text-2xl md:text-3xl 3xl:text-4xl font-bold tracking-tight">Cockpit Portfolio</h2>
+          <div className="text-xs md:text-sm text-[var(--muted)] mt-1">Performance, risque et momentum en un coup d&apos;œil.</div>
         </div>
         <RefreshButton />
       </div>
@@ -32,7 +32,7 @@ export default function DashboardPage() {
         <SkeletonDashboard />
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 3xl:gap-5">
             {PORTFOLIO_KEYS.map((key, i) => (
               <div key={key} className={`stagger-${i + 1}`}>
                 <StatCard assetKey={key} data={store[key]} />
@@ -40,7 +40,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 3xl:gap-5 mt-3 md:mt-4 3xl:mt-5">
             <div className="fade-in stagger-4">
               <HYSpreadCard />
             </div>
@@ -49,11 +49,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-4 fade-in">
+          <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
             <PerformanceChart store={store} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 3xl:gap-5 mt-3 md:mt-4 3xl:mt-5">
             <div className="fade-in">
               <RSIOverview store={store} />
             </div>
@@ -62,15 +62,15 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-4 fade-in">
+          <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
             <VolatilityChart store={store} />
           </div>
 
-          <div className="mt-4 fade-in">
+          <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
             <CorrelationMatrix store={store} />
           </div>
 
-          <div className="mt-4 fade-in">
+          <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
             <AdviceOverview store={store} />
           </div>
         </>

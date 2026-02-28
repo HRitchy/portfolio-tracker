@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-3xl: 120rem; /* 1920px — large desktop screens */
+}
+
 :root {
   --bg: #151a29;
   --bg-soft: #1c2438;
@@ -54,6 +58,10 @@ body {
 ::-webkit-scrollbar-track { background: var(--scroll-track); }
 ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* Hide scrollbar for horizontal tab lists on mobile */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
 
 /* Smooth theme transition */
 html {

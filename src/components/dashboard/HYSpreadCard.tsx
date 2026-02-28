@@ -29,19 +29,19 @@ export default function HYSpreadCard() {
   const delta = val != null && prevVal != null ? val - prevVal : null;
 
   return (
-    <div className="data-card p-5">
-      <div className="text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
-        <span className="inline-block w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} aria-hidden="true" />
+    <div className="data-card p-4 md:p-5 3xl:p-6">
+      <div className="text-[11px] md:text-xs text-[var(--muted)] mb-2 flex items-center gap-1.5">
+        <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: '#f59e0b' }} aria-hidden="true" />
         HY Spread (ICE BofA)
       </div>
       {error ? (
         <div className="text-[var(--muted)] text-sm">Indisponible</div>
       ) : val == null ? (
-        <div className="text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
+        <div className="text-2xl md:text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
       ) : (
         <>
           <div
-            className="text-[28px] font-bold"
+            className="text-2xl md:text-[28px] 3xl:text-[32px] font-bold"
             style={{ color: getSpreadColor(val) }}
             aria-label={`HY Spread: ${val.toFixed(2)} pourcent, ${getSpreadLabel(val)}`}
           >
