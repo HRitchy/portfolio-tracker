@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { useAssets } from '@/context/AssetsContext';
@@ -10,6 +10,7 @@ import { fmtPrice, fmtPct, getDigitsForAsset } from '@/lib/formatting';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import RefreshButton from '@/components/ui/RefreshButton';
 import { SkeletonAssetPage } from '@/components/ui/SkeletonCard';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
 const PriceChart = lazy(() => import('@/components/asset/PriceChart'));
 const MovingAverageChart = lazy(() => import('@/components/asset/MovingAverageChart'));
@@ -35,7 +36,7 @@ function Breadcrumb({ config }: { config: AssetConfig }) {
   );
 }
 
-function AssetHeader({ config }: { config: AssetConfig }) {
+function AssetHeader({ config, onDelete }: { config: AssetConfig; onDelete?: () => void }) {
   return (
     <div className="flex flex-col items-start md:flex-row md:items-center justify-between mb-5 md:mb-6 3xl:mb-8 gap-3 md:gap-4 fade-in">
       <div className="flex items-center gap-3">
@@ -47,7 +48,25 @@ function AssetHeader({ config }: { config: AssetConfig }) {
           <div className="text-xs md:text-sm text-[var(--muted)] mt-0.5">{config.symbol} &middot; {config.assetClass}</div>
         </div>
       </div>
-      <RefreshButton />
+      <div className="flex items-center gap-2">
+        <RefreshButton />
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            aria-label={`Supprimer ${config.name}`}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-[#ef4444] border border-[rgba(239,68,68,0.3)] hover:bg-[rgba(239,68,68,0.1)] transition-colors cursor-pointer"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+            Supprimer
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -146,9 +165,25 @@ export default function AssetPage() {
   const searchParams = useSearchParams();
   const key = params.key as string;
   const { store, loading } = usePortfolio();
-  const { assets } = useAssets();
+  const { assets, removeAsset } = useAssets();
 
   const config = assets[key];
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeleteRequest = useCallback(() => {
+    setShowDeleteModal(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    removeAsset(key);
+    setShowDeleteModal(false);
+    router.push('/');
+  }, [key, removeAsset, router]);
+
+  const handleCancelDelete = useCallback(() => {
+    setShowDeleteModal(false);
+  }, []);
 
   // Onglets disponibles pour cet actif
   const validTabs = useMemo<Set<Tab>>(() => {
@@ -192,7 +227,7 @@ export default function AssetPage() {
   return (
     <>
       <Breadcrumb config={config} />
-      <AssetHeader config={config} />
+      <AssetHeader config={config} onDelete={handleDeleteRequest} />
 
       {!data && loading ? (
         <SkeletonAssetPage />
@@ -215,6 +250,13 @@ export default function AssetPage() {
             </Suspense>
           </div>
         </>
+      )}
+      {showDeleteModal && config && (
+        <ConfirmDeleteModal
+          assetName={config.name}
+          onConfirm={handleConfirmDelete}
+          onClose={handleCancelDelete}
+        />
       )}
     </>
   );

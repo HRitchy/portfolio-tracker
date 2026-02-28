@@ -7,6 +7,8 @@ import { usePortfolio } from '@/context/PortfolioContext';
 import { useAssets } from '@/context/AssetsContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import AddAssetModal from '@/components/ui/AddAssetModal';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
+import { useToast } from '@/components/ui/Toast';
 
 function useRelativeTime(lastUpdate: string | null): string {
   const [relative, setRelative] = useState('--');
@@ -167,6 +169,8 @@ export default function Sidebar() {
   const relativeTime = useRelativeTime(lastUpdate);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [addModal, setAddModal] = useState<'portfolio' | 'indicator' | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ key: string; name: string } | null>(null);
+  const { showToast } = useToast();
   const navRef = useRef<HTMLElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
@@ -202,8 +206,20 @@ export default function Sidebar() {
   }, []);
 
   const handleRemove = useCallback((key: string) => {
-    removeAsset(key);
-  }, [removeAsset]);
+    const name = assets[key]?.name ?? key;
+    setPendingDelete({ key, name });
+  }, [assets]);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!pendingDelete) return;
+    removeAsset(pendingDelete.key);
+    showToast(`${pendingDelete.name} supprimé`, 'info');
+    setPendingDelete(null);
+  }, [pendingDelete, removeAsset, showToast]);
+
+  const handleCancelDelete = useCallback(() => {
+    setPendingDelete(null);
+  }, []);
 
   // Fermer le drawer mobile lors d'un changement de route
   useEffect(() => {
@@ -323,6 +339,14 @@ export default function Sidebar() {
 
       {addModal && (
         <AddAssetModal type={addModal} onClose={() => setAddModal(null)} />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDeleteModal
+          assetName={pendingDelete.name}
+          onConfirm={handleConfirmDelete}
+          onClose={handleCancelDelete}
+        />
       )}
     </>
   );
