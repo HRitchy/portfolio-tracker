@@ -13,7 +13,7 @@ describe('GET /api/yahoo/[symbol]', () => {
     const resp = await GET(req, { params: Promise.resolve({ symbol: 'INVALID SYMBOL WITH SPACES' }) });
     expect(resp.status).toBe(400);
     const body = await resp.json();
-    expect(body.error).toBe('Invalid symbol');
+    expect(body.error.code).toBe('INVALID_INPUT');
   });
 
   it('returns 502 and logs when fetch throws', async () => {
