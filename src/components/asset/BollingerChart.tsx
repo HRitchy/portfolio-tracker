@@ -114,10 +114,10 @@ export default function BollingerChart({ data, config, assetKey }: { data: Proce
           <div className="text-xs text-[var(--muted)] mb-2">Largeur / %B</div>
           <div className="text-[22px] font-bold">
             {bandwidth != null ? `${bandwidth}%` : '--'}
-            <span className="text-sm text-[var(--muted)] ml-2">
-              {pctB != null ? `(%B: ${pctB}%)` : ''}
-            </span>
           </div>
+          {pctB != null && (
+            <div className="text-sm text-[var(--muted)] mt-1">%B: {pctB}%</div>
+          )}
         </div>
       </div>
     </>
