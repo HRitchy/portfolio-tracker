@@ -22,8 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MacroProvider>
               <PortfolioProvider>
                 <Sidebar />
-                <main className="ml-[280px] max-md:ml-0 flex-1 min-h-screen p-5 md:p-8 max-md:pt-16">
-                  <div className="max-w-[1500px] mx-auto">
+                <main className="flex-1 min-h-screen p-5 pt-16 md:ml-[280px] md:p-8 2xl:p-10 3xl:p-12">
+                  <div className="max-w-[1500px] 3xl:max-w-[1800px] mx-auto">
                     <ErrorBoundary>{children}</ErrorBoundary>
                     <ScrollToTop />
                   </div>

@@ -22,7 +22,7 @@ export default function DrawdownChart({ data, config: _config }: { data: Process
   return (
     <>
       <Card title="Drawdown depuis le plus haut">
-        <div className="relative h-[350px] w-full">
+        <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
           <Line
             data={{
               datasets: [

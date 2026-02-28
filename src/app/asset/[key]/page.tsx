@@ -23,7 +23,7 @@ type Tab = 'cours' | 'mm' | 'rsi' | 'drawdown' | 'bollinger' | 'variations' | 'd
 
 function Breadcrumb({ config }: { config: AssetConfig }) {
   return (
-    <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-sm text-[var(--muted)] mb-4 fade-in">
+    <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-xs md:text-sm text-[var(--muted)] mb-3 md:mb-4 fade-in">
       <Link href="/" className="hover:text-[var(--text)] transition-colors">
         Dashboard
       </Link>
@@ -37,14 +37,14 @@ function Breadcrumb({ config }: { config: AssetConfig }) {
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 fade-in">
+    <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-6 3xl:mb-8 gap-3 md:gap-4 fade-in">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold" style={{ background: config.color }}>
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: config.color }}>
           {config.name.slice(0, 2).toUpperCase()}
         </div>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">{config.name}</h2>
-          <div className="text-sm text-[var(--muted)] mt-0.5">{config.symbol} &middot; {config.assetClass}</div>
+          <h2 className="text-2xl md:text-3xl 3xl:text-4xl font-bold tracking-tight">{config.name}</h2>
+          <div className="text-xs md:text-sm text-[var(--muted)] mt-0.5">{config.symbol} &middot; {config.assetClass}</div>
         </div>
       </div>
       <RefreshButton />
@@ -67,12 +67,12 @@ function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKe
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 3xl:gap-5 mb-3 md:mb-4">
       {cards.map((c, i) => (
-        <div key={c.label} className={`data-card p-4 fade-in stagger-${i + 1}`}>
-          <div className="text-[11px] text-[var(--muted)] uppercase tracking-[0.16em] mb-1">{c.label}</div>
-          <div className={`text-xl font-bold ${c.color}`}>{c.value}</div>
-          <div className="text-[11px] text-[var(--muted)] mt-0.5">{c.sub}</div>
+        <div key={c.label} className={`data-card p-3 md:p-4 3xl:p-5 fade-in stagger-${i + 1}`}>
+          <div className="text-[10px] md:text-[11px] text-[var(--muted)] uppercase tracking-[0.16em] mb-1">{c.label}</div>
+          <div className={`text-lg md:text-xl 3xl:text-2xl font-bold ${c.color}`}>{c.value}</div>
+          <div className="text-[10px] md:text-[11px] text-[var(--muted)] mt-0.5">{c.sub}</div>
         </div>
       ))}
     </div>
@@ -117,7 +117,7 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
   }, [active, onChange, visibleTabs]);
 
   return (
-    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-2 mb-4 overflow-x-auto pb-1 fade-in" onKeyDown={handleKeyDown}>
+    <div role="tablist" aria-label="Vues de l'actif" className="flex gap-1.5 md:gap-2 mb-3 md:mb-4 overflow-x-auto pb-1 fade-in scrollbar-none" onKeyDown={handleKeyDown}>
       {visibleTabs.map((t) => (
         <button
           key={t.id}
@@ -126,7 +126,7 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
           aria-selected={active === t.id}
           tabIndex={active === t.id ? 0 : -1}
           onClick={() => onChange(t.id)}
-          className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
+          className={`px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
               ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
               : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]/80'

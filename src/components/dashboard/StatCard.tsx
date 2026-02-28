@@ -76,18 +76,18 @@ const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey
 
   return (
     <Link href={`/asset/${assetKey}`} className="block group">
-      <div className="data-card p-5 transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02] group-hover:border-[var(--accent)]/40 fade-in">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="text-xs text-[var(--muted)] flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+      <div className="data-card p-4 md:p-5 3xl:p-6 transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02] group-hover:border-[var(--accent)]/40 fade-in">
+        <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
+          <div className="text-[11px] md:text-xs text-[var(--muted)] flex items-center gap-1.5 md:gap-2">
+            <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: cfg.color }} />
             {cfg.name}
           </div>
-          <div className={`text-[11px] font-semibold px-2 py-1 rounded-full bg-[var(--panel-hover)] ${colorMap[direction]}`}>
+          <div className={`text-[10px] md:text-[11px] font-semibold px-2 py-0.5 md:py-1 rounded-full bg-[var(--panel-hover)] shrink-0 ${colorMap[direction]}`}>
             {last?.variation == null ? '--' : last.variation >= 0 ? 'Hausse' : 'Baisse'}
           </div>
         </div>
 
-        <div className={`text-[28px] leading-none font-bold mb-2 ${colorMap[direction]}`}>
+        <div className={`text-2xl md:text-[28px] 3xl:text-[32px] leading-none font-bold mb-2 ${colorMap[direction]}`}>
           {last ? fmtPrice(last.close, digits) : '--'}
         </div>
 
@@ -101,7 +101,7 @@ const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey
           <div className={`text-sm font-semibold ${colorMap[direction]}`}>
             {last ? fmtPct(last.variation) : '--'}
           </div>
-          <div className="text-[11px] text-[var(--muted)]">Dernière séance</div>
+          <div className="text-[10px] md:text-[11px] text-[var(--muted)]">Dernière séance</div>
         </div>
       </div>
     </Link>

@@ -24,7 +24,7 @@ export default function MovingAverageChart({ data, config, assetKey }: { data: P
   return (
     <>
       <Card title={hasMM200 ? 'Cours + MM50 + MM200' : 'Cours + MM50'}>
-        <div className="relative h-[350px] w-full">
+        <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
           <Line
             data={{ datasets }}
             options={chartOpts('Cours') as never}

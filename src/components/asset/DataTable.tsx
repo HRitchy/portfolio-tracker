@@ -63,8 +63,8 @@ export default function DataTable({ data, config, assetKey }: { data: ProcessedA
           Exporter CSV
         </button>
       </div>
-      <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-        <table className="w-full border-collapse text-[13px]">
+      <div className="overflow-x-auto max-h-[400px] md:max-h-[500px] 3xl:max-h-[650px] overflow-y-auto">
+        <table className="w-full border-collapse text-xs md:text-[13px]">
           <thead className="sticky top-0 bg-[var(--panel)]">
             <tr>
               <th className="text-left px-3 py-2.5 text-[var(--muted)] font-semibold border-b border-[var(--border)] text-[11px] uppercase tracking-wide">Date</th>

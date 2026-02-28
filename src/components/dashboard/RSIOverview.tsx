@@ -19,9 +19,9 @@ export default function RSIOverview({ store }: { store: Store }) {
         <div className="flex items-center justify-center h-[100px] text-[var(--muted)]">Aucune donnée RSI</div>
       ) : (
         items.map((item) => item && (
-          <div key={item.key} className="flex items-center gap-3 py-2">
-            <div className="w-[120px] text-[13px] font-semibold">{item.name}</div>
-            <div className="flex-1 h-2 bg-[var(--border)] rounded relative overflow-visible">
+          <div key={item.key} className="flex items-center gap-2 md:gap-3 py-2">
+            <div className="w-[90px] md:w-[120px] text-xs md:text-[13px] font-semibold truncate shrink-0">{item.name}</div>
+            <div className="flex-1 h-2 bg-[var(--border)] rounded relative overflow-visible min-w-0">
               <div
                 className="h-full rounded"
                 style={{ width: `${item.val}%`, background: item.color, opacity: 0.3 }}
@@ -31,8 +31,8 @@ export default function RSIOverview({ store }: { store: Store }) {
                 style={{ left: `${item.val}%`, background: item.color, transform: 'translateX(-50%)' }}
               />
             </div>
-            <div className="w-[80px] text-right">
-              <span className="text-lg font-bold" style={{ color: item.color }}>{item.val}</span>
+            <div className="w-[60px] md:w-[80px] text-right shrink-0">
+              <span className="text-base md:text-lg font-bold" style={{ color: item.color }}>{item.val}</span>
               <div className="text-[10px] text-[var(--muted)]">{item.label}</div>
             </div>
           </div>

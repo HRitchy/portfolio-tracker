@@ -10,7 +10,7 @@ export default function AssetVariationChart({ data }: { data: ProcessedAsset }) 
 
   return (
     <Card title="Variations quotidiennes (%)">
-      <div className="relative h-[350px] w-full">
+      <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
         <Bar
           data={{
             labels: last60.map((s) => s.dateObj),

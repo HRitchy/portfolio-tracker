@@ -29,7 +29,7 @@ export default function RSIChart({ data, assetKey: _assetKey }: { data: Processe
   return (
     <>
       <Card title="RSI - Court (7) / Moyen (14) / Long Terme (28)">
-        <div className="relative h-[350px] w-full">
+        <div className="relative h-[280px] md:h-[350px] 3xl:h-[450px] w-full">
           <Line
             data={chartData}
             options={{
