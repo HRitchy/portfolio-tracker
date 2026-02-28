@@ -3,13 +3,13 @@
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
-import { ProcessedAsset, AssetConfig, AssetKey } from '@/lib/types';
-import { fmtPrice, getDigitsForKey } from '@/lib/formatting';
+import { ProcessedAsset, AssetConfig } from '@/lib/types';
+import { fmtPrice, getDigitsForAsset } from '@/lib/formatting';
 import Card from '@/components/ui/Card';
 
-export default function MovingAverageChart({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: AssetKey }) {
+export default function MovingAverageChart({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: string }) {
   const s = data.series;
-  const digits = getDigitsForKey(assetKey);
+  const digits = getDigitsForAsset(config);
   const mm50v = data.mm50 ? data.mm50[data.mm50.length - 1] : null;
   const mm200v = data.mm200 ? data.mm200[data.mm200.length - 1] : null;
   const hasMM200 = !!data.mm200;

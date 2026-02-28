@@ -1,7 +1,7 @@
 'use client';
 
 import { usePortfolio } from '@/context/PortfolioContext';
-import { PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import StatCard from '@/components/dashboard/StatCard';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 import RSIOverview from '@/components/dashboard/RSIOverview';
@@ -16,6 +16,7 @@ import { SkeletonDashboard } from '@/components/ui/SkeletonCard';
 
 export default function DashboardPage() {
   const { store, loading } = usePortfolio();
+  const { portfolioKeys } = useAssets();
   const hasData = Object.keys(store).length > 0;
 
   return (
@@ -33,8 +34,8 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 3xl:gap-5">
-            {PORTFOLIO_KEYS.map((key, i) => (
-              <div key={key} className={`stagger-${i + 1}`}>
+            {portfolioKeys.map((key, i) => (
+              <div key={key} className={`stagger-${Math.min(i + 1, 5)}`}>
                 <StatCard assetKey={key} data={store[key]} />
               </div>
             ))}

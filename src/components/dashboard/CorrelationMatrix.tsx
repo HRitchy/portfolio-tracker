@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Store } from '@/lib/types';
-import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import Card from '@/components/ui/Card';
 
 function calcCorrelation(a: number[], b: number[]): number | null {
@@ -46,9 +46,10 @@ function corrBg(v: number): string {
 }
 
 export default function CorrelationMatrix({ store }: { store: Store }) {
+  const { assets, portfolioKeys } = useAssets();
   const returns = useMemo(() => {
     const result: Record<string, number[]> = {};
-    for (const key of PORTFOLIO_KEYS) {
+    for (const key of portfolioKeys) {
       const d = store[key];
       if (!d?.series?.length) continue;
       const ret: number[] = [];
@@ -59,11 +60,11 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
       result[key] = ret;
     }
     return result;
-  }, [store]);
+  }, [store, portfolioKeys]);
 
   const keys = useMemo(
-    () => PORTFOLIO_KEYS.filter((k) => returns[k]?.length > 0),
-    [returns]
+    () => portfolioKeys.filter((k) => returns[k]?.length > 0),
+    [returns, portfolioKeys]
   );
 
   const matrix = useMemo(() => {
@@ -90,7 +91,7 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
               <th className="px-3 py-2 text-left text-[11px] text-[var(--muted)] uppercase tracking-wide" />
               {keys.map((k) => (
                 <th key={k} className="px-3 py-2 text-center text-[11px] text-[var(--muted)] uppercase tracking-wide font-semibold">
-                  {ASSETS[k].name}
+                  {assets[k]?.name ?? k}
                 </th>
               ))}
             </tr>
@@ -99,8 +100,8 @@ export default function CorrelationMatrix({ store }: { store: Store }) {
             {keys.map((a) => (
               <tr key={a}>
                 <td className="px-3 py-2 text-[13px] font-semibold whitespace-nowrap">
-                  <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ background: ASSETS[a].color }} />
-                  {ASSETS[a].name}
+                  <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ background: assets[a]?.color }} />
+                  {assets[a]?.name ?? a}
                 </td>
                 {keys.map((b) => {
                   const v = matrix[a]?.[b];

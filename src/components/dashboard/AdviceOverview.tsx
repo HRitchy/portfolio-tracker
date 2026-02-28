@@ -11,8 +11,8 @@ import {
   regimeColor,
   regimeContrarianLabel,
 } from '@/lib/advice';
-import { ASSETS } from '@/lib/config';
-import { Store, MarketContext, AssetAdvice } from '@/lib/types';
+import { useAssets } from '@/context/AssetsContext';
+import { Store, AssetConfig, MarketContext, AssetAdvice } from '@/lib/types';
 import { fmtPct } from '@/lib/formatting';
 
 function ConvictionScore({
@@ -137,8 +137,7 @@ function MetricPill({ label, value, highlight }: { label: string; value: string;
    Single asset advice card
    ───────────────────────────────────────────── */
 
-function AssetAdviceCard({ item }: { item: AssetAdvice }) {
-  const cfg = ASSETS[item.key];
+function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig?: AssetConfig }) {
   const m = item.metrics;
   const toneClass = adviceTone(item.advice);
   const isRenforcer = item.advice === 'Renforcer';
@@ -159,10 +158,10 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
               isRenforcer ? 'text-[var(--success)]/70' : 'text-[var(--muted)]'
             }`}
           >
-            {getAssetClassLabel(item.key)}
+            {assetConfig?.assetClass ?? ''}
           </div>
           <div className={`font-semibold ${isRenforcer ? 'text-[var(--success)]' : ''}`}>
-            {cfg.name}
+            {assetConfig?.name ?? item.key}
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -259,6 +258,7 @@ function AssetAdviceCard({ item }: { item: AssetAdvice }) {
    ───────────────────────────────────────────── */
 
 export default function AdviceOverview({ store }: { store: Store }) {
+  const { assets, portfolioKeys } = useAssets();
   const { fearGreedData, hyObs } = useMacro();
 
   const fearGreed = fearGreedData?.score ?? null;
@@ -271,8 +271,8 @@ export default function AdviceOverview({ store }: { store: Store }) {
   }, [hyObs]);
 
   const { advices, marketContext } = useMemo(
-    () => getAssetAdvice(store, fearGreed, hySpread),
-    [store, fearGreed, hySpread]
+    () => getAssetAdvice(store, portfolioKeys, assets, fearGreed, hySpread),
+    [store, portfolioKeys, assets, fearGreed, hySpread]
   );
 
   return (
@@ -281,7 +281,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 3xl:gap-5">
         {advices.map((item) => (
-          <AssetAdviceCard key={item.key} item={item} />
+          <AssetAdviceCard key={item.key} item={item} assetConfig={assets[item.key]} />
         ))}
       </div>
 

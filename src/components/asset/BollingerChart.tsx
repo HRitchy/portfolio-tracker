@@ -3,13 +3,13 @@
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
-import { ProcessedAsset, AssetConfig, AssetKey } from '@/lib/types';
-import { fmtPrice, getDigitsForKey } from '@/lib/formatting';
+import { ProcessedAsset, AssetConfig } from '@/lib/types';
+import { fmtPrice, getDigitsForAsset } from '@/lib/formatting';
 import Card from '@/components/ui/Card';
 
-export default function BollingerChart({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: AssetKey }) {
+export default function BollingerChart({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: string }) {
   const s = data.series;
-  const digits = getDigitsForKey(assetKey);
+  const digits = getDigitsForAsset(config);
   const upper = data.bollingerUpper ?? [];
   const middle = data.bollingerMiddle ?? [];
   const lower = data.bollingerLower ?? [];

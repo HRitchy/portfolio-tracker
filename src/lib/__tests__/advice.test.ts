@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { extractMetrics, scoreAsset, buildMarketContext } from '../advice';
-import type { Store, AssetKey, SeriesPoint, ProcessedAsset } from '../types';
+import type { Store, AssetConfig, SeriesPoint, ProcessedAsset } from '../types';
+import { DEFAULT_ASSETS } from '../config';
 
 /* ── Helpers ── */
 
@@ -20,7 +21,7 @@ function makeSeriesWithDates(
   });
 }
 
-function makeStore(key: AssetKey, series: SeriesPoint[]): Store {
+function makeStore(key: string, series: SeriesPoint[]): Store {
   const asset: ProcessedAsset = { series, key };
   return { [key]: asset };
 }
@@ -36,7 +37,7 @@ describe('extractMetrics – perf30d uses calendar days', () => {
       dailySpacingMs: 2 * 86_400_000,
     });
     const store = makeStore('mwre', series);
-    const metrics = extractMetrics(store, 'mwre');
+    const metrics = extractMetrics(store, 'mwre', DEFAULT_ASSETS['mwre']);
 
     expect(metrics.perf30d).not.toBeNull();
 
@@ -57,7 +58,7 @@ describe('extractMetrics – perf30d uses calendar days', () => {
       dailySpacingMs: 86_400_000,
     });
     const store = makeStore('mwre', series);
-    const metrics = extractMetrics(store, 'mwre');
+    const metrics = extractMetrics(store, 'mwre', DEFAULT_ASSETS['mwre']);
     // (104 - 100) / 100 * 100 = 4%
     expect(metrics.perf30d).toBeCloseTo(4.0, 1);
   });
@@ -73,7 +74,7 @@ describe('extractMetrics – volatility annualization', () => {
       dailySpacingMs: 86_400_000,
     });
     const store = makeStore('btc', series);
-    const metrics = extractMetrics(store, 'btc');
+    const metrics = extractMetrics(store, 'btc', DEFAULT_ASSETS['btc']);
     expect(metrics.volatility30d).not.toBeNull();
 
     // Manually compute expected volatility with factor 365
@@ -96,7 +97,7 @@ describe('extractMetrics – volatility annualization', () => {
       dailySpacingMs: 86_400_000,
     });
     const store = makeStore('mwre', series);
-    const metrics = extractMetrics(store, 'mwre');
+    const metrics = extractMetrics(store, 'mwre', DEFAULT_ASSETS['mwre']);
     expect(metrics.volatility30d).not.toBeNull();
 
     const idx = series.length - 1;

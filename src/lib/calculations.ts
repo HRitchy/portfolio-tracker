@@ -1,5 +1,4 @@
-import { AssetKey, ProcessedAsset, SeriesPoint, YahooResult } from './types';
-import { ASSETS } from './config';
+import { AssetConfig, ProcessedAsset, SeriesPoint, YahooResult } from './types';
 import { tsToDate } from './formatting';
 
 export function calcPerfFromCalendarDays(
@@ -138,12 +137,11 @@ export function calcBollinger(series: SeriesPoint[], window = 20, k = 2): {
   return { upper, middle, lower };
 }
 
-export function processAsset(key: AssetKey, result: YahooResult): ProcessedAsset | null {
+export function processAsset(key: string, cfg: AssetConfig, result: YahooResult): ProcessedAsset | null {
   const series = extractCleanSeries(result);
   if (series.length === 0) return null;
   calcVariation(series);
 
-  const cfg = ASSETS[key];
   const data: ProcessedAsset = { series, key };
 
   if (cfg.hasMM) {

@@ -2,6 +2,7 @@ export interface AssetConfig {
   symbol: string;
   name: string;
   assetClass: string;
+  type: 'portfolio' | 'indicator';
 
   color: string;
   colorBg: string;
@@ -34,7 +35,7 @@ export interface ProcessedAsset {
   bollingerLower?: (number | null)[];
 }
 
-export type AssetKey = 'mwre' | 'btc' | 'glda' | 'vix' | 'eurusd';
+export type AssetKey = string;
 
 export type Advice = 'Renforcer' | 'Alléger' | 'Conserver';
 export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Très forte';
@@ -73,7 +74,7 @@ export interface AssetAdvice {
   metrics: AssetMetrics;
 }
 
-export type Store = Partial<Record<AssetKey, ProcessedAsset | null>>;
+export type Store = Record<string, ProcessedAsset | null>;
 
 export interface YahooQuote {
   close: (number | null)[];

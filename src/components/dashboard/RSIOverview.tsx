@@ -1,16 +1,18 @@
 import { Store } from '@/lib/types';
-import { ASSETS, RSI_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import Card from '@/components/ui/Card';
 
 export default function RSIOverview({ store }: { store: Store }) {
-  const items = RSI_KEYS.map((key) => {
+  const { assets, portfolioKeys } = useAssets();
+  const rsiKeys = portfolioKeys.filter((k) => assets[k]?.hasRSI);
+  const items = rsiKeys.map((key) => {
     const d = store[key];
     if (!d?.rsi14) return null;
     const val = d.rsi14[d.rsi14.length - 1];
     if (val == null) return null;
     const color = val > 70 ? '#ef4444' : val < 30 ? '#10b981' : '#6366f1';
     const label = val > 70 ? 'Suracheté' : val < 30 ? 'Survendu' : 'Neutre';
-    return { key, name: ASSETS[key].name, val, color, label };
+    return { key, name: assets[key].name, val, color, label };
   }).filter(Boolean);
 
   return (

@@ -4,10 +4,10 @@ import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
-import { ProcessedAsset, AssetKey } from '@/lib/types';
+import { ProcessedAsset } from '@/lib/types';
 import Card from '@/components/ui/Card';
 
-export default function RSIChart({ data, assetKey: _assetKey }: { data: ProcessedAsset; assetKey: AssetKey }) {
+export default function RSIChart({ data, assetKey: _assetKey }: { data: ProcessedAsset; assetKey: string }) {
   void _assetKey;
   const s = data.series;
   const r7 = data.rsi7 ? data.rsi7[data.rsi7.length - 1] : null;
