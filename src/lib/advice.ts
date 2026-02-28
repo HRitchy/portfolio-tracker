@@ -1,9 +1,8 @@
-import { ASSETS, PORTFOLIO_KEYS } from './config';
 import { calcPerfFromCalendarDays } from './calculations';
 import {
   Advice,
   AssetAdvice,
-  AssetKey,
+  AssetConfig,
   AssetMetrics,
   Conviction,
   MarketContext,
@@ -166,7 +165,7 @@ export function buildMarketContext(
    2. Per-asset metrics extraction
    ───────────────────────────────────────────── */
 
-export function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
+export function extractMetrics(store: Store, key: string, assetConfig?: AssetConfig): AssetMetrics {
   const data = store[key];
   if (!data?.series?.length) {
     return {
@@ -199,7 +198,7 @@ export function extractMetrics(store: Store, key: AssetKey): AssetMetrics {
     if (returns.length > 0) {
       const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
       const variance = returns.reduce((a, r) => a + (r - mean) ** 2, 0) / returns.length;
-      const annualFactor = ASSETS[key].assetClass === 'Crypto' ? 365 : 252;
+      const annualFactor = assetConfig?.assetClass === 'Crypto' ? 365 : 252;
       volatility30d = Math.sqrt(variance * annualFactor) * 100;
     }
   }
@@ -389,14 +388,16 @@ function scoreToConviction(score: number): Conviction {
 
 export function getAssetAdvice(
   store: Store,
+  portfolioKeys: string[],
+  assets: Record<string, AssetConfig>,
   fearGreed: number | null = null,
   hySpread: number | null = null,
 ): { advices: AssetAdvice[]; marketContext: MarketContext } {
   const mkt = buildMarketContext(store, fearGreed, hySpread);
 
-  const advices: AssetAdvice[] = PORTFOLIO_KEYS.map((key) => {
+  const advices: AssetAdvice[] = portfolioKeys.map((key) => {
     const data = store[key];
-    const metrics = extractMetrics(store, key);
+    const metrics = extractMetrics(store, key, assets[key]);
 
     if (!data?.series?.length) {
       return {
@@ -448,8 +449,8 @@ export function getAdviceDescription(advice: Advice): string {
   return "Patience : aucun excès ne justifie d'agir. Buffett attendrait.";
 }
 
-export function getAssetClassLabel(key: keyof typeof ASSETS): string {
-  return ASSETS[key].assetClass;
+export function getAssetClassLabel(key: string, assets: Record<string, AssetConfig>): string {
+  return assets[key]?.assetClass ?? '';
 }
 
 export function regimeColor(regime: MarketRegime): string {

@@ -4,9 +4,9 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { usePortfolio } from '@/context/PortfolioContext';
-import { ASSETS } from '@/lib/config';
-import { AssetKey, ProcessedAsset, AssetConfig } from '@/lib/types';
-import { fmtPrice, fmtPct, getDigitsForKey } from '@/lib/formatting';
+import { useAssets } from '@/context/AssetsContext';
+import { ProcessedAsset, AssetConfig } from '@/lib/types';
+import { fmtPrice, fmtPct, getDigitsForAsset } from '@/lib/formatting';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import RefreshButton from '@/components/ui/RefreshButton';
 import { SkeletonAssetPage } from '@/components/ui/SkeletonCard';
@@ -52,8 +52,9 @@ function AssetHeader({ config }: { config: AssetConfig }) {
   );
 }
 
-function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: AssetKey }) {
-  const digits = getDigitsForKey(assetKey);
+function StatCards({ data, assetKey }: { data: ProcessedAsset; assetKey: string }) {
+  const { assets } = useAssets();
+  const digits = getDigitsForAsset(assets[assetKey]);
   const last = data.series.length ? data.series[data.series.length - 1] : undefined;
   const prices = data.series.map((s) => s.close);
   const high = prices.length ? Math.max(...prices) : 0;
@@ -143,10 +144,11 @@ export default function AssetPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const key = params.key as AssetKey;
+  const key = params.key as string;
   const { store, loading } = usePortfolio();
+  const { assets } = useAssets();
 
-  const config = ASSETS[key];
+  const config = assets[key];
 
   // Onglets disponibles pour cet actif
   const validTabs = useMemo<Set<Tab>>(() => {

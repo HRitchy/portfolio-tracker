@@ -5,7 +5,7 @@ import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
 import { Store } from '@/lib/types';
-import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import Card from '@/components/ui/Card';
 
 function rollingVolatility(prices: number[], window: number, annualFactor: number = 252): (number | null)[] {
@@ -25,6 +25,7 @@ function rollingVolatility(prices: number[], window: number, annualFactor: numbe
 }
 
 export default function VolatilityChart({ store }: { store: Store }) {
+  const { assets, portfolioKeys } = useAssets();
   const options = useMemo(() => {
     const baseOptions = chartOpts('Volatilite (%)');
     return {
@@ -40,16 +41,17 @@ export default function VolatilityChart({ store }: { store: Store }) {
   }, []);
 
   const datasets = useMemo(() => {
-    return PORTFOLIO_KEYS.map((key) => {
+    return portfolioKeys.map((key) => {
       const d = store[key];
-      if (!d?.series?.length) return null;
+      const cfg = assets[key];
+      if (!d?.series?.length || !cfg) return null;
       const prices = d.series.map((s) => s.close);
-      const annualFactor = ASSETS[key].assetClass === 'Crypto' ? 365 : 252;
+      const annualFactor = cfg.assetClass === 'Crypto' ? 365 : 252;
       const vol = rollingVolatility(prices, 30, annualFactor);
       return {
-        label: ASSETS[key].name,
+        label: cfg.name,
         data: d.series.map((s, i) => ({ x: s.dateObj.getTime(), y: vol[i] })),
-        borderColor: ASSETS[key].color,
+        borderColor: cfg.color,
         borderWidth: 1.5,
         pointRadius: 0,
         pointHoverRadius: 0,
@@ -57,7 +59,7 @@ export default function VolatilityChart({ store }: { store: Store }) {
         tension: 0.2,
       };
     }).filter(Boolean);
-  }, [store]);
+  }, [store, portfolioKeys, assets]);
 
   if (datasets.length === 0) return null;
 

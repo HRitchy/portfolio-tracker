@@ -1,9 +1,10 @@
 import { Store } from '@/lib/types';
-import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import Card from '@/components/ui/Card';
 
 export default function DrawdownOverview({ store }: { store: Store }) {
-  const items = PORTFOLIO_KEYS.map((key) => {
+  const { assets, portfolioKeys } = useAssets();
+  const items = portfolioKeys.map((key) => {
     const d = store[key];
     if (!d?.drawdown) return null;
     const dd = d.drawdown;
@@ -16,7 +17,7 @@ export default function DrawdownOverview({ store }: { store: Store }) {
     }, null);
     const severity = current < -20 ? '#ef4444' : current < -10 ? '#f59e0b' : current < -5 ? '#eab308' : '#10b981';
     const label = current < -20 ? 'Critique' : current < -10 ? 'Modéré' : current < -5 ? 'Léger' : 'Faible';
-    return { key, name: ASSETS[key].name, current, maxDD, severity, label };
+    return { key, name: assets[key]?.name ?? key, current, maxDD, severity, label };
   }).filter(Boolean);
 
   return (

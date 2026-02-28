@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
+import { useAssets } from '@/context/AssetsContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import AddAssetModal from '@/components/ui/AddAssetModal';
 
 function useRelativeTime(lastUpdate: string | null): string {
   const [relative, setRelative] = useState('--');
@@ -33,36 +35,32 @@ function useRelativeTime(lastUpdate: string | null): string {
   return relative;
 }
 
-const navItems = [
-  {
-    section: 'Vue générale',
-    items: [{ key: 'dashboard', href: '/', label: 'Dashboard', icon: true }],
-  },
-  {
-    section: 'Actifs',
-    items: [
-      { key: 'mwre', href: '/asset/mwre', label: 'MSCI World', color: '#6366f1' },
-      { key: 'btc', href: '/asset/btc', label: 'Bitcoin', color: '#f7931a' },
-      { key: 'glda', href: '/asset/glda', label: 'Or (Gold)', color: '#eab308' },
-    ],
-  },
-  {
-    section: 'Indicateurs',
-    items: [
-      { key: 'vix', href: '/asset/vix', label: 'VIX', color: '#ef4444' },
-      { key: 'eurusd', href: '/asset/eurusd', label: 'USD/EUR', color: '#3b82f6' },
-    ],
-  },
-];
+interface NavItem {
+  key: string;
+  href: string;
+  label: string;
+  color?: string;
+  icon?: boolean;
+}
 
-// Rendu partagé des sections de navigation.
-// getHref permet d'injecter l'onglet courant dans les liens d'actifs.
+interface NavSection {
+  section: string;
+  type?: 'portfolio' | 'indicator';
+  items: NavItem[];
+}
+
 function NavSections({
   getHref,
   pathname,
+  sections,
+  onAdd,
+  onRemove,
 }: {
   getHref: (baseHref: string) => string;
   pathname: string;
+  sections: NavSection[];
+  onAdd?: (type: 'portfolio' | 'indicator') => void;
+  onRemove?: (key: string) => void;
 }) {
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -71,35 +69,62 @@ function NavSections({
 
   return (
     <>
-      {navItems.map((section) => (
+      {sections.map((section) => (
         <div key={section.section} className="mb-5 last:mb-0">
-          <div className="text-[10px] uppercase text-[var(--muted)] px-3 tracking-[0.18em] font-semibold mb-2">
-            {section.section}
+          <div className="flex items-center justify-between px-3 mb-2">
+            <div className="text-[10px] uppercase text-[var(--muted)] tracking-[0.18em] font-semibold">
+              {section.section}
+            </div>
+            {section.type && onAdd && (
+              <button
+                onClick={() => onAdd(section.type!)}
+                aria-label={`Ajouter un ${section.type === 'portfolio' ? 'actif' : 'indicateur'}`}
+                className="w-5 h-5 flex items-center justify-center rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-hover)] transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+            )}
           </div>
           <div className="space-y-1">
             {section.items.map((item) => (
-              <Link
-                key={item.key}
-                href={getHref(item.href)}
-                scroll={!item.href.startsWith('/asset/')}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
-                  isActive(item.href)
-                    ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
-                    : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
-                }`}
-              >
-                {'icon' in item ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" />
-                  </svg>
-                ) : (
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'color' in item ? item.color : undefined }} aria-hidden="true" />
+              <div key={item.key} className="group/item relative flex items-center">
+                <Link
+                  href={getHref(item.href)}
+                  scroll={!item.href.startsWith('/asset/')}
+                  className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    isActive(item.href)
+                      ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
+                      : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {item.icon ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <rect x="3" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" />
+                      <rect x="14" y="14" width="7" height="7" rx="1" />
+                    </svg>
+                  ) : (
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} aria-hidden="true" />
+                  )}
+                  <span className="truncate">{item.label}</span>
+                </Link>
+                {!item.icon && onRemove && (
+                  <button
+                    onClick={() => onRemove(item.key)}
+                    aria-label={`Supprimer ${item.label}`}
+                    className="absolute right-1 w-6 h-6 flex items-center justify-center rounded-lg text-[var(--muted)] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)] transition-all opacity-0 group-hover/item:opacity-100"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
                 )}
-                {item.label}
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -108,10 +133,17 @@ function NavSections({
   );
 }
 
-// Composant interne qui lit l'onglet courant depuis l'URL
-// et l'intègre dans les liens vers les actifs.
-// Nécessite un Suspense parent (Next.js App Router + useSearchParams).
-function NavLinksWithTab({ pathname }: { pathname: string }) {
+function NavLinksWithTab({
+  pathname,
+  sections,
+  onAdd,
+  onRemove,
+}: {
+  pathname: string;
+  sections: NavSection[];
+  onAdd?: (type: 'portfolio' | 'indicator') => void;
+  onRemove?: (key: string) => void;
+}) {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab');
 
@@ -125,16 +157,53 @@ function NavLinksWithTab({ pathname }: { pathname: string }) {
     [currentTab],
   );
 
-  return <NavSections getHref={getHref} pathname={pathname} />;
+  return <NavSections getHref={getHref} pathname={pathname} sections={sections} onAdd={onAdd} onRemove={onRemove} />;
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { lastUpdate } = usePortfolio();
+  const { assets, portfolioKeys, indicatorKeys, removeAsset } = useAssets();
   const relativeTime = useRelativeTime(lastUpdate);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [addModal, setAddModal] = useState<'portfolio' | 'indicator' | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
+
+  const sections: NavSection[] = useMemo(() => [
+    {
+      section: 'Vue générale',
+      items: [{ key: 'dashboard', href: '/', label: 'Dashboard', icon: true }],
+    },
+    {
+      section: 'Actifs',
+      type: 'portfolio' as const,
+      items: portfolioKeys.map((key) => ({
+        key,
+        href: `/asset/${key}`,
+        label: assets[key].name,
+        color: assets[key].color,
+      })),
+    },
+    {
+      section: 'Indicateurs',
+      type: 'indicator' as const,
+      items: indicatorKeys.map((key) => ({
+        key,
+        href: `/asset/${key}`,
+        label: assets[key].name,
+        color: assets[key].color,
+      })),
+    },
+  ], [assets, portfolioKeys, indicatorKeys]);
+
+  const handleAdd = useCallback((type: 'portfolio' | 'indicator') => {
+    setAddModal(type);
+  }, []);
+
+  const handleRemove = useCallback((key: string) => {
+    removeAsset(key);
+  }, [removeAsset]);
 
   // Fermer le drawer mobile lors d'un changement de route
   useEffect(() => {
@@ -235,13 +304,8 @@ export default function Sidebar() {
         </div>
 
         <div className="flex-1 px-3 py-4 overflow-y-auto">
-          {/*
-            NavLinksWithTab lit l'onglet courant via useSearchParams pour le
-            propager dans les liens d'actifs. Le Suspense fournit un rendu sans
-            onglet le temps que le hook soit disponible (exigence Next.js App Router).
-          */}
-          <Suspense fallback={<NavSections getHref={(href) => href} pathname={pathname} />}>
-            <NavLinksWithTab pathname={pathname} />
+          <Suspense fallback={<NavSections getHref={(href) => href} pathname={pathname} sections={sections} onAdd={handleAdd} onRemove={handleRemove} />}>
+            <NavLinksWithTab pathname={pathname} sections={sections} onAdd={handleAdd} onRemove={handleRemove} />
           </Suspense>
         </div>
 
@@ -256,6 +320,10 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
+
+      {addModal && (
+        <AddAssetModal type={addModal} onClose={() => setAddModal(null)} />
+      )}
     </>
   );
 }

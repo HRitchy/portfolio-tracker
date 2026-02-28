@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useRef, useEffect, memo } from 'react';
-import { fmtPrice, fmtPct, chgClass, getDigitsForKey } from '@/lib/formatting';
-import { AssetKey, ProcessedAsset } from '@/lib/types';
-import { ASSETS } from '@/lib/config';
+import { fmtPrice, fmtPct, chgClass, getDigitsForAsset } from '@/lib/formatting';
+import { ProcessedAsset } from '@/lib/types';
+import { useAssets } from '@/context/AssetsContext';
 
 const colorMap: Record<string, string> = {
   up: 'text-[var(--success)]',
@@ -66,13 +66,16 @@ function Sparkline({ series, color }: { series: { close: number }[]; color: stri
   );
 }
 
-const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: AssetKey; data: ProcessedAsset | null | undefined }) {
-  const cfg = ASSETS[assetKey];
+const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: string; data: ProcessedAsset | null | undefined }) {
+  const { assets } = useAssets();
+  const cfg = assets[assetKey];
   const series = data?.series;
   const last = series?.length ? series[series.length - 1] : undefined;
-  const digits = getDigitsForKey(assetKey);
+  const digits = getDigitsForAsset(cfg);
   const direction = last ? chgClass(last.variation) : 'neutral';
   const sparkData = series?.slice(-30) ?? [];
+
+  if (!cfg) return null;
 
   return (
     <Link href={`/asset/${assetKey}`} className="block group">

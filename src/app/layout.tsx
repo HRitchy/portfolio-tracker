@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AssetsProvider } from '@/context/AssetsContext';
 import { PortfolioProvider } from '@/context/PortfolioContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { MacroProvider } from '@/context/MacroContext';
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <ToastProvider>
             <MacroProvider>
+              <AssetsProvider>
               <PortfolioProvider>
                 <Sidebar />
                 <main className="flex-1 min-w-0 min-h-screen p-5 pt-16 md:ml-[280px] md:p-8 2xl:p-10 3xl:p-12">
@@ -29,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </div>
                 </main>
               </PortfolioProvider>
+              </AssetsProvider>
             </MacroProvider>
           </ToastProvider>
         </ThemeProvider>

@@ -7,13 +7,13 @@ beforeEach(() => {
 });
 
 describe('GET /api/yahoo/[symbol]', () => {
-  it('returns 400 for a symbol not in the allowlist', async () => {
+  it('returns 400 for an invalid symbol format', async () => {
     const { GET } = await import('../yahoo/[symbol]/route');
-    const req = new NextRequest('http://localhost/api/yahoo/TSLA');
-    const resp = await GET(req, { params: Promise.resolve({ symbol: 'TSLA' }) });
+    const req = new NextRequest('http://localhost/api/yahoo/INVALID%20SYMBOL%20WITH%20SPACES');
+    const resp = await GET(req, { params: Promise.resolve({ symbol: 'INVALID SYMBOL WITH SPACES' }) });
     expect(resp.status).toBe(400);
     const body = await resp.json();
-    expect(body.error).toBe('Symbol not allowed');
+    expect(body.error).toBe('Invalid symbol');
   });
 
   it('returns 502 and logs when fetch throws', async () => {

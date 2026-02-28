@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { Store, AssetKey } from '@/lib/types';
-import { ASSETS, ASSET_KEYS, TIMEZONE } from '@/lib/config';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { Store, AssetConfig } from '@/lib/types';
+import { TIMEZONE } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import { fetchAssetData } from '@/lib/fetcher';
 import { processAsset } from '@/lib/calculations';
 
@@ -25,7 +26,7 @@ const PortfolioContext = createContext<PortfolioContextType>({
 });
 
 function rehydrateDates(store: Store): void {
-  for (const key of Object.keys(store) as AssetKey[]) {
+  for (const key of Object.keys(store)) {
     const asset = store[key];
     if (asset?.series) {
       for (const point of asset.series) {
@@ -60,19 +61,29 @@ function saveSnapshot(store: Store, lastUpdate: string) {
 }
 
 export function PortfolioProvider({ children }: { children: ReactNode }) {
+  const { assets, assetKeys } = useAssets();
+  const assetsRef = useRef(assets);
+  const keysRef = useRef(assetKeys);
+  assetsRef.current = assets;
+  keysRef.current = assetKeys;
+
   const snapshot = loadSnapshot();
   const [store, setStore] = useState<Store>(snapshot?.store ?? {});
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(snapshot?.lastUpdate ?? null);
 
   const refreshAll = useCallback(async () => {
+    const currentAssets = assetsRef.current;
+    const currentKeys = keysRef.current;
     setLoading(true);
     const newStore: Store = {};
 
     const results = await Promise.allSettled(
-      ASSET_KEYS.map(async (key: AssetKey) => {
-        const result = await fetchAssetData(ASSETS[key].symbol);
-        return { key, data: result ? processAsset(key, result) : null };
+      currentKeys.map(async (key: string) => {
+        const cfg = currentAssets[key];
+        if (!cfg) return { key, data: null };
+        const result = await fetchAssetData(cfg.symbol);
+        return { key, data: result ? processAsset(key, cfg, result) : null };
       })
     );
     results.forEach((res) => {
@@ -90,10 +101,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  // Initial fetch on mount
+  // Refresh when asset list changes
   useEffect(() => {
     refreshAll();
-  }, [refreshAll]);
+  }, [assetKeys.join(','), refreshAll]);
 
   // Auto-refresh every 5 minutes
   useEffect(() => {

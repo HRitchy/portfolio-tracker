@@ -1,15 +1,14 @@
 'use client';
 
 import { useCallback } from 'react';
-import { ProcessedAsset, AssetConfig, AssetKey } from '@/lib/types';
-import { fmtPrice, fmtPct, getDigitsForKey } from '@/lib/formatting';
+import { ProcessedAsset, AssetConfig } from '@/lib/types';
+import { fmtPrice, fmtPct, getDigitsForAsset } from '@/lib/formatting';
 
 function buildCsvRows(
   data: ProcessedAsset,
   config: AssetConfig,
-  assetKey: AssetKey
 ): string {
-  const digits = getDigitsForKey(assetKey);
+  const digits = getDigitsForAsset(config);
   const hasMM200 = !!data.mm200;
 
   const headers = ['Date', 'Cours', 'Var. %'];
@@ -28,13 +27,13 @@ function buildCsvRows(
   return [headers.join(';'), ...rows].join('\n');
 }
 
-export default function DataTable({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: AssetKey }) {
-  const digits = getDigitsForKey(assetKey);
+export default function DataTable({ data, config, assetKey }: { data: ProcessedAsset; config: AssetConfig; assetKey: string }) {
+  const digits = getDigitsForAsset(config);
   const hasMM200 = !!data.mm200;
   const last50 = data.series.slice(-50).reverse();
 
   const handleExportCsv = useCallback(() => {
-    const csv = buildCsvRows(data, config, assetKey);
+    const csv = buildCsvRows(data, config);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

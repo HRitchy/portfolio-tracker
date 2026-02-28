@@ -2,25 +2,27 @@
 
 import { useMemo } from 'react';
 import { Store } from '@/lib/types';
-import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import { fmtPct } from '@/lib/formatting';
 import { calcPerfFromCalendarDays } from '@/lib/calculations';
 import Card from '@/components/ui/Card';
 
 export default function PortfolioSummary({ store }: { store: Store }) {
+  const { assets, portfolioKeys } = useAssets();
   const summary = useMemo(() => {
-    const items = PORTFOLIO_KEYS.map((key) => {
+    const items = portfolioKeys.map((key) => {
       const d = store[key];
-      if (!d?.series?.length) return null;
+      const cfg = assets[key];
+      if (!d?.series?.length || !cfg) return null;
       const perf1d = calcPerfFromCalendarDays(d.series, 1);
       const perf7d = calcPerfFromCalendarDays(d.series, 7);
       const perf30d = calcPerfFromCalendarDays(d.series, 30);
       const perf90d = calcPerfFromCalendarDays(d.series, 90);
-      return { key, name: ASSETS[key].name, color: ASSETS[key].color, perf1d, perf7d, perf30d, perf90d };
+      return { key, name: cfg.name, color: cfg.color, perf1d, perf7d, perf30d, perf90d };
     }).filter(Boolean) as { key: string; name: string; color: string; perf1d: number | null; perf7d: number | null; perf30d: number | null; perf90d: number | null }[];
 
     return items;
-  }, [store]);
+  }, [store, portfolioKeys, assets]);
 
   if (summary.length === 0) return null;
 

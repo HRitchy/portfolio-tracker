@@ -5,11 +5,12 @@ import { Line } from 'react-chartjs-2';
 import '@/lib/chartSetup';
 import { chartOpts } from '@/lib/chartSetup';
 import { Store } from '@/lib/types';
-import { ASSETS, PORTFOLIO_KEYS } from '@/lib/config';
+import { useAssets } from '@/context/AssetsContext';
 import Card from '@/components/ui/Card';
 import PeriodSelector from '@/components/ui/PeriodSelector';
 
 export default function PerformanceChart({ store }: { store: Store }) {
+  const { assets, portfolioKeys } = useAssets();
   const [days, setDays] = useState(180);
   const options = useMemo(() => {
     const baseOptions = chartOpts('Base 100');
@@ -28,19 +29,20 @@ export default function PerformanceChart({ store }: { store: Store }) {
   const datasets = useMemo(() => {
     const cutoff = days >= 9999 ? null : new Date(Date.now() - days * 86400000);
 
-    return PORTFOLIO_KEYS.map((key) => {
+    return portfolioKeys.map((key) => {
       const d = store[key];
-      if (!d || !d.series.length) return null;
+      const cfg = assets[key];
+      if (!d || !d.series.length || !cfg) return null;
 
       const filtered = cutoff ? d.series.filter((s) => s.dateObj >= cutoff) : d.series;
       if (filtered.length === 0) return null;
       const base = filtered[0].close;
 
       return {
-        label: ASSETS[key].name,
+        label: cfg.name,
         data: filtered.map((s) => ({ x: s.dateObj.getTime(), y: (s.close / base) * 100 })),
-        borderColor: ASSETS[key].color,
-        backgroundColor: ASSETS[key].colorBg,
+        borderColor: cfg.color,
+        backgroundColor: cfg.colorBg,
         borderWidth: 2,
         pointRadius: 0,
         pointHoverRadius: 0,
@@ -48,7 +50,7 @@ export default function PerformanceChart({ store }: { store: Store }) {
         tension: 0.1,
       };
     }).filter(Boolean);
-  }, [store, days]);
+  }, [store, days, portfolioKeys, assets]);
 
   if (datasets.length === 0) return null;
 

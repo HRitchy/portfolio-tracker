@@ -3,15 +3,15 @@ import dns from 'node:dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
-const ALLOWED_SYMBOLS = new Set(['MWRE.DE', 'BTC-EUR', 'GLDA.DE', '^VIX', 'EUR=X']);
+const SYMBOL_RE = /^[A-Za-z0-9^=.\-]+$/;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ symbol: string }> }
 ) {
   const { symbol } = await params;
-  if (!ALLOWED_SYMBOLS.has(symbol)) {
-    return NextResponse.json({ error: 'Symbol not allowed' }, { status: 400 });
+  if (!symbol || symbol.length > 20 || !SYMBOL_RE.test(symbol)) {
+    return NextResponse.json({ error: 'Invalid symbol' }, { status: 400 });
   }
   const rawDays = parseInt(request.nextUrl.searchParams.get('days') ?? '500', 10);
   const days = Number.isFinite(rawDays) ? Math.min(Math.max(rawDays, 1), 3650) : 500;
