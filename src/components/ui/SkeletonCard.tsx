@@ -52,9 +52,9 @@ export function SkeletonAssetPage() {
         ))}
       </div>
       {/* Tab nav placeholder */}
-      <div className="flex gap-1.5 md:gap-2">
+      <div className="flex gap-1.5 md:gap-2 overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-8 md:h-10 w-20 md:w-24 bg-[var(--panel-hover)] rounded-xl" />
+          <div key={i} className="h-8 md:h-10 w-16 md:w-24 shrink-0 bg-[var(--panel-hover)] rounded-xl" />
         ))}
       </div>
       {/* Chart placeholder */}

@@ -37,7 +37,7 @@ function Breadcrumb({ config }: { config: AssetConfig }) {
 
 function AssetHeader({ config }: { config: AssetConfig }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-6 3xl:mb-8 gap-3 md:gap-4 fade-in">
+    <div className="flex flex-col items-start md:flex-row md:items-center justify-between mb-5 md:mb-6 3xl:mb-8 gap-3 md:gap-4 fade-in">
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: config.color }}>
           {config.name.slice(0, 2).toUpperCase()}

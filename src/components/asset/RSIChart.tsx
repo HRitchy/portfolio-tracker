@@ -44,7 +44,7 @@ export default function RSIChart({ data, assetKey: _assetKey }: { data: Processe
           />
         </div>
       </Card>
-      <div className="grid grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-4">
         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-5">
           <div className="text-xs text-[var(--muted)] mb-2">RSI Court (7j)</div>
           <div className="text-[22px] font-bold">{r7 != null ? Number(r7).toFixed(2) : '--'}</div>
