@@ -1,26 +1,41 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { fetchExternal, checkRateLimit, upstreamError } from '@/lib/apiUtils';
+import { apiError } from '@/lib/apiError';
+import { isValidFearGreedData } from '@/lib/validation';
+import { MemoryCache } from '@/lib/cache';
 
-export async function GET() {
+const cache = new MemoryCache<unknown>();
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_KEY = 'feargreed';
+
+export async function GET(request: NextRequest) {
+  const limited = checkRateLimit(request, 30);
+  if (limited) return limited;
+
+  const cached = cache.get(CACHE_KEY);
+  if (cached !== null) {
+    return NextResponse.json({ fear_and_greed: cached }, {
+      headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600' },
+    });
+  }
+
   const url = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata';
 
   try {
-    const resp = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!resp.ok) {
-      return NextResponse.json({ error: 'CNN API error', status: resp.status }, { status: resp.status });
-    }
+    const resp = await fetchExternal(url, { label: '/api/feargreed' });
     const data = await resp.json();
     const fg = data?.fear_and_greed ?? null;
+
+    if (fg !== null && !isValidFearGreedData(fg)) {
+      return apiError('VALIDATION_ERROR', 'Invalid upstream response format', 502);
+    }
+
+    cache.set(CACHE_KEY, fg, CACHE_TTL_MS);
+
     return NextResponse.json({ fear_and_greed: fg }, {
       headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600' },
     });
   } catch (err) {
-    console.error('[/api/feargreed]', {
-      message: err instanceof Error ? err.message : String(err),
-      ts: new Date().toISOString(),
-    });
-    return NextResponse.json({ error: 'Fetch failed' }, { status: 502 });
+    return upstreamError('/api/feargreed', err);
   }
 }
