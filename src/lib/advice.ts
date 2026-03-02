@@ -364,15 +364,19 @@ export function scoreAsset(
   }
 
   // ── G. Distance from MA50 (short-term discount) ──
+  // Same volatility multiplier as MA200: crypto regularly swings ±15% vs MA50 without signalling anything.
   if (metrics.distFromMA50Pct != null) {
     const d = metrics.distFromMA50Pct;
-    if (d <= -15) {
+    const g1 = -15 * maDistMult;
+    const g2 = -8 * maDistMult;
+    const g3 = 15 * maDistMult;
+    if (d <= g1) {
       score += 2;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : dislocation court terme, opportunité tactique.`);
-    } else if (d <= -8) {
+    } else if (d <= g2) {
       score += 1;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : discount court terme.`);
-    } else if (d >= 15) {
+    } else if (d >= g3) {
       score -= 1;
       reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM50 : surchauffe court terme.`);
     }
@@ -414,20 +418,25 @@ export function scoreAsset(
   // ratio = (price/MA50) / (price/MA200) = MA200/MA50
   // ratio < 1  → MA200 < MA50 → MA50 > MA200 → Golden cross (bullish)
   // ratio > 1  → MA200 > MA50 → MA50 < MA200 → Death cross (bearish)
+  // Thresholds scale with maDistMult so that routine crypto divergences are not over-counted.
   if (metrics.distFromMA50Pct != null && metrics.distFromMA200Pct != null) {
     const denom = 1 + metrics.distFromMA200Pct / 100;
     if (denom !== 0) {
       const ratio = (1 + metrics.distFromMA50Pct / 100) / denom;
-      if (ratio < 0.94) {
+      const gcStrong = 1 - 0.06 * maDistMult; // e.g. 0.94 for equities, 0.88 for crypto
+      const gcMild   = 1 - 0.02 * maDistMult; // e.g. 0.98 for equities, 0.96 for crypto
+      const dcMild   = 1 + 0.02 * maDistMult; // e.g. 1.02 for equities, 1.04 for crypto
+      const dcStrong = 1 + 0.06 * maDistMult; // e.g. 1.06 for equities, 1.12 for crypto
+      if (ratio < gcStrong) {
         score += 2;
         reasons.push(`Golden cross : MM50 significativement au-dessus de MM200 (ratio ${ratio.toFixed(2)}) — tendance haussière long terme confirmée.`);
-      } else if (ratio < 0.98) {
+      } else if (ratio < gcMild) {
         score += 1;
         reasons.push(`MM50 au-dessus de MM200 (ratio ${ratio.toFixed(2)}) : biais haussier moyen terme.`);
-      } else if (ratio > 1.06) {
+      } else if (ratio > dcStrong) {
         score -= 2;
         reasons.push(`Death cross : MM50 significativement sous MM200 (ratio ${ratio.toFixed(2)}) — tendance baissière long terme confirmée.`);
-      } else if (ratio > 1.02) {
+      } else if (ratio > dcMild) {
         score -= 1;
         reasons.push(`MM50 sous MM200 (ratio ${ratio.toFixed(2)}) : pression baissière moyen terme.`);
       }
