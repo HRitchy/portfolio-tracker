@@ -198,6 +198,35 @@ describe('detectRSIDivergence', () => {
     const result = detectRSIDivergence(series, rsi14, 30);
     expect(result).toBeNull();
   });
+
+  it('ignores divergence when RSI delta is below minimum threshold', () => {
+    // Same price pattern as bullish divergence, but RSI delta < 3
+    const closes = [
+      100, 105, 110, 105, 95, 85, 80,
+      85, 90, 100, 110, 105, 95, 85, 75,
+      80, 85,
+    ];
+    const series = makeSeries(closes);
+
+    const rsi14: (number | null)[] = closes.map((_, i) => {
+      if (i === 6) return 25;  // first low
+      if (i === 14) return 26; // only +1 RSI delta — too small
+      return 50;
+    });
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBeNull();
+  });
+
+  it('does not detect false extrema from flat segments', () => {
+    // Flat segment: all prices equal → no strict local extrema
+    const closes = Array.from({ length: 20 }, () => 100);
+    const series = makeSeries(closes);
+    const rsi14: (number | null)[] = closes.map(() => 50);
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBeNull();
+  });
 });
 
 describe('extractCleanSeries', () => {
