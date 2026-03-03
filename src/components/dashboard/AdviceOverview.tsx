@@ -23,8 +23,12 @@ function ConvictionScore({
   if (advice === 'Conserver') return null;
 
   return (
-    <div className="text-[10px] text-[var(--muted)]" aria-label={`Niveau de conviction: ${conviction}`}>
-      Conviction: <span className="font-semibold text-[var(--text)]">{conviction}</span>
+    <div
+      className="inline-flex items-center gap-1 rounded-full bg-[var(--panel-hover)] px-2 py-0.5 text-[11px] text-[var(--text)]"
+      aria-label={`Niveau de conviction: ${conviction}`}
+    >
+      <span className="text-[var(--muted)]">Conviction:</span>
+      <span className="font-semibold">{conviction}</span>
     </div>
   );
 }

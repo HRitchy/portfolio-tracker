@@ -397,9 +397,9 @@ export function getAssetAdvice(
    ───────────────────────────────────────────── */
 
 export function adviceTone(advice: Advice): string {
-  if (advice === 'Renforcer') return 'text-[var(--muted)] bg-[var(--panel-hover)]';
-  if (advice === 'Alléger') return 'text-[var(--muted)] bg-[var(--panel-hover)]';
-  return 'text-[var(--muted)] bg-[var(--panel-hover)]';
+  if (advice === 'Renforcer') return 'text-[var(--success)] bg-[var(--success-soft)] border border-[var(--success)]/30';
+  if (advice === 'Alléger') return 'text-[var(--danger)] bg-[var(--danger-soft)] border border-[var(--danger)]/30';
+  return 'text-[var(--text)] bg-[var(--panel-hover)] border border-[var(--border)]';
 }
 
 export function getAdviceDescription(advice: Advice): string {
