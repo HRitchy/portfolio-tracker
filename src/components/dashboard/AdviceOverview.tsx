@@ -174,35 +174,28 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
           <MetricPill
             label="Drawdown"
             value={`${m.drawdown.toFixed(1)}%`}
-            highlight={m.drawdown <= -25}
+            highlight={false}
           />
         )}
         {m.rsi14 != null && (
           <MetricPill
             label="RSI14"
             value={m.rsi14.toFixed(0)}
-            highlight={m.rsi14 < 30 || m.rsi14 > 75}
+            highlight={false}
           />
         )}
         {m.distFromMA200Pct != null && (
           <MetricPill
             label="vs MM200"
             value={fmtPct(m.distFromMA200Pct)}
-            highlight={m.distFromMA200Pct <= -15 || m.distFromMA200Pct >= 30}
+            highlight={false}
           />
         )}
         {m.perf30d != null && (
           <MetricPill
             label="30j"
             value={fmtPct(m.perf30d)}
-            highlight={m.perf30d <= -10 || m.perf30d >= 20}
-          />
-        )}
-        {m.perf90d != null && (
-          <MetricPill
-            label="90j"
-            value={fmtPct(m.perf90d)}
-            highlight={m.perf90d <= -25 || m.perf90d >= 50}
+            highlight={false}
           />
         )}
         {m.volatility30d != null && (
