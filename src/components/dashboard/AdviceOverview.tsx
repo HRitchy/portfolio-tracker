@@ -43,9 +43,6 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
     <div className="rounded-xl border border-[var(--border)] p-4 mb-4 bg-[var(--bg-soft)]/30">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
-          <div className="text-[10px] text-[var(--muted)] uppercase tracking-[0.16em] font-semibold mb-1">
-            Lecture contrarienne du marché
-          </div>
           <div className="flex items-center gap-2">
             <span
               className="text-sm font-bold px-3 py-1 rounded-full"
@@ -140,6 +137,7 @@ function MetricPill({ label, value, highlight }: { label: string; value: string;
 function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig?: AssetConfig }) {
   const m = item.metrics;
   const toneClass = adviceTone(item.advice);
+  const adviceDescription = getAdviceDescription(item.advice);
 
   return (
     <article
@@ -164,9 +162,11 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
       </div>
 
       {/* Description */}
-      <p className="text-sm mb-3 text-[var(--muted)]">
-        {getAdviceDescription(item.advice)}
-      </p>
+      {adviceDescription && (
+        <p className="text-sm mb-3 text-[var(--muted)]">
+          {adviceDescription}
+        </p>
+      )}
 
       {/* Key metrics row */}
       <div className="flex flex-wrap gap-1.5 mb-3">
