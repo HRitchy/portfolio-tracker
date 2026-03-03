@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAssets } from '@/context/AssetsContext';
 import { AssetConfig } from '@/lib/types';
+import { COLOR_PALETTE } from '@/lib/config';
 
 const ASSET_CLASSES = ['Actions', 'Crypto', 'Métaux', 'Obligations', 'Devises', 'Matières premières', 'Autre'];
 
@@ -14,9 +15,11 @@ export default function AddAssetModal({
   onClose: () => void;
 }) {
   const { assets, addAsset, nextColor } = useAssets();
+  const defaultColor = nextColor();
   const [symbol, setSymbol] = useState('');
   const [name, setName] = useState('');
   const [assetClass, setAssetClass] = useState(ASSET_CLASSES[0]);
+  const [selectedColor, setSelectedColor] = useState(defaultColor);
   const [error, setError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -84,14 +87,13 @@ export default function AddAssetModal({
     }
     setTesting(false);
 
-    const colors = nextColor();
     const config: AssetConfig = {
       symbol: trimSymbol,
       name: trimName,
       assetClass,
       type,
-      color: colors.color,
-      colorBg: colors.colorBg,
+      color: selectedColor.color,
+      colorBg: selectedColor.colorBg,
       hasRSI: isPortfolio,
       hasMM: isPortfolio,
       hasDrawdown: isPortfolio,
@@ -100,7 +102,7 @@ export default function AddAssetModal({
 
     addAsset(key, config);
     onClose();
-  }, [symbol, name, assetClass, type, isPortfolio, assets, addAsset, nextColor, onClose]);
+  }, [symbol, name, assetClass, type, isPortfolio, assets, addAsset, onClose, selectedColor]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
@@ -169,6 +171,31 @@ export default function AddAssetModal({
                 <option key={cls} value={cls}>{cls}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[var(--muted)] uppercase tracking-wide mb-1.5">
+              Couleur
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {COLOR_PALETTE.map((paletteColor) => {
+                const isSelected = selectedColor.color === paletteColor.color;
+                return (
+                  <button
+                    key={paletteColor.color}
+                    type="button"
+                    onClick={() => setSelectedColor(paletteColor)}
+                    className="w-7 h-7 rounded-full border-2 transition-transform hover:scale-105"
+                    style={{
+                      backgroundColor: paletteColor.color,
+                      borderColor: isSelected ? 'var(--text)' : 'transparent',
+                    }}
+                    aria-label={`Choisir la couleur ${paletteColor.color}`}
+                    aria-pressed={isSelected}
+                  />
+                );
+              })}
+            </div>
           </div>
 
           {error && (
