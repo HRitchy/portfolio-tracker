@@ -542,11 +542,11 @@ export function getAssetClassLabel(key: string, assets: Record<string, AssetConf
 
 export function regimeColor(regime: MarketRegime): string {
   switch (regime) {
-    case 'Capitulation': return '#7c83ff';
-    case 'Peur': return '#8b95ff';
-    case 'Neutre': return '#9aa8c3';
-    case 'Euphorie': return '#7dd3fc';
-    case 'Exubérance': return '#a5b4fc';
+    case 'Capitulation': return '#10b981';
+    case 'Peur': return '#34d399';
+    case 'Neutre': return '#eab308';
+    case 'Euphorie': return '#f97316';
+    case 'Exubérance': return '#ef4444';
   }
 }
 
