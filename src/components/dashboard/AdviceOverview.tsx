@@ -246,7 +246,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
   );
 
   return (
-    <Card title="Stratégie contrarienne — Conseils d'allocation" className="mb-0">
+    <Card className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 3xl:gap-5">
@@ -254,10 +254,6 @@ export default function AdviceOverview({ store }: { store: Store }) {
           <AssetAdviceCard key={item.key} item={item} assetConfig={assets[item.key]} />
         ))}
       </div>
-
-      <p className="text-[10px] text-[var(--muted)] mt-4 text-center">
-        Approche contrarienne. Ne constitue pas un conseil financier personnalisé.
-      </p>
     </Card>
   );
 }
