@@ -213,10 +213,10 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
         ))}
       </ul>
 
-      {/* Buffett maxim */}
+      {/* Citation contrarienne */}
       <div className="border-t pt-2 border-[var(--border)]">
         <p className="text-[11px] italic text-[var(--muted)]">
-          &laquo; {item.buffettMaxim} &raquo; — W. Buffett
+          &laquo; {item.contrarianQuote} &raquo;
         </p>
       </div>
     </article>
@@ -246,7 +246,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
   );
 
   return (
-    <Card title="Stratégie contrarienne — Conseils à la Warren Buffett" className="mb-0">
+    <Card title="Stratégie contrarienne — Conseils d'allocation" className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 3xl:gap-5">
@@ -256,7 +256,7 @@ export default function AdviceOverview({ store }: { store: Store }) {
       </div>
 
       <p className="text-[10px] text-[var(--muted)] mt-4 text-center">
-        Approche contrarienne inspirée de Warren Buffett. Ne constitue pas un conseil financier personnalisé.
+        Approche contrarienne. Ne constitue pas un conseil financier personnalisé.
       </p>
     </Card>
   );

@@ -70,7 +70,7 @@ export interface AssetAdvice {
   score: number;
   conviction: Conviction;
   reasons: string[];
-  buffettMaxim: string;
+  contrarianQuote: string;
   metrics: AssetMetrics;
 }
 
