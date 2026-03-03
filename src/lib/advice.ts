@@ -238,8 +238,8 @@ export function scoreAsset(
   // Calibration par classe d'actif : Bitcoin (~80% vol/an) ≠ MSCI World (~15% vol/an)
   // Les seuils sont multipliés pour les actifs plus volatils afin d'éviter de sur-signaler
   const isCrypto = assetClass === 'Crypto';
-  const drawdownMult = isCrypto ? 2.2 : 1.0;
-  const maDistMult = isCrypto ? 2.0 : 1.0;
+  const drawdownMult = isCrypto ? 1.8 : 1.0;
+  const maDistMult = isCrypto ? 1.9 : 1.0;
 
   // ── A. Macro regime contributes to each asset ──
   const macroContribution = Math.round(mkt.regimeScore * 0.4);
@@ -357,9 +357,12 @@ export function scoreAsset(
     } else if (metrics.perf30d <= -10) {
       score += 1;
       reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : baisse marquée, intérêt contrariant.`);
-    } else if (metrics.perf30d >= 20) {
+    } else if (metrics.perf30d >= 25) {
+      score -= 2;
+      reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally vertical extrême, surchauffe manifeste.`);
+    } else if (metrics.perf30d >= 12) {
       score -= 1;
-      reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally vertical, risque de prise de profit.`);
+      reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally marqué, risque de prise de profit.`);
     }
   }
 
@@ -387,16 +390,18 @@ export function scoreAsset(
     const p = metrics.perf90d;
     const h1 = -40 * drawdownMult;
     const h2 = -25 * drawdownMult;
-    const h3 = 50;
     if (p <= h1) {
       score += 2;
       reasons.push(`Perf 90j de ${p.toFixed(1)}% : effondrement trimestriel — dislocation profonde.`);
     } else if (p <= h2) {
       score += 1;
       reasons.push(`Perf 90j de ${p.toFixed(1)}% : baisse trimestrielle marquée, sentiment dégradé.`);
-    } else if (p >= h3) {
+    } else if (p >= 40) {
+      score -= 2;
+      reasons.push(`Perf 90j de +${p.toFixed(1)}% : rally trimestriel parabolique — surchauffe extrême.`);
+    } else if (p >= 20) {
       score -= 1;
-      reasons.push(`Perf 90j de +${p.toFixed(1)}% : rally trimestriel vertical, prudence.`);
+      reasons.push(`Perf 90j de +${p.toFixed(1)}% : rally trimestriel marqué, prudence.`);
     }
   }
 
