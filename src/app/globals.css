@@ -5,17 +5,17 @@
 }
 
 :root {
-  --bg: #0f172a;
-  --bg-soft: #172137;
-  --text: #f3f7ff;
-  --muted: #b8c5de;
-  --panel: #16223a;
-  --border: #4b5d82;
-  --panel-hover: #223250;
-  --sidebar-bg: rgba(22, 34, 58, 0.94);
-  --nav-text: #e4ecfb;
-  --accent: #95a0ff;
-  --accent-hover: #b3bcff;
+  --bg: #000000;
+  --bg-soft: #050505;
+  --text: #f5f5f5;
+  --muted: #b9b9b9;
+  --panel: #0a0a0a;
+  --border: #2a2a2a;
+  --panel-hover: #141414;
+  --sidebar-bg: rgba(5, 5, 5, 0.94);
+  --nav-text: #ededed;
+  --accent: #f5f5f5;
+  --accent-hover: #ffffff;
   --success: #34d399;
   --success-soft: #153d34;
   --danger: #f87171;
@@ -34,10 +34,7 @@
 
 body {
   font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background:
-    radial-gradient(circle at 20% -5%, rgba(99, 102, 241, 0.2), transparent 35%),
-    radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.14), transparent 25%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
 }
@@ -49,7 +46,7 @@ body {
 
 .data-card {
   border: 1px solid var(--border);
-  background: linear-gradient(165deg, color-mix(in srgb, var(--panel) 96%, transparent), var(--panel));
+  background: var(--panel);
   border-radius: 18px;
   box-shadow: var(--shadow-soft);
 }
