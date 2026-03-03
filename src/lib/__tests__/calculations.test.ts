@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calcSMA, calcRSI, calcDrawdown, calcBollinger, extractCleanSeries, calcPerfFromCalendarDays } from '../calculations';
+import { calcSMA, calcRSI, calcDrawdown, calcBollinger, extractCleanSeries, calcPerfFromCalendarDays, detectRSIDivergence } from '../calculations';
 import type { SeriesPoint } from '../types';
 
 function makeSeries(closes: number[]): SeriesPoint[] {
@@ -136,6 +136,67 @@ describe('calcBollinger', () => {
     const upperDiff = upper[last]! - middle[last]!;
     const lowerDiff = middle[last]! - lower[last]!;
     expect(upperDiff).toBeCloseTo(lowerDiff, 4);
+  });
+});
+
+describe('detectRSIDivergence', () => {
+  it('detects bullish divergence (lower price low, higher RSI low)', () => {
+    // Create a series with two clear lows: second low has lower price but higher RSI
+    // Pattern: peak → trough1 → peak → trough2 (lower price, higher RSI)
+    const closes = [
+      100, 105, 110, 105, 95, 85, 80, // first low at index 6 (price 80)
+      85, 90, 100, 110, 105, 95, 85, 75, // second low at index 14 (price 75, lower)
+      80, 85,
+    ];
+    const series = makeSeries(closes);
+
+    // RSI should be higher at the second low than the first (simulating divergence)
+    // We'll create a synthetic RSI array
+    const rsi14: (number | null)[] = closes.map((_, i) => {
+      if (i === 6) return 22;  // first low: RSI low
+      if (i === 14) return 28; // second low: RSI higher despite lower price
+      return 50; // neutral elsewhere
+    });
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBe('bullish');
+  });
+
+  it('detects bearish divergence (higher price high, lower RSI high)', () => {
+    const closes = [
+      50, 55, 60, 70, 80, 90, 95, // first high at index 6 (price 95)
+      90, 85, 80, 75, 80, 85, 90, 95, 100, // second high at index 15 (price 100, higher)
+      95, 90,
+    ];
+    const series = makeSeries(closes);
+
+    const rsi14: (number | null)[] = closes.map((_, i) => {
+      if (i === 6) return 78;  // first high: RSI high
+      if (i === 15) return 72; // second high: RSI lower despite higher price
+      return 50;
+    });
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBe('bearish');
+  });
+
+  it('returns null when no divergence exists', () => {
+    // Monotonically increasing: no divergence
+    const closes = Array.from({ length: 30 }, (_, i) => 100 + i);
+    const series = makeSeries(closes);
+    const rsi14: (number | null)[] = closes.map(() => 55);
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBeNull();
+  });
+
+  it('returns null when series is too short', () => {
+    const closes = [100, 101, 102, 103, 104];
+    const series = makeSeries(closes);
+    const rsi14: (number | null)[] = closes.map(() => 50);
+
+    const result = detectRSIDivergence(series, rsi14, 30);
+    expect(result).toBeNull();
   });
 });
 

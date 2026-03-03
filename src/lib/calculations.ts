@@ -137,6 +137,59 @@ export function calcBollinger(series: SeriesPoint[], window = 20, k = 2): {
   return { upper, middle, lower };
 }
 
+/**
+ * Detects RSI divergence over a lookback window.
+ * Bullish divergence: price makes lower low, RSI14 makes higher low.
+ * Bearish divergence: price makes higher high, RSI14 makes lower high.
+ */
+export function detectRSIDivergence(
+  series: SeriesPoint[],
+  rsi14: (number | null)[],
+  lookback = 30,
+): 'bullish' | 'bearish' | null {
+  const end = series.length - 1;
+  const start = Math.max(0, end - lookback);
+  if (end - start < 10) return null;
+
+  // Collect local minima (price lower than both neighbors)
+  const lows: { price: number; rsi: number }[] = [];
+  for (let i = start + 1; i < end; i++) {
+    if (rsi14[i] == null) continue;
+    if (series[i].close <= series[i - 1].close && series[i].close <= series[i + 1].close) {
+      lows.push({ price: series[i].close, rsi: rsi14[i]! });
+    }
+  }
+
+  // Bullish divergence: last two lows → price lower but RSI higher
+  if (lows.length >= 2) {
+    const prev = lows[lows.length - 2];
+    const curr = lows[lows.length - 1];
+    if (curr.price < prev.price && curr.rsi > prev.rsi) {
+      return 'bullish';
+    }
+  }
+
+  // Collect local maxima (price higher than both neighbors)
+  const highs: { price: number; rsi: number }[] = [];
+  for (let i = start + 1; i < end; i++) {
+    if (rsi14[i] == null) continue;
+    if (series[i].close >= series[i - 1].close && series[i].close >= series[i + 1].close) {
+      highs.push({ price: series[i].close, rsi: rsi14[i]! });
+    }
+  }
+
+  // Bearish divergence: last two highs → price higher but RSI lower
+  if (highs.length >= 2) {
+    const prev = highs[highs.length - 2];
+    const curr = highs[highs.length - 1];
+    if (curr.price > prev.price && curr.rsi < prev.rsi) {
+      return 'bearish';
+    }
+  }
+
+  return null;
+}
+
 export function processAsset(key: string, cfg: AssetConfig, result: YahooResult): ProcessedAsset | null {
   const series = extractCleanSeries(result);
   if (series.length === 0) return null;

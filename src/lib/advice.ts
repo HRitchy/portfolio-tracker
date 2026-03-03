@@ -1,4 +1,4 @@
-import { calcPerfFromCalendarDays } from './calculations';
+import { calcPerfFromCalendarDays, detectRSIDivergence } from './calculations';
 import {
   Advice,
   AssetAdvice,
@@ -139,6 +139,7 @@ export function extractMetrics(store: Store, key: string, assetConfig?: AssetCon
       drawdown: null, rsi14: null, rsi7: null, rsi28: null,
       distFromMA200Pct: null, distFromMA50Pct: null,
       bollingerPctB: null, perf30d: null, perf90d: null, volatility30d: null,
+      trendMA50vs200: null, rsiDivergence: null,
     };
   }
 
@@ -176,6 +177,17 @@ export function extractMetrics(store: Store, key: string, assetConfig?: AssetCon
     bollingerPctB = ((price - bbLower) / (bbUpper - bbLower)) * 100;
   }
 
+  // Trend: Golden Cross (MM50 > MM200) vs Death Cross
+  const trendMA50vs200: 'golden_cross' | 'death_cross' | null =
+    mm50 != null && mm200 != null
+      ? mm50 > mm200 ? 'golden_cross' : 'death_cross'
+      : null;
+
+  // RSI divergence detection
+  const rsiDivergence = data.rsi14
+    ? detectRSIDivergence(data.series, data.rsi14, 30)
+    : null;
+
   return {
     drawdown: last(data.drawdown),
     rsi14: last(data.rsi14),
@@ -187,6 +199,8 @@ export function extractMetrics(store: Store, key: string, assetConfig?: AssetCon
     perf30d: perf30d != null ? +perf30d.toFixed(2) : null,
     perf90d: perf90d != null ? +perf90d.toFixed(2) : null,
     volatility30d: volatility30d != null ? +volatility30d.toFixed(1) : null,
+    trendMA50vs200,
+    rsiDivergence,
   };
 }
 
@@ -194,12 +208,30 @@ export function extractMetrics(store: Store, key: string, assetConfig?: AssetCon
    3. Contrarian scoring per asset
    ───────────────────────────────────────────── */
 
+/* ── Asset-class-specific threshold multipliers ── */
+
+const ASSET_CLASS_THRESHOLDS: Record<string, {
+  drawdownScale: number;
+  maDistScale: number;
+  perfScale: number;
+}> = {
+  'Crypto':  { drawdownScale: 2.0, maDistScale: 1.8, perfScale: 1.5 },
+  'Actions': { drawdownScale: 1.0, maDistScale: 1.0, perfScale: 1.0 },
+  'Métaux':  { drawdownScale: 0.8, maDistScale: 0.8, perfScale: 0.8 },
+};
+const DEFAULT_THRESHOLDS = { drawdownScale: 1.0, maDistScale: 1.0, perfScale: 1.0 };
+
 export function scoreAsset(
   metrics: AssetMetrics,
   mkt: MarketContext,
+  assetConfig?: AssetConfig,
 ): { score: number; reasons: string[] } {
   let score = 0;
   const reasons: string[] = [];
+
+  const t = assetConfig?.assetClass
+    ? (ASSET_CLASS_THRESHOLDS[assetConfig.assetClass] ?? DEFAULT_THRESHOLDS)
+    : DEFAULT_THRESHOLDS;
 
   // ── A. Macro regime contributes to each asset ──
   const macroContribution = Math.round(mkt.regimeScore * 0.4);
@@ -214,19 +246,22 @@ export function scoreAsset(
 
   // ── B. Drawdown depth (opportunité en phase de stress) ──
   if (metrics.drawdown != null) {
-    if (metrics.drawdown <= -35) {
+    if (metrics.drawdown <= -35 * t.drawdownScale) {
       score += 4;
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : territoire de capitulation — « sang dans les rues ».`);
-    } else if (metrics.drawdown <= -25) {
+    } else if (metrics.drawdown <= -25 * t.drawdownScale) {
       score += 3;
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction majeure — forte décote pour un contrariant.`);
-    } else if (metrics.drawdown <= -15) {
+    } else if (metrics.drawdown <= -15 * t.drawdownScale) {
       score += 2;
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : correction significative — décote attractive.`);
-    } else if (metrics.drawdown <= -8) {
+    } else if (metrics.drawdown <= -8 * t.drawdownScale) {
       score += 1;
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : recul modéré, début de zone d'intérêt.`);
-    } else if (metrics.drawdown > -2) {
+    } else if (metrics.drawdown > -1) {
+      score -= 2;
+      reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : quasiment à l'ATH — risque asymétrique élevé.`);
+    } else if (metrics.drawdown > -3) {
       score -= 1;
       reasons.push(`Drawdown de ${metrics.drawdown.toFixed(1)}% : proche des sommets — peu de marge de sécurité.`);
     }
@@ -235,19 +270,22 @@ export function scoreAsset(
   // ── C. Distance from MA200 (ancrage de valorisation long terme) ──
   if (metrics.distFromMA200Pct != null) {
     const d = metrics.distFromMA200Pct;
-    if (d <= -25) {
+    if (d <= -25 * t.maDistScale) {
       score += 3;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : décote majeure vs tendance long terme.`);
-    } else if (d <= -15) {
+    } else if (d <= -15 * t.maDistScale) {
       score += 2;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : zone de valeur pour un investisseur patient.`);
-    } else if (d <= -8) {
+    } else if (d <= -8 * t.maDistScale) {
       score += 1;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM200 : léger discount long terme.`);
-    } else if (d >= 30) {
+    } else if (d >= 40 * t.maDistScale) {
+      score -= 3;
+      reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM200 : bulle potentielle, dislocation extrême.`);
+    } else if (d >= 30 * t.maDistScale) {
       score -= 2;
       reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM200 : surchauffe, loin de la valeur moyenne.`);
-    } else if (d >= 20) {
+    } else if (d >= 20 * t.maDistScale) {
       score -= 1;
       reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM200 : extension possible, prudence.`);
     }
@@ -282,6 +320,17 @@ export function scoreAsset(
     else if (metrics.rsi14 > 75) { score -= 2; reasons.push(`RSI14 à ${metrics.rsi14.toFixed(0)} : suracheté.`); }
   }
 
+  // ── D2. RSI Divergence (momentum reversal confirmation) ──
+  if (metrics.rsiDivergence != null) {
+    if (metrics.rsiDivergence === 'bullish') {
+      score += 2;
+      reasons.push('Divergence haussière RSI : le prix fait un plus bas, le RSI un plus haut — épuisement vendeur.');
+    } else if (metrics.rsiDivergence === 'bearish') {
+      score -= 2;
+      reasons.push('Divergence baissière RSI : le prix fait un plus haut, le RSI un plus bas — essoufflement acheteur.');
+    }
+  }
+
   // ── E. Bollinger %B (mean-reversion signal) ──
   if (metrics.bollingerPctB != null) {
     if (metrics.bollingerPctB <= 0) {
@@ -299,15 +348,18 @@ export function scoreAsset(
     }
   }
 
-  // ── F. Short-term pain = long-term gain (perf 30d strongly negative) ──
+  // ── F. Short-term pain = long-term gain (perf 30d) ──
   if (metrics.perf30d != null) {
-    if (metrics.perf30d <= -20) {
+    if (metrics.perf30d <= -20 * t.perfScale) {
       score += 2;
       reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : chute brutale — potentiel de réversion.`);
-    } else if (metrics.perf30d <= -10) {
+    } else if (metrics.perf30d <= -10 * t.perfScale) {
       score += 1;
       reasons.push(`Perf 30j de ${metrics.perf30d.toFixed(1)}% : baisse marquée, intérêt contrariant.`);
-    } else if (metrics.perf30d >= 20) {
+    } else if (metrics.perf30d >= 30 * t.perfScale) {
+      score -= 2;
+      reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally parabolique, risque de correction brutale.`);
+    } else if (metrics.perf30d >= 20 * t.perfScale) {
       score -= 1;
       reasons.push(`Perf 30j de +${metrics.perf30d.toFixed(1)}% : rally vertical, risque de prise de profit.`);
     }
@@ -316,15 +368,73 @@ export function scoreAsset(
   // ── G. Distance from MA50 (short-term discount) ──
   if (metrics.distFromMA50Pct != null) {
     const d = metrics.distFromMA50Pct;
-    if (d <= -15) {
+    if (d <= -15 * t.maDistScale) {
       score += 2;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : dislocation court terme, opportunité tactique.`);
-    } else if (d <= -8) {
+    } else if (d <= -8 * t.maDistScale) {
       score += 1;
       reasons.push(`Prix ${d.toFixed(1)}% sous la MM50 : discount court terme.`);
-    } else if (d >= 15) {
+    } else if (d >= 20 * t.maDistScale) {
+      score -= 2;
+      reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM50 : extension court terme extrême.`);
+    } else if (d >= 15 * t.maDistScale) {
       score -= 1;
       reasons.push(`Prix +${d.toFixed(1)}% au-dessus de la MM50 : surchauffe court terme.`);
+    }
+  }
+
+  // ── H. Trend filter (Golden Cross / Death Cross) ──
+  if (metrics.trendMA50vs200 != null) {
+    if (metrics.trendMA50vs200 === 'death_cross' && score > 0) {
+      const penalty = -1;
+      score += penalty;
+      reasons.push(`Death Cross (MM50 < MM200) : tendance baissière confirmée, conviction d'achat réduite (${penalty}).`);
+    } else if (metrics.trendMA50vs200 === 'death_cross' && score < 0) {
+      const bonus = -1;
+      score += bonus;
+      reasons.push(`Death Cross (MM50 < MM200) : tendance baissière renforce le signal de vente (${bonus}).`);
+    } else if (metrics.trendMA50vs200 === 'golden_cross' && score > 0) {
+      const bonus = 1;
+      score += bonus;
+      reasons.push(`Golden Cross (MM50 > MM200) : tendance haussière renforce le signal d'achat (+${bonus}).`);
+    } else if (metrics.trendMA50vs200 === 'golden_cross' && score < 0) {
+      const penalty = 1;
+      score += penalty;
+      reasons.push(`Golden Cross (MM50 > MM200) : tendance haussière, conviction de vente réduite (+${penalty}).`);
+    }
+  }
+
+  // ── I. Intermediate-term trend (perf 90d) ──
+  if (metrics.perf90d != null) {
+    if (metrics.perf90d <= -35 * t.perfScale) {
+      score += 2;
+      reasons.push(`Perf 90j de ${metrics.perf90d.toFixed(1)}% : baisse intermédiaire majeure — zone de capitulation.`);
+    } else if (metrics.perf90d <= -20 * t.perfScale) {
+      score += 1;
+      reasons.push(`Perf 90j de ${metrics.perf90d.toFixed(1)}% : correction intermédiaire significative, intérêt contrariant.`);
+    } else if (metrics.perf90d >= 40 * t.perfScale) {
+      score -= 2;
+      reasons.push(`Perf 90j de +${metrics.perf90d.toFixed(1)}% : rally parabolique, risque d'essoufflement majeur.`);
+    } else if (metrics.perf90d >= 25 * t.perfScale) {
+      score -= 1;
+      reasons.push(`Perf 90j de +${metrics.perf90d.toFixed(1)}% : tendance haussière prolongée, prudence.`);
+    }
+  }
+
+  // ── J. Volatility conviction adjustment ──
+  if (metrics.volatility30d != null) {
+    if (metrics.volatility30d >= 80) {
+      const dampen = score > 0 ? -1 : score < 0 ? 1 : 0;
+      if (dampen !== 0) {
+        score += dampen;
+        reasons.push(`Volatilité extrême (${metrics.volatility30d.toFixed(0)}%) : signaux moins fiables, conviction réduite (${dampen > 0 ? '+' : ''}${dampen}).`);
+      }
+    } else if (metrics.volatility30d <= 10) {
+      const amplify = score > 0 ? 1 : score < 0 ? -1 : 0;
+      if (amplify !== 0) {
+        score += amplify;
+        reasons.push(`Volatilité très faible (${metrics.volatility30d.toFixed(0)}%) : signaux plus fiables, conviction renforcée (${amplify > 0 ? '+' : ''}${amplify}).`);
+      }
     }
   }
 
@@ -377,7 +487,7 @@ export function getAssetAdvice(
       };
     }
 
-    const { score, reasons } = scoreAsset(metrics, mkt);
+    const { score, reasons } = scoreAsset(metrics, mkt, assets[key]);
 
     if (reasons.length === 0) {
       reasons.push('Signaux techniques et macro mitigés : neutralité privilégiée.');
@@ -388,6 +498,49 @@ export function getAssetAdvice(
 
     return { key, advice, score, conviction, reasons, metrics };
   });
+
+  // ── Cross-asset signal aggregation ──
+  const total = advices.length;
+  if (total >= 2) {
+    const buyCount = advices.filter(a => a.score >= 4).length;
+    const sellCount = advices.filter(a => a.score <= -4).length;
+    const buyRatio = buyCount / total;
+    const sellRatio = sellCount / total;
+
+    if (buyRatio >= 0.8) {
+      if (mkt.regimeScore >= 4) {
+        for (const a of advices) {
+          if (a.score > 0) {
+            a.score += 1;
+            a.crossAssetAdjustment = 1;
+            a.reasons.push("Signal d'achat unanime + macro en capitulation : opportunité systémique exceptionnelle (+1).");
+            a.conviction = scoreToConviction(a.score);
+          }
+        }
+      } else if (mkt.regimeScore < 2) {
+        for (const a of advices) {
+          if (a.score > 0) {
+            a.score -= 1;
+            a.crossAssetAdjustment = -1;
+            a.reasons.push("Signal d'achat unanime SANS confirmation macro : corrélation suspecte, prudence (-1).");
+            a.advice = scoreToAdvice(a.score);
+            a.conviction = scoreToConviction(a.score);
+          }
+        }
+      }
+    }
+
+    if (sellRatio >= 0.8 && mkt.regimeScore <= -4) {
+      for (const a of advices) {
+        if (a.score < 0) {
+          a.score -= 1;
+          a.crossAssetAdjustment = -1;
+          a.reasons.push('Signal de vente unanime + macro en euphorie : excès systémique confirmé (-1).');
+          a.conviction = scoreToConviction(a.score);
+        }
+      }
+    }
+  }
 
   return { advices, marketContext: mkt };
 }
