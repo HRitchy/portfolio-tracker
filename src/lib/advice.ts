@@ -446,7 +446,7 @@ export function getAdviceDescription(advice: Advice): string {
     return "Stratégie contrarienne : les conditions de peur et de décote créent une fenêtre d'accumulation.";
   if (advice === 'Alléger')
     return "Stratégie contrarienne : l'euphorie et la surchauffe imposent un allègement défensif.";
-  return "Patience : aucun excès ne justifie d'agir immédiatement.";
+  return '';
 }
 
 export function getAssetClassLabel(key: string, assets: Record<string, AssetConfig>): string {
