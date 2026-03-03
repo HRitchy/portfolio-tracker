@@ -514,6 +514,7 @@ export function getAssetAdvice(
             a.score += 1;
             a.crossAssetAdjustment = 1;
             a.reasons.push("Signal d'achat unanime + macro en capitulation : opportunité systémique exceptionnelle (+1).");
+            a.advice = scoreToAdvice(a.score);
             a.conviction = scoreToConviction(a.score);
           }
         }
@@ -536,6 +537,7 @@ export function getAssetAdvice(
           a.score -= 1;
           a.crossAssetAdjustment = -1;
           a.reasons.push('Signal de vente unanime + macro en euphorie : excès systémique confirmé (-1).');
+          a.advice = scoreToAdvice(a.score);
           a.conviction = scoreToConviction(a.score);
         }
       }
