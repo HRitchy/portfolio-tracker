@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { useAssets } from '@/context/AssetsContext';
-import ThemeToggle from '@/components/ui/ThemeToggle';
 import AddAssetModal from '@/components/ui/AddAssetModal';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { useToast } from '@/components/ui/Toast';
@@ -317,15 +316,7 @@ export default function Sidebar() {
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
           ${desktopExpanded ? 'md:translate-x-0' : 'md:-translate-x-[252px]'}`}
       >
-        <div className="px-6 pb-5 pt-6 border-b border-[var(--border)] flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-9 h-9 rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] flex items-center justify-center text-xs font-bold">PT</div>
-              <h1 className="text-lg font-bold text-[var(--text)]">Portfolio Tracker</h1>
-            </div>
-            <p className="text-xs text-[var(--muted)]">Vue macro & analytics de portefeuille</p>
-          </div>
-
+        <div className="px-6 pb-5 pt-6 border-b border-[var(--border)] flex items-start justify-end">
           {/* Bouton fermer — visible uniquement sur mobile */}
           <button
             onClick={() => setMobileOpen(false)}
@@ -346,8 +337,7 @@ export default function Sidebar() {
         </div>
 
         <div className="px-5 py-4 border-t border-[var(--border)] text-[11px] text-[var(--muted)]">
-          <ThemeToggle />
-          <div className="mt-3 bg-[var(--panel-hover)] rounded-xl p-3">
+          <div className="bg-[var(--panel-hover)] rounded-xl p-3">
             <div className="font-medium text-[var(--text)] mb-1">
               <span className="inline-block w-2 h-2 rounded-full bg-[#10b981] mr-1.5 animate-pulse" aria-hidden="true" />
               Flux Yahoo Finance
