@@ -196,7 +196,7 @@ describe('scoreAsset – MA50 calibration for crypto vs equities', () => {
   const neutralMkt = buildMarketContext({}, null, null);
 
   it('does NOT trigger MA50 signal for crypto at -15% (below equities threshold, above crypto threshold)', () => {
-    // -15% below MA50 → +2 for equities, but crypto threshold is -28.5% (maDistMult=1.9) → no signal
+    // -15% below MA50 → +2 for equities, but crypto threshold is -30% → no signal
     const metrics = {
       drawdown: null, rsi14: null, rsi7: null, rsi28: null,
       distFromMA200Pct: null, distFromMA50Pct: -15,
@@ -209,7 +209,7 @@ describe('scoreAsset – MA50 calibration for crypto vs equities', () => {
   });
 
   it('triggers MA50 signal for crypto only at deeper discount (-35%)', () => {
-    // -35% below MA50: below equities threshold (-15%) and crypto threshold (-28.5%)
+    // -35% below MA50: below equities threshold (-15%) and crypto threshold (-30%)
     const metrics = {
       drawdown: null, rsi14: null, rsi7: null, rsi28: null,
       distFromMA200Pct: null, distFromMA50Pct: -35,
@@ -221,8 +221,8 @@ describe('scoreAsset – MA50 calibration for crypto vs equities', () => {
     expect(cryptoScore).toBeGreaterThan(0);
   });
 
-  it('does NOT suppress crypto score above MA50 at +15% (below crypto overbought threshold of +28.5%)', () => {
-    // +15% above MA50 → -1 for equities, but crypto threshold is +28.5% (maDistMult=1.9) → no signal
+  it('does NOT suppress crypto score above MA50 at +15% (below crypto overbought threshold of +30%)', () => {
+    // +15% above MA50 → -1 for equities, but crypto threshold is +30% → no signal
     const metrics = {
       drawdown: null, rsi14: null, rsi7: null, rsi28: null,
       distFromMA200Pct: null, distFromMA50Pct: 15,
@@ -241,14 +241,14 @@ describe('scoreAsset – Golden/Death cross calibration for crypto vs equities',
   const neutralMkt = buildMarketContext({}, null, null);
 
   // A 7% MA50/MA200 gap triggers a STRONG golden cross (+2) for equities but only a MILD one (+1) for crypto.
-  // Before the fix both classes got +2; now crypto requires a larger gap (>11.4%) for the strong signal.
+  // Before the fix both classes got +2; now crypto requires a larger gap (>12%) for the strong signal.
   it('downgrades a 7% golden cross from strong (+2) to mild (+1) for crypto', () => {
     // MA50 is ~7% above MA200:
     // price = 100, MA200 = 100, MA50 ≈ 107.5 → distFromMA50 ≈ -6.98%
     // ratio = (1 - 0.0698) / 1 ≈ 0.9302
     // Equities: gcStrong = 1 - 0.06*1 = 0.94  → 0.9302 < 0.94 → +2 (strong)
-    // Crypto:   gcStrong = 1 - 0.06*1.9 = 0.886 → 0.9302 > 0.886 → not strong
-    //           gcMild   = 1 - 0.02*1.9 = 0.962 → 0.9302 < 0.962 → +1 (mild)
+    // Crypto:   gcStrong = 1 - 0.06*2 = 0.88  → 0.9302 > 0.88 → not strong
+    //           gcMild   = 1 - 0.02*2 = 0.96  → 0.9302 < 0.96 → +1 (mild)
     const metrics = {
       drawdown: null, rsi14: null, rsi7: null, rsi28: null,
       distFromMA200Pct: 0, distFromMA50Pct: -6.98,
