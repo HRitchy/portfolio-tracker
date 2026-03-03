@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <AssetsProvider>
               <PortfolioProvider>
                 <Sidebar />
-                <main className="flex-1 min-w-0 min-h-screen p-5 pt-16 md:ml-[280px] md:p-8 2xl:p-10 3xl:p-12">
+                <main className="flex-1 min-w-0 min-h-screen p-5 pt-16 md:ml-7 md:p-8 2xl:p-10 3xl:p-12">
                   <div className="max-w-[1500px] 3xl:max-w-[1800px] mx-auto">
                     <ErrorBoundary>{children}</ErrorBoundary>
                     <ScrollToTop />
