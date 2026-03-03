@@ -168,6 +168,7 @@ export default function Sidebar() {
   const { assets, portfolioKeys, indicatorKeys, removeAsset } = useAssets();
   const relativeTime = useRelativeTime(lastUpdate);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [addModal, setAddModal] = useState<'portfolio' | 'indicator' | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ key: string; name: string } | null>(null);
   const { showToast } = useToast();
@@ -224,6 +225,10 @@ export default function Sidebar() {
   // Fermer le drawer mobile lors d'un changement de route
   useEffect(() => {
     setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    setDesktopExpanded(false);
   }, [pathname]);
 
   // Focus trap + Escape key when mobile drawer is open
@@ -287,15 +292,30 @@ export default function Sidebar() {
         />
       )}
 
+      {/* Zone de survol desktop pour réafficher le panneau latéral */}
+      <div
+        className="hidden md:block fixed top-0 left-0 bottom-0 z-40 w-7"
+        onMouseEnter={() => setDesktopExpanded(true)}
+        aria-hidden="true"
+      />
+
       {/* Sidebar — drawer sur mobile, fixe sur desktop */}
       <nav
         ref={navRef}
         id="sidebar-nav"
         aria-label="Navigation principale"
         aria-modal={mobileOpen || undefined}
+        onMouseEnter={() => setDesktopExpanded(true)}
+        onMouseLeave={() => setDesktopExpanded(false)}
+        onFocusCapture={() => setDesktopExpanded(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setDesktopExpanded(false);
+          }
+        }}
         className={`w-[280px] glass-panel border-r border-[var(--border)] flex flex-col fixed top-0 left-0 bottom-0 z-50 transition-transform duration-300
-          md:translate-x-0
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${desktopExpanded ? 'md:translate-x-0' : 'md:-translate-x-[252px]'}`}
       >
         <div className="px-6 pb-5 pt-6 border-b border-[var(--border)] flex items-start justify-between">
           <div>
