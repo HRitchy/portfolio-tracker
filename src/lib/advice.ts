@@ -11,7 +11,7 @@ import {
 } from './types';
 
 /* ─────────────────────────────────────────────
-   Buffett maxims – chosen per situation
+   Citations contrariennes – choisies selon la situation
    ───────────────────────────────────────────── */
 
 const MAXIMS_BUY = [
@@ -245,7 +245,7 @@ export function scoreAsset(
     }
   }
 
-  // ── B. Drawdown depth (Buffett: "blood in the streets") ──
+  // ── B. Drawdown depth (opportunité en phase de stress) ──
   if (metrics.drawdown != null) {
     if (metrics.drawdown <= -35) {
       score += 4;
@@ -265,7 +265,7 @@ export function scoreAsset(
     }
   }
 
-  // ── C. Distance from MA200 (Buffett: long-term value anchor) ──
+  // ── C. Distance from MA200 (ancrage de valorisation long terme) ──
   if (metrics.distFromMA200Pct != null) {
     const d = metrics.distFromMA200Pct;
     if (d <= -25) {
@@ -406,7 +406,7 @@ export function getAssetAdvice(
         score: 0,
         conviction: 'Faible' as Conviction,
         reasons: ['Données insuffisantes pour émettre un signal fiable.'],
-        buffettMaxim: pickMaxim(MAXIMS_HOLD),
+        contrarianQuote: pickMaxim(MAXIMS_HOLD),
         metrics,
       };
     }
@@ -420,12 +420,12 @@ export function getAssetAdvice(
     const advice = scoreToAdvice(score);
     const conviction = scoreToConviction(score);
 
-    const buffettMaxim =
+    const contrarianQuote =
       advice === 'Renforcer' ? pickMaxim(MAXIMS_BUY) :
       advice === 'Alléger' ? pickMaxim(MAXIMS_SELL) :
       pickMaxim(MAXIMS_HOLD);
 
-    return { key, advice, score, conviction, reasons, buffettMaxim, metrics };
+    return { key, advice, score, conviction, reasons, contrarianQuote, metrics };
   });
 
   return { advices, marketContext: mkt };
@@ -446,7 +446,7 @@ export function getAdviceDescription(advice: Advice): string {
     return "Stratégie contrarienne : les conditions de peur et de décote créent une fenêtre d'accumulation.";
   if (advice === 'Alléger')
     return "Stratégie contrarienne : l'euphorie et la surchauffe imposent un allègement défensif.";
-  return "Patience : aucun excès ne justifie d'agir. Buffett attendrait.";
+  return "Patience : aucun excès ne justifie d'agir immédiatement.";
 }
 
 export function getAssetClassLabel(key: string, assets: Record<string, AssetConfig>): string {
