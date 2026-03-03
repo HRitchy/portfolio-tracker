@@ -62,6 +62,8 @@ export interface AssetMetrics {
   perf30d: number | null;
   perf90d: number | null;
   volatility30d: number | null;
+  trendMA50vs200: 'golden_cross' | 'death_cross' | null;
+  rsiDivergence: 'bullish' | 'bearish' | null;
 }
 
 export interface AssetAdvice {
@@ -71,6 +73,7 @@ export interface AssetAdvice {
   conviction: Conviction;
   reasons: string[];
   metrics: AssetMetrics;
+  crossAssetAdjustment?: number;
 }
 
 export type Store = Record<string, ProcessedAsset | null>;

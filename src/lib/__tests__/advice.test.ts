@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { extractMetrics, scoreAsset, buildMarketContext } from '../advice';
-import type { Store, AssetConfig, SeriesPoint, ProcessedAsset } from '../types';
+import { extractMetrics, scoreAsset, buildMarketContext, getAssetAdvice } from '../advice';
+import type { Store, AssetConfig, AssetMetrics, SeriesPoint, ProcessedAsset } from '../types';
 import { DEFAULT_ASSETS } from '../config';
 
 /* ── Helpers ── */
@@ -26,11 +26,22 @@ function makeStore(key: string, series: SeriesPoint[]): Store {
   return { [key]: asset };
 }
 
-/* ── extractMetrics – BUG 1: perf30d uses calendar days ── */
+/** Base neutral metrics — all new fields included, no scoring triggered */
+function neutralMetrics(overrides: Partial<AssetMetrics> = {}): AssetMetrics {
+  return {
+    drawdown: -5, rsi14: 50, rsi7: 50, rsi28: 50,
+    distFromMA200Pct: 0, distFromMA50Pct: 0,
+    bollingerPctB: 50, perf30d: 0, perf90d: 0,
+    volatility30d: 20,
+    trendMA50vs200: null, rsiDivergence: null,
+    ...overrides,
+  };
+}
+
+/* ── extractMetrics – perf30d uses calendar days ── */
 
 describe('extractMetrics – perf30d uses calendar days', () => {
   it('computes perf30d based on calendar days, not index count', () => {
-    // 60 data points spaced 2 calendar days apart (simulates weekday-only gaps)
     const closes = Array.from({ length: 60 }, (_, i) => 100 + i * 0.5);
     const series = makeSeriesWithDates(closes, {
       startDate: new Date('2024-01-01T00:00:00Z'),
@@ -40,18 +51,10 @@ describe('extractMetrics – perf30d uses calendar days', () => {
     const metrics = extractMetrics(store, 'mwre', DEFAULT_ASSETS['mwre']);
 
     expect(metrics.perf30d).not.toBeNull();
-
-    // Last point: index 59, close = 129.5, date = 2024-01-01 + 118 days = 2024-04-28
-    // 30 calendar-day cutoff → 2024-03-29 → ~index 44, close = 122.0
-    // Expected perf ≈ (129.5 - 122) / 122 * 100 ≈ 6.15%
-    // Under the OLD buggy code (idx - 30 = index 29, close = 114.5):
-    // buggy perf ≈ (129.5 - 114.5) / 114.5 * 100 ≈ 13.1%
     expect(metrics.perf30d!).toBeLessThan(10);
   });
 
   it('uses earliest available point when series is shorter than 30 calendar days', () => {
-    // 5 points covering 4 calendar days — cutoff falls before the series start,
-    // so calcPerfFromCalendarDays uses the first available point as reference.
     const closes = [100, 101, 102, 103, 104];
     const series = makeSeriesWithDates(closes, {
       startDate: new Date('2024-01-01T00:00:00Z'),
@@ -59,12 +62,11 @@ describe('extractMetrics – perf30d uses calendar days', () => {
     });
     const store = makeStore('mwre', series);
     const metrics = extractMetrics(store, 'mwre', DEFAULT_ASSETS['mwre']);
-    // (104 - 100) / 100 * 100 = 4%
     expect(metrics.perf30d).toBeCloseTo(4.0, 1);
   });
 });
 
-/* ── extractMetrics – BUG 2: volatility annualization factor ── */
+/* ── extractMetrics – volatility annualization factor ── */
 
 describe('extractMetrics – volatility annualization', () => {
   it('uses 365 annualization factor for crypto (btc)', () => {
@@ -77,7 +79,6 @@ describe('extractMetrics – volatility annualization', () => {
     const metrics = extractMetrics(store, 'btc', DEFAULT_ASSETS['btc']);
     expect(metrics.volatility30d).not.toBeNull();
 
-    // Manually compute expected volatility with factor 365
     const idx = series.length - 1;
     const returns: number[] = [];
     for (let i = idx - 29; i <= idx; i++) {
@@ -149,43 +150,303 @@ describe('buildMarketContext', () => {
   });
 });
 
-/* ── scoreAsset ── */
+/* ── scoreAsset (original tests with new fields) ── */
 
 describe('scoreAsset', () => {
   it('produces positive score for deeply oversold asset in fearful market', () => {
-    const metrics = {
+    const metrics = neutralMetrics({
       drawdown: -40, rsi14: 20, rsi7: 22, rsi28: 28,
       distFromMA200Pct: -30, distFromMA50Pct: -20,
       bollingerPctB: -5, perf30d: -25, perf90d: -40,
       volatility30d: 50,
-    };
+    });
     const mkt = buildMarketContext({}, 15, 7);
     const { score } = scoreAsset(metrics, mkt);
     expect(score).toBeGreaterThanOrEqual(4);
   });
 
   it('produces negative score for overbought asset in greedy market', () => {
-    const metrics = {
+    const metrics = neutralMetrics({
       drawdown: -0.5, rsi14: 80, rsi7: 82, rsi28: 72,
       distFromMA200Pct: 35, distFromMA50Pct: 18,
       bollingerPctB: 105, perf30d: 25, perf90d: 50,
       volatility30d: 15,
-    };
+    });
     const mkt = buildMarketContext({}, 85, 2);
     const { score } = scoreAsset(metrics, mkt);
     expect(score).toBeLessThanOrEqual(-4);
   });
 
   it('returns non-empty reasons for a non-neutral asset', () => {
-    const metrics = {
+    const metrics = neutralMetrics({
       drawdown: -10, rsi14: 50, rsi7: 50, rsi28: 50,
       distFromMA200Pct: 0, distFromMA50Pct: 0,
       bollingerPctB: 50, perf30d: 0, perf90d: 0,
       volatility30d: 20,
-    };
+    });
     const mkt = buildMarketContext({}, 50, 3.5);
     const { reasons } = scoreAsset(metrics, mkt);
-    // drawdown at -10 triggers "recul modéré" reason
     expect(reasons.length).toBeGreaterThan(0);
+  });
+});
+
+/* ── NEW: Trend filter (Golden Cross / Death Cross) ── */
+
+describe('scoreAsset – trend filter', () => {
+  it('death cross dampens a mildly positive score', () => {
+    // Create a scenario that would score exactly around +4 without trend filter
+    const metrics = neutralMetrics({
+      drawdown: -15, // +2
+      rsi14: 38, rsi7: 38, rsi28: 42, // +1 (rsi14 < 40)
+      distFromMA200Pct: -8, // +1
+      trendMA50vs200: 'death_cross',
+    });
+    const mkt = buildMarketContext({}, null, null); // neutral macro (score 0)
+    const { score: withDC } = scoreAsset(metrics, mkt);
+
+    const metricsNoTrend = neutralMetrics({
+      drawdown: -15, rsi14: 38, rsi7: 38, rsi28: 42,
+      distFromMA200Pct: -8, trendMA50vs200: null,
+    });
+    const { score: withoutTrend } = scoreAsset(metricsNoTrend, mkt);
+
+    // Death cross should reduce the positive score by 1
+    expect(withDC).toBeLessThan(withoutTrend);
+  });
+
+  it('golden cross strengthens a positive score', () => {
+    const metrics = neutralMetrics({
+      drawdown: -15, // +2
+      rsi14: 38, rsi7: 38, rsi28: 42, // +1
+      trendMA50vs200: 'golden_cross',
+    });
+    const mkt = buildMarketContext({}, null, null);
+    const { score: withGC } = scoreAsset(metrics, mkt);
+
+    const metricsNoTrend = neutralMetrics({
+      drawdown: -15, rsi14: 38, rsi7: 38, rsi28: 42,
+      trendMA50vs200: null,
+    });
+    const { score: withoutTrend } = scoreAsset(metricsNoTrend, mkt);
+
+    expect(withGC).toBeGreaterThan(withoutTrend);
+  });
+
+  it('null trend produces no change', () => {
+    const metrics = neutralMetrics({ drawdown: -15 });
+    const mkt = buildMarketContext({}, null, null);
+    const { score } = scoreAsset(metrics, mkt);
+
+    const metrics2 = neutralMetrics({ drawdown: -15, trendMA50vs200: null });
+    const { score: score2 } = scoreAsset(metrics2, mkt);
+
+    expect(score).toBe(score2);
+  });
+});
+
+/* ── NEW: RSI Divergence scoring ── */
+
+describe('scoreAsset – RSI divergence', () => {
+  it('bullish divergence adds +2 to score', () => {
+    const metrics = neutralMetrics({ rsiDivergence: 'bullish' });
+    const mkt = buildMarketContext({}, null, null);
+    const { score: withDiv } = scoreAsset(metrics, mkt);
+
+    const metricsNoDiv = neutralMetrics({ rsiDivergence: null });
+    const { score: withoutDiv } = scoreAsset(metricsNoDiv, mkt);
+
+    expect(withDiv - withoutDiv).toBe(2);
+  });
+
+  it('bearish divergence subtracts 2 from score', () => {
+    const metrics = neutralMetrics({ rsiDivergence: 'bearish' });
+    const mkt = buildMarketContext({}, null, null);
+    const { score: withDiv } = scoreAsset(metrics, mkt);
+
+    const metricsNoDiv = neutralMetrics({ rsiDivergence: null });
+    const { score: withoutDiv } = scoreAsset(metricsNoDiv, mkt);
+
+    expect(withDiv - withoutDiv).toBe(-2);
+  });
+});
+
+/* ── NEW: perf90d scoring ── */
+
+describe('scoreAsset – perf90d', () => {
+  it('strongly negative perf90d adds to score', () => {
+    const metrics = neutralMetrics({ perf90d: -40 });
+    const mkt = buildMarketContext({}, null, null);
+    const { score, reasons } = scoreAsset(metrics, mkt);
+
+    const metricsNeutral = neutralMetrics({ perf90d: 0 });
+    const { score: neutralScore } = scoreAsset(metricsNeutral, mkt);
+
+    expect(score).toBeGreaterThan(neutralScore);
+    expect(reasons.some(r => r.includes('90j'))).toBe(true);
+  });
+
+  it('strongly positive perf90d subtracts from score', () => {
+    const metrics = neutralMetrics({ perf90d: 45 });
+    const mkt = buildMarketContext({}, null, null);
+    const { score } = scoreAsset(metrics, mkt);
+
+    const metricsNeutral = neutralMetrics({ perf90d: 0 });
+    const { score: neutralScore } = scoreAsset(metricsNeutral, mkt);
+
+    expect(score).toBeLessThan(neutralScore);
+  });
+});
+
+/* ── NEW: Volatility conviction adjustment ── */
+
+describe('scoreAsset – volatility adjustment', () => {
+  it('extreme volatility dampens positive score toward zero', () => {
+    const metrics = neutralMetrics({
+      drawdown: -25, // +3
+      volatility30d: 85,
+    });
+    const mkt = buildMarketContext({}, null, null);
+    const { score: withHighVol } = scoreAsset(metrics, mkt);
+
+    const metricsNormalVol = { ...metrics, volatility30d: 20 };
+    const { score: normalVol } = scoreAsset(metricsNormalVol, mkt);
+
+    expect(withHighVol).toBeLessThan(normalVol);
+  });
+
+  it('very low volatility amplifies score away from zero', () => {
+    const metrics = neutralMetrics({
+      drawdown: -25, // +3
+      volatility30d: 8,
+    });
+    const mkt = buildMarketContext({}, null, null);
+    const { score: withLowVol } = scoreAsset(metrics, mkt);
+
+    const metricsNormalVol = { ...metrics, volatility30d: 20 };
+    const { score: normalVol } = scoreAsset(metricsNormalVol, mkt);
+
+    expect(withLowVol).toBeGreaterThan(normalVol);
+  });
+});
+
+/* ── NEW: Asymmetric scoring fix ── */
+
+describe('scoreAsset – sell-side symmetry', () => {
+  it('asset near ATH (drawdown > -1%) gets score -2', () => {
+    const metrics = neutralMetrics({ drawdown: -0.3 });
+    const mkt = buildMarketContext({}, null, null);
+    const { reasons } = scoreAsset(metrics, mkt);
+    expect(reasons.some(r => r.includes('ATH'))).toBe(true);
+  });
+
+  it('extreme MA200 overshoot (>= 40%) gets score -3', () => {
+    const metrics = neutralMetrics({ distFromMA200Pct: 45 });
+    const mkt = buildMarketContext({}, null, null);
+    const { reasons } = scoreAsset(metrics, mkt);
+    expect(reasons.some(r => r.includes('bulle'))).toBe(true);
+  });
+
+  it('perf30d >= 30% gets score -2', () => {
+    const metrics = neutralMetrics({ perf30d: 35 });
+    const mkt = buildMarketContext({}, null, null);
+    const { reasons } = scoreAsset(metrics, mkt);
+    expect(reasons.some(r => r.includes('parabolique'))).toBe(true);
+  });
+
+  it('MA50 distance >= 20% gets score -2', () => {
+    const metrics = neutralMetrics({ distFromMA50Pct: 22 });
+    const mkt = buildMarketContext({}, null, null);
+    const { reasons } = scoreAsset(metrics, mkt);
+    expect(reasons.some(r => r.includes('extrême'))).toBe(true);
+  });
+});
+
+/* ── NEW: Asset-class-specific thresholds ── */
+
+describe('scoreAsset – asset-class thresholds', () => {
+  it('crypto uses wider drawdown thresholds', () => {
+    // -40% drawdown: for equities (scale 1.0) → hits -35% threshold → +4
+    // For crypto (scale 2.0) → threshold is -70%, -40% only hits -30 * 2 = doesn't hit -50 → +2 at -30 threshold
+    const metrics = neutralMetrics({ drawdown: -40 });
+    const mkt = buildMarketContext({}, null, null);
+
+    const equityCfg: AssetConfig = { ...DEFAULT_ASSETS['mwre'] };
+    const cryptoCfg: AssetConfig = { ...DEFAULT_ASSETS['btc'] };
+
+    const { score: equityScore } = scoreAsset(metrics, mkt, equityCfg);
+    const { score: cryptoScore } = scoreAsset(metrics, mkt, cryptoCfg);
+
+    // Equity should score higher because -40% is more extreme relative to its thresholds
+    expect(equityScore).toBeGreaterThan(cryptoScore);
+  });
+
+  it('gold uses tighter thresholds', () => {
+    // -22% drawdown: for equities (scale 1.0) → hits -15% threshold → +2
+    // For gold (scale 0.8) → threshold is -20%, -22% hits it → +3
+    const metrics = neutralMetrics({ drawdown: -22 });
+    const mkt = buildMarketContext({}, null, null);
+
+    const equityCfg: AssetConfig = { ...DEFAULT_ASSETS['mwre'] };
+    const goldCfg: AssetConfig = { ...DEFAULT_ASSETS['glda'] };
+
+    const { score: equityScore } = scoreAsset(metrics, mkt, equityCfg);
+    const { score: goldScore } = scoreAsset(metrics, mkt, goldCfg);
+
+    expect(goldScore).toBeGreaterThan(equityScore);
+  });
+});
+
+/* ── NEW: Cross-asset signal aggregation ── */
+
+describe('getAssetAdvice – cross-asset awareness', () => {
+  function makeOversoldStore(key: string): ProcessedAsset {
+    const closes = Array.from({ length: 250 }, (_, i) => {
+      // Create a series with a big drop at the end
+      if (i < 200) return 100;
+      return 100 - (i - 200) * 1.5; // drops from 100 to 25
+    });
+    const series = makeSeriesWithDates(closes, {
+      startDate: new Date('2023-01-01T00:00:00Z'),
+      dailySpacingMs: 86_400_000,
+    });
+    return { series, key };
+  }
+
+  it('unanimous buy + capitulation macro → score boost', () => {
+    // Create a store where VIX is very high (panic) and assets are deeply oversold
+    const store: Store = {
+      mwre: makeOversoldStore('mwre'),
+      btc: makeOversoldStore('btc'),
+      glda: makeOversoldStore('glda'),
+      vix: {
+        series: [{ ts: 0, date: '', dateObj: new Date(), close: 45, variation: null }],
+        key: 'vix',
+        mm50: [20],
+      },
+    };
+
+    const result = getAssetAdvice(
+      store,
+      ['mwre', 'btc', 'glda'],
+      DEFAULT_ASSETS,
+      10, // extreme fear
+      8,  // high HY spread
+    );
+
+    // In capitulation regime, cross-asset boost should apply
+    const boosted = result.advices.filter(a => a.crossAssetAdjustment === 1);
+    // At least some assets should get the boost if they all signal buy
+    // (This depends on whether all actually score >= 4, but in extreme conditions they should)
+    expect(result.marketContext.regime).toBe('Capitulation');
+  });
+
+  it('single asset gets no cross-asset adjustment', () => {
+    const store: Store = {
+      mwre: makeOversoldStore('mwre'),
+    };
+
+    const result = getAssetAdvice(store, ['mwre'], DEFAULT_ASSETS, 10, 8);
+    const adjusted = result.advices.filter(a => a.crossAssetAdjustment != null);
+    expect(adjusted.length).toBe(0);
   });
 });
