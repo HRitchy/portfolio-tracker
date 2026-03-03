@@ -6,8 +6,6 @@ import { useMacro } from '@/context/MacroContext';
 import {
   adviceTone,
   getAssetAdvice,
-  getAssetClassLabel,
-  getAdviceDescription,
   regimeColor,
   regimeContrarianLabel,
 } from '@/lib/advice';
@@ -137,7 +135,6 @@ function MetricPill({ label, value, highlight }: { label: string; value: string;
 function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig?: AssetConfig }) {
   const m = item.metrics;
   const toneClass = adviceTone(item.advice);
-  const adviceDescription = getAdviceDescription(item.advice);
 
   return (
     <article
@@ -160,13 +157,6 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
           <ConvictionScore advice={item.advice} conviction={item.conviction} />
         </div>
       </div>
-
-      {/* Description */}
-      {adviceDescription && (
-        <p className="text-sm mb-3 text-[var(--muted)]">
-          {adviceDescription}
-        </p>
-      )}
 
       {/* Key metrics row */}
       <div className="flex flex-wrap gap-1.5 mb-3">
