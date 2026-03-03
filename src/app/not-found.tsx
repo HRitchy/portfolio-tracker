@@ -20,7 +20,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="px-6 py-2.5 bg-[var(--accent)] text-white rounded-xl text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
+        className="px-6 py-2.5 bg-[var(--accent)] text-[var(--accent-contrast)] rounded-xl text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
       >
         Retour au Dashboard
       </Link>

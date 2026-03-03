@@ -207,7 +207,7 @@ export default function AddAssetModal({
           <button
             type="submit"
             disabled={testing}
-            className="w-full py-2.5 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer disabled:cursor-wait"
+            className="w-full py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer disabled:cursor-wait"
           >
             {testing ? 'Vérification du symbole...' : 'Ajouter'}
           </button>

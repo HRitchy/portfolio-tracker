@@ -98,7 +98,7 @@ function NavSections({
                   scroll={!item.href.startsWith('/asset/')}
                   className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
                     isActive(item.href)
-                      ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
+                      ? 'bg-[var(--accent)] text-[var(--accent-contrast)] shadow-lg shadow-indigo-500/20'
                       : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
                   }`}
                 >
@@ -300,7 +300,7 @@ export default function Sidebar() {
         <div className="px-6 pb-5 pt-6 border-b border-[var(--border)] flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-9 h-9 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center text-xs font-bold">PT</div>
+              <div className="w-9 h-9 rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] flex items-center justify-center text-xs font-bold">PT</div>
               <h1 className="text-lg font-bold text-[var(--text)]">Portfolio Tracker</h1>
             </div>
             <p className="text-xs text-[var(--muted)]">Vue macro & analytics de portefeuille</p>

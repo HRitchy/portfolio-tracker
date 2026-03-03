@@ -148,7 +148,7 @@ function TabNav({ active, onChange, config }: { active: Tab; onChange: (t: Tab) 
           onClick={() => onChange(t.id)}
           className={`px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-medium whitespace-nowrap cursor-pointer transition-all ${
             active === t.id
-              ? 'bg-[var(--accent)] text-white shadow-lg shadow-indigo-500/20'
+              ? 'bg-[var(--accent)] text-[var(--accent-contrast)] shadow-lg shadow-indigo-500/20'
               : 'bg-[var(--panel-hover)] text-[var(--nav-text)] hover:bg-[var(--border)]/80'
           }`}
         >
