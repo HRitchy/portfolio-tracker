@@ -70,7 +70,6 @@ export interface AssetAdvice {
   score: number;
   conviction: Conviction;
   reasons: string[];
-  contrarianQuote: string;
   metrics: AssetMetrics;
 }
 

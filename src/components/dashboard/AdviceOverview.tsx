@@ -203,12 +203,6 @@ function AssetAdviceCard({ item, assetConfig }: { item: AssetAdvice; assetConfig
         ))}
       </ul>
 
-      {/* Citation contrarienne */}
-      <div className="border-t pt-2 border-[var(--border)]">
-        <p className="text-[11px] italic text-[var(--muted)]">
-          &laquo; {item.contrarianQuote} &raquo;
-        </p>
-      </div>
     </article>
   );
 }

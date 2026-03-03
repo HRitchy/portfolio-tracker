@@ -11,39 +11,6 @@ import {
 } from './types';
 
 /* ─────────────────────────────────────────────
-   Citations contrariennes – choisies selon la situation
-   ───────────────────────────────────────────── */
-
-const MAXIMS_BUY = [
-  'Soyez avide quand les autres sont craintifs.',
-  "Le prix est ce que vous payez, la valeur est ce que vous obtenez.",
-  "Les opportunités viennent rarement. Quand il pleut de l'or, sortez le seau, pas le dé à coudre.",
-  'La bourse transfère la richesse des impatients vers les patients.',
-  "C'est quand la marée se retire qu'on découvre qui nageait nu — achetez les survivants.",
-  "Le meilleur moment pour acheter, c'est quand personne n'en veut.",
-  "Si vous attendez les rouges-gorges, le printemps sera terminé.",
-  "Achetez une entreprise formidable à un prix raisonnable plutôt qu'une entreprise raisonnable à un prix formidable.",
-];
-
-const MAXIMS_SELL = [
-  'Soyez craintif quand les autres sont avides.',
-  "Ce n'est qu'à marée basse qu'on voit qui nageait nu.",
-  "Quand tout le monde est euphorique, le risque est à son maximum.",
-  "Le risque vient de ne pas savoir ce que l'on fait.",
-];
-
-const MAXIMS_HOLD = [
-  "Notre période de détention préférée est pour toujours.",
-  "Quelqu'un est assis à l'ombre aujourd'hui parce que quelqu'un a planté un arbre il y a longtemps.",
-  "Ne faites rien, restez assis. La patience est la clé.",
-  "Si vous n'êtes pas prêt à détenir une action 10 ans, n'envisagez même pas de la détenir 10 minutes.",
-];
-
-function pickMaxim(list: string[]): string {
-  return list[Math.floor(Math.random() * list.length)];
-}
-
-/* ─────────────────────────────────────────────
    Helpers
    ───────────────────────────────────────────── */
 
@@ -406,7 +373,6 @@ export function getAssetAdvice(
         score: 0,
         conviction: 'Faible' as Conviction,
         reasons: ['Données insuffisantes pour émettre un signal fiable.'],
-        contrarianQuote: pickMaxim(MAXIMS_HOLD),
         metrics,
       };
     }
@@ -420,12 +386,7 @@ export function getAssetAdvice(
     const advice = scoreToAdvice(score);
     const conviction = scoreToConviction(score);
 
-    const contrarianQuote =
-      advice === 'Renforcer' ? pickMaxim(MAXIMS_BUY) :
-      advice === 'Alléger' ? pickMaxim(MAXIMS_SELL) :
-      pickMaxim(MAXIMS_HOLD);
-
-    return { key, advice, score, conviction, reasons, contrarianQuote, metrics };
+    return { key, advice, score, conviction, reasons, metrics };
   });
 
   return { advices, marketContext: mkt };
