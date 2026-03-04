@@ -141,7 +141,10 @@ export function calcBollinger(series: SeriesPoint[], window = 20, k = 2): {
  * Detects RSI divergence over a lookback window.
  * Bullish divergence: price makes lower low, RSI14 makes higher low.
  * Bearish divergence: price makes higher high, RSI14 makes lower high.
+ * Requires a minimum RSI delta to filter out noise from flat/sideways markets.
  */
+const MIN_RSI_DELTA = 3;
+
 export function detectRSIDivergence(
   series: SeriesPoint[],
   rsi14: (number | null)[],
@@ -151,11 +154,11 @@ export function detectRSIDivergence(
   const start = Math.max(0, end - lookback);
   if (end - start < 10) return null;
 
-  // Collect local minima (price lower than both neighbors)
+  // Collect local minima (price strictly lower than both neighbors)
   const lows: { price: number; rsi: number }[] = [];
   for (let i = start + 1; i < end; i++) {
     if (rsi14[i] == null) continue;
-    if (series[i].close <= series[i - 1].close && series[i].close <= series[i + 1].close) {
+    if (series[i].close < series[i - 1].close && series[i].close < series[i + 1].close) {
       lows.push({ price: series[i].close, rsi: rsi14[i]! });
     }
   }
@@ -164,16 +167,16 @@ export function detectRSIDivergence(
   if (lows.length >= 2) {
     const prev = lows[lows.length - 2];
     const curr = lows[lows.length - 1];
-    if (curr.price < prev.price && curr.rsi > prev.rsi) {
+    if (curr.price < prev.price && curr.rsi > prev.rsi && curr.rsi - prev.rsi >= MIN_RSI_DELTA) {
       return 'bullish';
     }
   }
 
-  // Collect local maxima (price higher than both neighbors)
+  // Collect local maxima (price strictly higher than both neighbors)
   const highs: { price: number; rsi: number }[] = [];
   for (let i = start + 1; i < end; i++) {
     if (rsi14[i] == null) continue;
-    if (series[i].close >= series[i - 1].close && series[i].close >= series[i + 1].close) {
+    if (series[i].close > series[i - 1].close && series[i].close > series[i + 1].close) {
       highs.push({ price: series[i].close, rsi: rsi14[i]! });
     }
   }
@@ -182,7 +185,7 @@ export function detectRSIDivergence(
   if (highs.length >= 2) {
     const prev = highs[highs.length - 2];
     const curr = highs[highs.length - 1];
-    if (curr.price > prev.price && curr.rsi < prev.rsi) {
+    if (curr.price > prev.price && curr.rsi < prev.rsi && prev.rsi - curr.rsi >= MIN_RSI_DELTA) {
       return 'bearish';
     }
   }
