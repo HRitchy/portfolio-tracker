@@ -2,11 +2,13 @@
 
 import { Bar } from 'react-chartjs-2';
 import '@/lib/chartSetup';
+import { chartOpts } from '@/lib/chartSetup';
 import { ProcessedAsset } from '@/lib/types';
 import Card from '@/components/ui/Card';
 
 export default function AssetVariationChart({ data }: { data: ProcessedAsset }) {
   const last60 = data.series.slice(-60);
+  const base = chartOpts();
 
   return (
     <Card title="Variations quotidiennes (%)">
@@ -28,7 +30,7 @@ export default function AssetVariationChart({ data }: { data: ProcessedAsset }) 
             plugins: { legend: { display: false } },
             scales: {
               x: { type: 'time', time: { unit: 'week', tooltipFormat: 'dd/MM/yyyy' }, grid: { display: false } },
-              y: { grid: { color: 'rgba(46,51,71,0.5)' } },
+              y: { grid: { color: base.scales.y.grid.color } },
             },
           } as never}
         />
