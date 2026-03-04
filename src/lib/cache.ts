@@ -31,5 +31,12 @@ export class MemoryCache<T> {
     for (const [key, entry] of this.store) {
       if (now > entry.expiresAt) this.store.delete(key);
     }
+    if (this.store.size > this.maxSize) {
+      const sorted = [...this.store.entries()].sort((a, b) => a[1].expiresAt - b[1].expiresAt);
+      for (const [key] of sorted) {
+        this.store.delete(key);
+        if (this.store.size <= this.maxSize) break;
+      }
+    }
   }
 }
