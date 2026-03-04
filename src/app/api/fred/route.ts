@@ -17,18 +17,26 @@ async function fetchFromFREDApi(apiKey: string): Promise<Observation[]> {
   const resp = await fetchExternal(url, { label: '/api/fred' });
   const data = await resp.json();
   const observations = data?.observations ?? [];
-  if (!isValidFredObservations(observations)) {
-    throw new Error('Invalid FRED API response format');
+  if (!isValidFredObservations(observations) || observations.length === 0) {
+    throw new Error('Invalid or empty FRED API response');
   }
   return observations;
 }
 
 async function fetchFromFREDCsv(): Promise<Observation[]> {
-  const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2`;
+  // Limit to last 30 days to avoid downloading the entire series (26+ years)
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=${fmt(start)}&coed=${fmt(end)}`;
   const resp = await fetchExternal(url, { label: '/api/fred-csv' });
   const text = await resp.text();
   const lines = text.trim().split('\n');
   const dataLines = lines.slice(1); // skip header
+  if (dataLines.length === 0) {
+    throw new Error('No data rows in FRED CSV response');
+  }
   const observations = dataLines.slice(-5).reverse().map((line) => {
     const [date, value] = line.split(',');
     return { date: date.trim(), value: value.trim() };

@@ -60,7 +60,13 @@ export function MacroProvider({ children }: { children: ReactNode }) {
 
     fetchWithRetry('/api/fred', controller.signal)
       .then((r) => r.json())
-      .then((d) => setHyObs(d.observations ?? null))
+      .then((d) => {
+        const obs = d.observations ?? null;
+        if (!obs || obs.length === 0) {
+          throw new Error('Empty observations');
+        }
+        setHyObs(obs);
+      })
       .catch((err) => {
         if (!controller.signal.aborted) {
           console.error('[MacroContext] HY Spread fetch failed:', err);
