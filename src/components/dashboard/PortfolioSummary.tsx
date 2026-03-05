@@ -21,10 +21,23 @@ export default function PortfolioSummary({ store }: { store: Store }) {
       return { key, name: cfg.name, color: cfg.color, perf1d, perf7d, perf30d, perf90d };
     }).filter(Boolean) as { key: string; name: string; color: string; perf1d: number | null; perf7d: number | null; perf30d: number | null; perf90d: number | null }[];
 
-    return items;
+    // Calculate average returns across all assets
+    const avg = {
+      perf1d: null as number | null,
+      perf7d: null as number | null,
+      perf30d: null as number | null,
+      perf90d: null as number | null,
+    };
+    const fields = ['perf1d', 'perf7d', 'perf30d', 'perf90d'] as const;
+    for (const f of fields) {
+      const vals = items.map((i) => i[f]).filter((v): v is number => v != null);
+      if (vals.length > 0) avg[f] = vals.reduce((a, b) => a + b, 0) / vals.length;
+    }
+
+    return { items, avg };
   }, [store, portfolioKeys, assets]);
 
-  if (summary.length === 0) return null;
+  if (summary.items.length === 0) return null;
 
   const periods = [
     { label: '1J', field: 'perf1d' as const },
@@ -47,7 +60,7 @@ export default function PortfolioSummary({ store }: { store: Store }) {
             </tr>
           </thead>
           <tbody>
-            {summary.map((item) => (
+            {summary.items.map((item) => (
               <tr key={item.key} className="hover:bg-[var(--panel-hover)] transition-colors">
                 <td className="px-3 py-2.5 border-b border-[var(--border)] font-medium">
                   <span className="inline-block w-2 h-2 rounded-full mr-2" style={{ background: item.color }} />
@@ -65,6 +78,20 @@ export default function PortfolioSummary({ store }: { store: Store }) {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="bg-[var(--panel-hover)]">
+              <td className="px-3 py-2.5 font-semibold text-[var(--foreground)]">Moyenne</td>
+              {periods.map((p) => {
+                const v = summary.avg[p.field];
+                const color = v == null ? 'text-[var(--muted)]' : v >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]';
+                return (
+                  <td key={p.label} className={`px-3 py-2.5 text-right font-semibold ${color}`}>
+                    {v != null ? fmtPct(v) : '--'}
+                  </td>
+                );
+              })}
+            </tr>
+          </tfoot>
         </table>
       </div>
     </Card>
