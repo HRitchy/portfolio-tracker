@@ -8,6 +8,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { StrategicDashboardProvider } from '@/context/StrategicDashboardContext';
 
 export const metadata: Metadata = {
   title: 'Portfolio Tracker',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MacroProvider>
               <AssetsProvider>
               <PortfolioProvider>
+              <StrategicDashboardProvider>
                 <Sidebar />
                 <main className="flex-1 min-w-0 min-h-screen p-5 pt-16 md:ml-7 md:p-8 2xl:p-10 3xl:p-12">
                   <div className="max-w-[1500px] 3xl:max-w-[1800px] mx-auto">
@@ -37,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <ScrollToTop />
                   </div>
                 </main>
+              </StrategicDashboardProvider>
               </PortfolioProvider>
               </AssetsProvider>
             </MacroProvider>
