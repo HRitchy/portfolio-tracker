@@ -9,6 +9,8 @@ import { useMacro } from '@/context/MacroContext';
 import { getAssetAdvice } from '@/lib/advice';
 import { Store, AssetAdvice, MarketContext } from '@/lib/types';
 import { AssetConfig } from '@/lib/types';
+import { AI_MODELS, getModelById, PROVIDER_LABELS, API_KEY_PLACEHOLDERS } from '@/lib/models';
+import type { AIProvider } from '@/lib/models';
 
 /* ─────────────────────────────────────────────
    Portfolio context builder
@@ -82,11 +84,26 @@ function buildPortfolioContext(
    ───────────────────────────────────────────── */
 
 function SettingsModal({ onClose }: { onClose: () => void }) {
-  const { apiKey, systemPrompt, setApiKey, setSystemPrompt, clearApiKey, resetSystemPrompt } = useStrategicDashboard();
-  const [localKey, setLocalKey] = useState(apiKey);
+  const {
+    selectedModelId, systemPrompt,
+    setSelectedModelId, setSystemPrompt,
+    resetSystemPrompt, getApiKeyForProvider, setApiKeyForProvider,
+  } = useStrategicDashboard();
+
+  const [localModelId, setLocalModelId] = useState(selectedModelId);
+  const localModel = getModelById(localModelId);
+  const localProvider: AIProvider = localModel?.provider ?? 'openai';
+
+  const [localKeys, setLocalKeys] = useState<Record<AIProvider, string>>({
+    openai: getApiKeyForProvider('openai'),
+    anthropic: getApiKeyForProvider('anthropic'),
+    google: getApiKeyForProvider('google'),
+  });
   const [localPrompt, setLocalPrompt] = useState(systemPrompt);
   const [showKey, setShowKey] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  const localKey = localKeys[localProvider];
 
   // Focus trap + Escape
   useEffect(() => {
@@ -94,7 +111,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
       if (e.key === 'Escape') onClose();
       if (e.key !== 'Tab') return;
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea, input, [tabindex]:not([tabindex="-1"])'
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
       ) ?? [];
       const els = Array.from(focusable);
       const first = els[0];
@@ -110,7 +127,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   const handleSave = () => {
-    setApiKey(localKey);
+    setSelectedModelId(localModelId);
+    for (const p of ['openai', 'anthropic', 'google'] as AIProvider[]) {
+      setApiKeyForProvider(p, localKeys[p]);
+    }
     setSystemPrompt(localPrompt);
     onClose();
   };
@@ -121,9 +141,11 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   };
 
   const handleClearKey = () => {
-    setLocalKey('');
-    clearApiKey();
+    setLocalKeys((prev) => ({ ...prev, [localProvider]: '' }));
   };
+
+  // Group models by provider
+  const providers: AIProvider[] = ['openai', 'anthropic', 'google'];
 
   return (
     <div
@@ -142,7 +164,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-semibold text-lg text-[var(--text)]">Configuration — Dashboard Stratégique</h2>
-            <p className="text-xs text-[var(--muted)] mt-0.5">Paramètres de l&apos;agent d&apos;analyse GPT-4o</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">Paramètres de l&apos;agent d&apos;analyse IA</p>
           </div>
           <button
             onClick={onClose}
@@ -156,17 +178,60 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
+        {/* Model selection */}
+        <div className="mb-6">
+          <label className="block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)] mb-2">
+            Modèle d&apos;IA
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {providers.map((provider) => {
+              const models = AI_MODELS.filter((m) => m.provider === provider);
+              return (
+                <div key={provider} className="space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] px-1">
+                    {PROVIDER_LABELS[provider]}
+                  </p>
+                  {models.map((model) => {
+                    const isSelected = model.id === localModelId;
+                    return (
+                      <button
+                        key={model.id}
+                        type="button"
+                        onClick={() => { setLocalModelId(model.id); setShowKey(false); }}
+                        className={`w-full text-left text-xs px-3 py-2 rounded-lg border transition-all ${
+                          isSelected
+                            ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--text)] font-medium'
+                            : 'border-[var(--border)] bg-[var(--panel-hover)] text-[var(--muted)] hover:text-[var(--text)] hover:border-[var(--accent)]/50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          {isSelected && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true" className="text-[var(--accent)] shrink-0">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                          {model.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* API Key section */}
         <div className="mb-6">
           <label className="block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)] mb-2">
-            Clé API OpenAI
+            Clé API {PROVIDER_LABELS[localProvider]}
           </label>
           <div className="relative">
             <input
               type={showKey ? 'text' : 'password'}
               value={localKey}
-              onChange={(e) => setLocalKey(e.target.value)}
-              placeholder="sk-..."
+              onChange={(e) => setLocalKeys((prev) => ({ ...prev, [localProvider]: e.target.value }))}
+              placeholder={API_KEY_PLACEHOLDERS[localProvider]}
               autoComplete="off"
               spellCheck={false}
               className="w-full bg-[var(--panel-hover)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-24 font-mono"
@@ -197,7 +262,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            La clé est stockée uniquement dans votre navigateur (localStorage). Elle transite par notre proxy serveur uniquement pour les appels OpenAI et n&apos;est jamais enregistrée.
+            La clé est stockée uniquement dans votre navigateur (localStorage). Elle transite par notre proxy serveur uniquement pour les appels {PROVIDER_LABELS[localProvider]} et n&apos;est jamais enregistrée.
           </p>
         </div>
 
@@ -309,7 +374,7 @@ const QUICK_PROMPTS = [
    ───────────────────────────────────────────── */
 
 export default function StrategicDashboard() {
-  const { apiKey, systemPrompt, hydrated } = useStrategicDashboard();
+  const { apiKey, selectedModelId, systemPrompt, hydrated } = useStrategicDashboard();
   const { store } = usePortfolio();
   const { assets, portfolioKeys } = useAssets();
   const { fearGreedData, hyObs } = useMacro();
@@ -323,6 +388,10 @@ export default function StrategicDashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const currentModel = getModelById(selectedModelId);
+  const modelDisplayName = currentModel?.name ?? 'GPT-4o';
+  const providerDisplayName = currentModel ? PROVIDER_LABELS[currentModel.provider] : 'OpenAI';
 
   const fearGreed = fearGreedData?.score ?? null;
   const hySpread = useMemo(() => {
@@ -376,16 +445,17 @@ export default function StrategicDashboard() {
       abortRef.current = new AbortController();
 
       try {
-        const response = await fetch('/api/gpt4', {
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-openai-key': apiKey,
+            'x-api-key': apiKey,
           },
           body: JSON.stringify({
             messages: newMessages,
             systemPrompt,
             portfolioContext,
+            modelId: selectedModelId,
           }),
           signal: abortRef.current.signal,
         });
@@ -445,7 +515,7 @@ export default function StrategicDashboard() {
         abortRef.current = null;
       }
     },
-    [messages, isStreaming, apiKey, systemPrompt, portfolioContext],
+    [messages, isStreaming, apiKey, systemPrompt, portfolioContext, selectedModelId],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -480,10 +550,10 @@ export default function StrategicDashboard() {
               </div>
               <h2 className="font-semibold text-[var(--text)]">Dashboard Stratégique</h2>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--panel-hover)] border border-[var(--border)] text-[var(--muted)] font-medium">
-                GPT-4o
+                {modelDisplayName}
               </span>
             </div>
-            <p className="text-xs text-[var(--muted)]">Agent d&apos;analyse financière propulsé par OpenAI</p>
+            <p className="text-xs text-[var(--muted)]">Agent d&apos;analyse financière propulsé par {providerDisplayName}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -518,9 +588,9 @@ export default function StrategicDashboard() {
                 <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
               </svg>
             </div>
-            <p className="text-sm font-medium text-[var(--text)] mb-1.5">Clé API OpenAI requise</p>
+            <p className="text-sm font-medium text-[var(--text)] mb-1.5">Clé API requise</p>
             <p className="text-xs text-[var(--muted)] max-w-xs mb-5">
-              Configurez votre clé API OpenAI pour activer l&apos;analyse financière par GPT-4o. Elle sera stockée localement dans votre navigateur.
+              Configurez votre clé API et choisissez un modèle d&apos;IA pour activer l&apos;analyse financière. Les clés sont stockées localement dans votre navigateur.
             </p>
             <button
               onClick={() => setSettingsOpen(true)}

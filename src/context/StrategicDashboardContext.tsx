@@ -1,6 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { DEFAULT_MODEL_ID, getModelById } from '@/lib/models';
+import type { AIProvider } from '@/lib/models';
 
 export const DEFAULT_SYSTEM_PROMPT = `Tu es un expert en analyse financière et en gestion de portefeuille avec 20 ans d'expérience sur les marchés financiers mondiaux. Tu disposes des données de marché en temps réel du portefeuille de l'utilisateur, incluant les prix actuels, les performances récentes, les indicateurs techniques (RSI, moyennes mobiles 50/200, bandes de Bollinger, drawdown depuis le sommet) et les données macro-économiques (Fear & Greed Index, VIX, HY Spread).
 
@@ -18,30 +20,56 @@ Tes réponses doivent être :
 - En français, concises, sans jargon inutile, et directement actionnables`;
 
 const STORAGE_KEY_PROMPT = 'strategic_dashboard_system_prompt';
-const STORAGE_KEY_API = 'strategic_dashboard_api_key';
+const STORAGE_KEY_MODEL = 'strategic_dashboard_model';
+
+function apiKeyStorageKey(provider: AIProvider): string {
+  return `strategic_dashboard_api_key_${provider}`;
+}
 
 interface StrategicDashboardContextValue {
   apiKey: string;
+  selectedModelId: string;
   systemPrompt: string;
   hydrated: boolean;
   setApiKey: (key: string) => void;
+  setSelectedModelId: (id: string) => void;
   setSystemPrompt: (prompt: string) => void;
   clearApiKey: () => void;
   resetSystemPrompt: () => void;
+  getApiKeyForProvider: (provider: AIProvider) => string;
+  setApiKeyForProvider: (provider: AIProvider, key: string) => void;
 }
 
 const StrategicDashboardContext = createContext<StrategicDashboardContextValue | null>(null);
 
 export function StrategicDashboardProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setApiKeyState] = useState('');
+  const [apiKeys, setApiKeys] = useState<Record<AIProvider, string>>({ openai: '', anthropic: '', google: '' });
+  const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
   const [systemPrompt, setSystemPromptState] = useState(DEFAULT_SYSTEM_PROMPT);
   const [hydrated, setHydrated] = useState(false);
 
+  const currentProvider = getModelById(selectedModelId)?.provider ?? 'openai';
+  const apiKey = apiKeys[currentProvider];
+
   useEffect(() => {
     try {
-      const storedKey = localStorage.getItem(STORAGE_KEY_API) ?? '';
+      const storedModel = localStorage.getItem(STORAGE_KEY_MODEL) ?? DEFAULT_MODEL_ID;
       const storedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT);
-      setApiKeyState(storedKey);
+
+      const keys: Record<AIProvider, string> = { openai: '', anthropic: '', google: '' };
+      for (const p of ['openai', 'anthropic', 'google'] as AIProvider[]) {
+        keys[p] = localStorage.getItem(apiKeyStorageKey(p)) ?? '';
+      }
+      // Migrate old single key if present
+      const legacyKey = localStorage.getItem('strategic_dashboard_api_key');
+      if (legacyKey && !keys.openai) {
+        keys.openai = legacyKey;
+        localStorage.setItem(apiKeyStorageKey('openai'), legacyKey);
+        localStorage.removeItem('strategic_dashboard_api_key');
+      }
+
+      setApiKeys(keys);
+      setSelectedModelIdState(storedModel);
       if (storedPrompt) setSystemPromptState(storedPrompt);
     } catch {
       // localStorage unavailable (SSR or private browsing)
@@ -51,8 +79,13 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
 
   const setApiKey = (key: string) => {
     const trimmed = key.trim();
-    setApiKeyState(trimmed);
-    try { localStorage.setItem(STORAGE_KEY_API, trimmed); } catch {}
+    setApiKeys((prev) => ({ ...prev, [currentProvider]: trimmed }));
+    try { localStorage.setItem(apiKeyStorageKey(currentProvider), trimmed); } catch {}
+  };
+
+  const setSelectedModelId = (id: string) => {
+    setSelectedModelIdState(id);
+    try { localStorage.setItem(STORAGE_KEY_MODEL, id); } catch {}
   };
 
   const setSystemPrompt = (prompt: string) => {
@@ -61,8 +94,8 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
   };
 
   const clearApiKey = () => {
-    setApiKeyState('');
-    try { localStorage.removeItem(STORAGE_KEY_API); } catch {}
+    setApiKeys((prev) => ({ ...prev, [currentProvider]: '' }));
+    try { localStorage.removeItem(apiKeyStorageKey(currentProvider)); } catch {}
   };
 
   const resetSystemPrompt = () => {
@@ -70,9 +103,35 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
     try { localStorage.removeItem(STORAGE_KEY_PROMPT); } catch {}
   };
 
+  const getApiKeyForProvider = (provider: AIProvider) => apiKeys[provider];
+
+  const setApiKeyForProvider = (provider: AIProvider, key: string) => {
+    const trimmed = key.trim();
+    setApiKeys((prev) => ({ ...prev, [provider]: trimmed }));
+    try {
+      if (trimmed) {
+        localStorage.setItem(apiKeyStorageKey(provider), trimmed);
+      } else {
+        localStorage.removeItem(apiKeyStorageKey(provider));
+      }
+    } catch {}
+  };
+
   return (
     <StrategicDashboardContext.Provider
-      value={{ apiKey, systemPrompt, hydrated, setApiKey, setSystemPrompt, clearApiKey, resetSystemPrompt }}
+      value={{
+        apiKey,
+        selectedModelId,
+        systemPrompt,
+        hydrated,
+        setApiKey,
+        setSelectedModelId,
+        setSystemPrompt,
+        clearApiKey,
+        resetSystemPrompt,
+        getApiKeyForProvider,
+        setApiKeyForProvider,
+      }}
     >
       {children}
     </StrategicDashboardContext.Provider>
