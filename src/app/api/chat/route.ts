@@ -17,7 +17,17 @@ interface RequestBody {
 
 // ── Provider dispatchers ───────────────────────────────────
 
-async function callOpenAI(apiKey: string, model: string, systemContent: string, messages: ChatMessage[]) {
+async function callOpenAI(
+  apiKey: string,
+  model: string,
+  systemContent: string,
+  messages: ChatMessage[],
+  useMaxCompletionTokens = false,
+) {
+  const tokenParam = useMaxCompletionTokens
+    ? { max_completion_tokens: 1500 }
+    : { max_tokens: 1500 };
+
   return fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -28,7 +38,7 @@ async function callOpenAI(apiKey: string, model: string, systemContent: string, 
       model,
       messages: [{ role: 'system', content: systemContent }, ...messages],
       stream: true,
-      max_tokens: 1500,
+      ...tokenParam,
       temperature: 0.4,
     }),
   });
@@ -231,7 +241,7 @@ export async function POST(request: NextRequest) {
 
     switch (model.provider) {
       case 'openai':
-        response = await callOpenAI(apiKey, model.apiModel, systemContent, messages);
+        response = await callOpenAI(apiKey, model.apiModel, systemContent, messages, model.useMaxCompletionTokens);
         break;
       case 'anthropic':
         response = await callAnthropic(apiKey, model.apiModel, systemContent, messages);
