@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { useStrategicDashboard, DEFAULT_SYSTEM_PROMPT } from '@/context/StrategicDashboardContext';
+import type { ChatMessage } from '@/context/StrategicDashboardContext';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { useAssets } from '@/context/AssetsContext';
 import { useMacro } from '@/context/MacroContext';
@@ -316,12 +317,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
    Message bubble
    ───────────────────────────────────────────── */
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-function MessageBubble({ message, isStreaming }: { message: Message; isStreaming?: boolean }) {
+function MessageBubble({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) {
   const isUser = message.role === 'user';
 
   return (
@@ -359,6 +355,137 @@ function MessageBubble({ message, isStreaming }: { message: Message; isStreaming
 }
 
 /* ─────────────────────────────────────────────
+   History Panel
+   ───────────────────────────────────────────── */
+
+function formatDate(ts: number): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) {
+    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return 'Hier';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+interface HistoryPanelProps {
+  onClose: () => void;
+  onLoadSession: (sessionId: string) => void;
+  onNewSession: () => void;
+  currentSessionId: string;
+}
+
+function HistoryPanel({ onClose, onLoadSession, onNewSession, currentSessionId }: HistoryPanelProps) {
+  const { chatSessions, deleteSession } = useStrategicDashboard();
+
+  // Sort sessions by most recent first
+  const sorted = [...chatSessions].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  return (
+    <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--panel-hover)]/40 overflow-hidden">
+      {/* History header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="text-[var(--muted)]">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span className="text-xs font-semibold text-[var(--text)]">Historique des conversations</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--panel)] border border-[var(--border)] text-[var(--muted)]">
+            {chatSessions.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onNewSession}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-colors border border-[var(--accent)]/30"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nouvelle
+          </button>
+          <button
+            onClick={onClose}
+            aria-label="Fermer l'historique"
+            className="w-6 h-6 flex items-center justify-center rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel)] transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Session list */}
+      <div className="max-h-[280px] overflow-y-auto">
+        {sorted.length === 0 ? (
+          <p className="text-xs text-[var(--muted)] text-center py-6">Aucune conversation sauvegardée</p>
+        ) : (
+          sorted.map((session) => {
+            const isCurrent = session.id === currentSessionId;
+            const hasMessages = session.messages.length > 0;
+            return (
+              <div
+                key={session.id}
+                className={`group flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border)]/50 last:border-0 transition-colors ${
+                  isCurrent
+                    ? 'bg-[var(--accent)]/8 border-l-2 border-l-[var(--accent)]'
+                    : 'hover:bg-[var(--panel-hover)] cursor-pointer'
+                }`}
+                onClick={() => !isCurrent && onLoadSession(session.id)}
+              >
+                {/* Icon */}
+                <div className={`shrink-0 w-6 h-6 rounded-lg flex items-center justify-center ${isCurrent ? 'bg-[var(--accent)]/15' : 'bg-[var(--panel)]'}`}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className={isCurrent ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+
+                {/* Title + meta */}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs truncate ${isCurrent ? 'text-[var(--text)] font-medium' : 'text-[var(--text)]'}`}>
+                    {hasMessages ? session.title : 'Conversation vide'}
+                  </p>
+                  <p className="text-[10px] text-[var(--muted)] mt-0.5">
+                    {formatDate(session.updatedAt)}
+                    {session.messages.length > 0 && (
+                      <span className="ml-1.5">· {Math.ceil(session.messages.length / 2)} échange{Math.ceil(session.messages.length / 2) > 1 ? 's' : ''}</span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteSession(session.id);
+                  }}
+                  aria-label="Supprimer cette conversation"
+                  className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-[var(--muted)] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)] transition-all"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    Quick-prompt suggestions
    ───────────────────────────────────────────── */
 
@@ -374,16 +501,21 @@ const QUICK_PROMPTS = [
    ───────────────────────────────────────────── */
 
 export default function StrategicDashboard() {
-  const { apiKey, selectedModelId, systemPrompt, hydrated } = useStrategicDashboard();
+  const {
+    apiKey, selectedModelId, systemPrompt, hydrated,
+    currentSessionId, saveMessages, loadSession, newSession,
+    chatSessions,
+  } = useStrategicDashboard();
   const { store } = usePortfolio();
   const { assets, portfolioKeys } = useAssets();
   const { fearGreedData, hyObs } = useMacro();
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -412,6 +544,13 @@ export default function StrategicDashboard() {
     [store, assets, portfolioKeys, advices, marketContext],
   );
 
+  // Load messages from current session on hydration / session change
+  useEffect(() => {
+    if (!hydrated) return;
+    const session = chatSessions.find((s) => s.id === currentSessionId);
+    setMessages(session?.messages ?? []);
+  }, [hydrated, currentSessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -430,7 +569,7 @@ export default function StrategicDashboard() {
       if (!content.trim() || isStreaming) return;
       setError(null);
 
-      const userMessage: Message = { role: 'user', content: content.trim() };
+      const userMessage: ChatMessage = { role: 'user', content: content.trim() };
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       setInput('');
@@ -438,7 +577,7 @@ export default function StrategicDashboard() {
         textareaRef.current.style.height = 'auto';
       }
 
-      const assistantMessage: Message = { role: 'assistant', content: '' };
+      const assistantMessage: ChatMessage = { role: 'assistant', content: '' };
       setMessages((prev) => [...prev, assistantMessage]);
       setIsStreaming(true);
 
@@ -470,6 +609,7 @@ export default function StrategicDashboard() {
 
         const decoder = new TextDecoder();
         let buffer = '';
+        let finalMessages: ChatMessage[] = [];
 
         while (true) {
           const { done, value } = await reader.read();
@@ -494,6 +634,7 @@ export default function StrategicDashboard() {
                   if (last?.role === 'assistant') {
                     updated[updated.length - 1] = { ...last, content: last.content + delta };
                   }
+                  finalMessages = updated;
                   return updated;
                 });
               }
@@ -502,20 +643,33 @@ export default function StrategicDashboard() {
             }
           }
         }
+
+        // Persist the completed conversation
+        if (finalMessages.length > 0) {
+          saveMessages(finalMessages);
+        }
       } catch (err) {
         if ((err as Error).name === 'AbortError') {
-          // User cancelled
+          // User cancelled — still save what we have
+          setMessages((prev) => {
+            if (prev.length > 0) saveMessages(prev);
+            return prev;
+          });
         } else {
           const msg = err instanceof Error ? err.message : 'Erreur inconnue';
           setError(msg);
-          setMessages((prev) => prev.slice(0, -1)); // Remove empty assistant message
+          setMessages((prev) => {
+            const trimmed = prev.slice(0, -1);
+            if (trimmed.length > 0) saveMessages(trimmed);
+            return trimmed;
+          });
         }
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
       }
     },
-    [messages, isStreaming, apiKey, systemPrompt, portfolioContext, selectedModelId],
+    [messages, isStreaming, apiKey, systemPrompt, portfolioContext, selectedModelId, saveMessages],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -530,8 +684,24 @@ export default function StrategicDashboard() {
   };
 
   const handleClear = () => {
+    const cleared: ChatMessage[] = [];
+    setMessages(cleared);
+    saveMessages(cleared);
+    setError(null);
+  };
+
+  const handleLoadSession = (sessionId: string) => {
+    const loaded = loadSession(sessionId);
+    setMessages(loaded);
+    setError(null);
+    setHistoryOpen(false);
+  };
+
+  const handleNewSession = () => {
+    newSession();
     setMessages([]);
     setError(null);
+    setHistoryOpen(false);
   };
 
   if (!hydrated) return null;
@@ -557,6 +727,29 @@ export default function StrategicDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* History toggle */}
+            <button
+              onClick={() => setHistoryOpen((v) => !v)}
+              aria-label="Afficher l'historique des conversations"
+              aria-expanded={historyOpen}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg transition-colors border ${
+                historyOpen
+                  ? 'text-[var(--accent)] bg-[var(--accent)]/10 border-[var(--accent)]/30'
+                  : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--panel-hover)] border-[var(--border)]'
+              }`}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              Historique
+              {chatSessions.filter((s) => s.messages.length > 0).length > 0 && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--panel)] border border-[var(--border)] font-medium">
+                  {chatSessions.filter((s) => s.messages.length > 0).length}
+                </span>
+              )}
+            </button>
+
             {messages.length > 0 && (
               <button
                 onClick={handleClear}
@@ -579,6 +772,16 @@ export default function StrategicDashboard() {
             </button>
           </div>
         </div>
+
+        {/* History Panel */}
+        {historyOpen && (
+          <HistoryPanel
+            onClose={() => setHistoryOpen(false)}
+            onLoadSession={handleLoadSession}
+            onNewSession={handleNewSession}
+            currentSessionId={currentSessionId}
+          />
+        )}
 
         {/* API key not set → prompt to configure */}
         {!apiKey ? (
