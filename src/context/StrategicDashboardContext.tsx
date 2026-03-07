@@ -21,9 +21,46 @@ Tes réponses doivent être :
 
 const STORAGE_KEY_PROMPT = 'strategic_dashboard_system_prompt';
 const STORAGE_KEY_MODEL = 'strategic_dashboard_model';
+const STORAGE_KEY_SESSIONS = 'strategic_dashboard_chat_sessions';
+const STORAGE_KEY_CURRENT_SESSION = 'strategic_dashboard_current_session';
+
+const MAX_SESSIONS = 50;
 
 function apiKeyStorageKey(provider: AIProvider): string {
   return `strategic_dashboard_api_key_${provider}`;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: ChatMessage[];
+}
+
+function generateSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function generateTitle(messages: ChatMessage[]): string {
+  const firstUser = messages.find((m) => m.role === 'user');
+  if (!firstUser) return 'Nouvelle conversation';
+  return firstUser.content.slice(0, 60) + (firstUser.content.length > 60 ? '…' : '');
+}
+
+function createNewSession(): ChatSession {
+  return {
+    id: generateSessionId(),
+    title: 'Nouvelle conversation',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messages: [],
+  };
 }
 
 interface StrategicDashboardContextValue {
@@ -38,6 +75,14 @@ interface StrategicDashboardContextValue {
   resetSystemPrompt: () => void;
   getApiKeyForProvider: (provider: AIProvider) => string;
   setApiKeyForProvider: (provider: AIProvider, key: string) => void;
+  // Chat history
+  chatSessions: ChatSession[];
+  currentSessionId: string;
+  currentSession: ChatSession;
+  saveMessages: (messages: ChatMessage[]) => void;
+  loadSession: (sessionId: string) => ChatMessage[];
+  deleteSession: (sessionId: string) => void;
+  newSession: () => ChatMessage[];
 }
 
 const StrategicDashboardContext = createContext<StrategicDashboardContextValue | null>(null);
@@ -47,9 +92,13 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
   const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
   const [systemPrompt, setSystemPromptState] = useState(DEFAULT_SYSTEM_PROMPT);
   const [hydrated, setHydrated] = useState(false);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
 
   const currentProvider = getModelById(selectedModelId)?.provider ?? 'openai';
   const apiKey = apiKeys[currentProvider];
+
+  const currentSession = chatSessions.find((s) => s.id === currentSessionId) ?? createNewSession();
 
   useEffect(() => {
     try {
@@ -71,11 +120,43 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
       setApiKeys(keys);
       setSelectedModelIdState(storedModel);
       if (storedPrompt) setSystemPromptState(storedPrompt);
+
+      // Load chat sessions
+      const rawSessions = localStorage.getItem(STORAGE_KEY_SESSIONS);
+      const sessions: ChatSession[] = rawSessions ? JSON.parse(rawSessions) : [];
+      const rawCurrentId = localStorage.getItem(STORAGE_KEY_CURRENT_SESSION);
+
+      if (sessions.length === 0) {
+        const initial = createNewSession();
+        setChatSessions([initial]);
+        setCurrentSessionId(initial.id);
+      } else {
+        setChatSessions(sessions);
+        const existsInSessions = sessions.some((s) => s.id === rawCurrentId);
+        setCurrentSessionId(existsInSessions ? rawCurrentId! : sessions[0].id);
+      }
     } catch {
-      // localStorage unavailable (SSR or private browsing)
+      const initial = createNewSession();
+      setChatSessions([initial]);
+      setCurrentSessionId(initial.id);
     }
     setHydrated(true);
   }, []);
+
+  // Persist sessions to localStorage whenever they change (after hydration)
+  useEffect(() => {
+    if (!hydrated || chatSessions.length === 0) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_SESSIONS, JSON.stringify(chatSessions));
+    } catch {}
+  }, [chatSessions, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated || !currentSessionId) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_CURRENT_SESSION, currentSessionId);
+    } catch {}
+  }, [currentSessionId, hydrated]);
 
   const setApiKey = (key: string) => {
     const trimmed = key.trim();
@@ -117,6 +198,50 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
     } catch {}
   };
 
+  const saveMessages = (messages: ChatMessage[]) => {
+    setChatSessions((prev) => {
+      const idx = prev.findIndex((s) => s.id === currentSessionId);
+      if (idx === -1) return prev;
+      const updated = [...prev];
+      updated[idx] = {
+        ...updated[idx],
+        messages,
+        title: generateTitle(messages),
+        updatedAt: Date.now(),
+      };
+      // Keep only MAX_SESSIONS most recent
+      return updated.slice(-MAX_SESSIONS);
+    });
+  };
+
+  const loadSession = (sessionId: string): ChatMessage[] => {
+    setCurrentSessionId(sessionId);
+    const session = chatSessions.find((s) => s.id === sessionId);
+    return session?.messages ?? [];
+  };
+
+  const deleteSession = (sessionId: string) => {
+    setChatSessions((prev) => {
+      const filtered = prev.filter((s) => s.id !== sessionId);
+      if (filtered.length === 0) {
+        const fresh = createNewSession();
+        setCurrentSessionId(fresh.id);
+        return [fresh];
+      }
+      if (sessionId === currentSessionId) {
+        setCurrentSessionId(filtered[filtered.length - 1].id);
+      }
+      return filtered;
+    });
+  };
+
+  const newSession = (): ChatMessage[] => {
+    const fresh = createNewSession();
+    setChatSessions((prev) => [...prev.slice(-MAX_SESSIONS + 1), fresh]);
+    setCurrentSessionId(fresh.id);
+    return [];
+  };
+
   return (
     <StrategicDashboardContext.Provider
       value={{
@@ -131,6 +256,13 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
         resetSystemPrompt,
         getApiKeyForProvider,
         setApiKeyForProvider,
+        chatSessions,
+        currentSessionId,
+        currentSession,
+        saveMessages,
+        loadSession,
+        deleteSession,
+        newSession,
       }}
     >
       {children}
