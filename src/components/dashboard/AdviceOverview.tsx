@@ -236,12 +236,6 @@ export default function AdviceOverview({ store }: { store: Store }) {
   return (
     <Card className="mb-0">
       <MarketRegimeBanner mkt={marketContext} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 3xl:gap-5">
-        {advices.map((item) => (
-          <AssetAdviceCard key={item.key} item={item} assetConfig={assets[item.key]} />
-        ))}
-      </div>
     </Card>
   );
 }
