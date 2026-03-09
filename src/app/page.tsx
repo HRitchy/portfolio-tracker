@@ -10,6 +10,7 @@ import VolatilityChart from '@/components/dashboard/VolatilityChart';
 import CorrelationMatrix from '@/components/dashboard/CorrelationMatrix';
 import HYSpreadCard from '@/components/dashboard/HYSpreadCard';
 import FearGreedCard from '@/components/dashboard/FearGreedCard';
+import AdviceOverview from '@/components/dashboard/AdviceOverview';
 import StrategicDashboard from '@/components/dashboard/StrategicDashboard';
 import RefreshButton from '@/components/ui/RefreshButton';
 import { SkeletonDashboard } from '@/components/ui/SkeletonCard';
@@ -65,6 +66,10 @@ export default function DashboardPage() {
 
           <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
             <CorrelationMatrix store={store} />
+          </div>
+
+          <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
+            <AdviceOverview store={store} />
           </div>
 
           <div className="mt-3 md:mt-4 3xl:mt-5 fade-in">
