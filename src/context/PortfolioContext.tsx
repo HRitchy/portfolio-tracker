@@ -80,13 +80,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     const result = await fetchAssetData(cfg.symbol);
     const data = result ? processAsset(key, cfg, result) : null;
     const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });
-    setStore((prev) => {
-      const next = { ...prev, [key]: data };
-      saveSnapshot(next, timestamp);
-      return next;
-    });
+    setStore((prev) => ({ ...prev, [key]: data }));
     setLastUpdate(timestamp);
-  }, []);
+    saveSnapshot({ ...store, [key]: data }, timestamp);
+  }, [store]);
 
   const refreshAll = useCallback(async () => {
     const currentAssets = assetsRef.current;

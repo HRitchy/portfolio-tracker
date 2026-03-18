@@ -15,6 +15,10 @@ const SALT_KEY = '_cs_salt';
 const ALGO = 'AES-GCM';
 const KEY_LEN = 256;
 
+// Cache the derived key so PBKDF2 (100k iterations) runs at most once per page load.
+let cachedKeyPromise: Promise<CryptoKey> | null = null;
+let cachedKeySalt: string | null = null;
+
 function getOrCreateSalt(): string {
   let salt = localStorage.getItem(SALT_KEY);
   if (!salt) {
@@ -23,6 +27,13 @@ function getOrCreateSalt(): string {
     localStorage.setItem(SALT_KEY, salt);
   }
   return salt;
+}
+
+function getCachedKey(salt: string): Promise<CryptoKey> {
+  if (cachedKeyPromise && cachedKeySalt === salt) return cachedKeyPromise;
+  cachedKeySalt = salt;
+  cachedKeyPromise = deriveKey(salt);
+  return cachedKeyPromise;
 }
 
 async function deriveKey(salt: string): Promise<CryptoKey> {
@@ -59,7 +70,7 @@ function fromBase64(str: string): ArrayBuffer {
 
 export async function encryptValue(plaintext: string): Promise<string> {
   const salt = getOrCreateSalt();
-  const key = await deriveKey(salt);
+  const key = await getCachedKey(salt);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const enc = new TextEncoder();
   const ciphertext = await crypto.subtle.encrypt({ name: ALGO, iv }, key, enc.encode(plaintext));
@@ -71,7 +82,7 @@ export async function decryptValue(encrypted: string): Promise<string> {
   const parts = encrypted.split(':');
   if (parts.length !== 2) throw new Error('Invalid encrypted format');
   const salt = getOrCreateSalt();
-  const key = await deriveKey(salt);
+  const key = await getCachedKey(salt);
   const iv = fromBase64(parts[0]);
   const ciphertext = fromBase64(parts[1]);
   const dec = new TextDecoder();
@@ -79,8 +90,9 @@ export async function decryptValue(encrypted: string): Promise<string> {
   return dec.decode(plaintext);
 }
 
-/** Returns true if the value looks like an encrypted blob (iv:ciphertext). */
+/** Returns true if the value looks like an encrypted blob (iv:ciphertext).
+ *  IV is 12 bytes → always 16 base64 characters. */
 export function isEncrypted(value: string): boolean {
   const parts = value.split(':');
-  return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;
+  return parts.length === 2 && parts[0].length === 16 && parts[1].length > 0;
 }

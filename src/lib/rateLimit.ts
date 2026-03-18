@@ -10,6 +10,9 @@ const MAX_REQUESTS = 60;
 const CLEANUP_THRESHOLD = 500;
 // Evict entries idle for longer than this, regardless of store size
 const IDLE_TTL_MS = 60 * 60 * 1000; // 1 hour
+// Run evictIdle only every N new windows to avoid per-request full scans
+const IDLE_EVICT_INTERVAL = 50;
+let newWindowCount = 0;
 
 /**
  * Returns true if the request should be allowed, false if rate-limited.
@@ -25,11 +28,10 @@ export function allowRequest(
 
   if (!entry || now > entry.resetAt) {
     store.set(ip, { count: 1, resetAt: now + windowMs });
-    // Evict on every new window creation (not just when over threshold)
-    // to prevent unbounded growth from long-lived unique IPs
+    newWindowCount++;
     if (store.size > CLEANUP_THRESHOLD) {
       evictExpired(now);
-    } else {
+    } else if (newWindowCount % IDLE_EVICT_INTERVAL === 0) {
       evictIdle(now);
     }
     return { allowed: true, retryAfterSec: 0 };
