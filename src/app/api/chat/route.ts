@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/apiUtils';
 import { AI_MODELS } from '@/lib/models';
 import type { AIProvider } from '@/lib/models';
+import { normalizeOpenAIStream, normalizeAnthropicStream, normalizeGoogleStream } from '@/lib/streamNormalizers';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -83,106 +84,6 @@ async function callGoogle(apiKey: string, model: string, systemContent: string, 
   );
 }
 
-// ── Stream normalizers (convert provider SSE → OpenAI-format SSE) ──
-
-function normalizeOpenAIStream(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
-  // OpenAI already uses our target format — pass through
-  return body;
-}
-
-function normalizeAnthropicStream(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  let buffer = '';
-
-  return new ReadableStream({
-    async start(controller) {
-      const reader = body.getReader();
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-            controller.close();
-            return;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-            if (!data) continue;
-
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-                const normalized = JSON.stringify({
-                  choices: [{ delta: { content: parsed.delta.text } }],
-                });
-                controller.enqueue(encoder.encode(`data: ${normalized}\n\n`));
-              }
-            } catch {
-              // skip non-JSON lines
-            }
-          }
-        }
-      } catch (err) {
-        controller.error(err);
-      }
-    },
-  });
-}
-
-function normalizeGoogleStream(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  let buffer = '';
-
-  return new ReadableStream({
-    async start(controller) {
-      const reader = body.getReader();
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-            controller.close();
-            return;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-            if (!data) continue;
-
-            try {
-              const parsed = JSON.parse(data);
-              const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (typeof text === 'string' && text) {
-                const normalized = JSON.stringify({
-                  choices: [{ delta: { content: text } }],
-                });
-                controller.enqueue(encoder.encode(`data: ${normalized}\n\n`));
-              }
-            } catch {
-              // skip non-JSON lines
-            }
-          }
-        }
-      } catch (err) {
-        controller.error(err);
-      }
-    },
-  });
-}
-
 // ── Error extraction per provider ──
 
 async function extractErrorMessage(response: Response, provider: AIProvider): Promise<string> {
@@ -225,8 +126,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Le champ "messages" est requis et ne doit pas être vide.' }, { status: 400 });
   }
 
+  if (messages.length > 200) {
+    return NextResponse.json({ error: 'Trop de messages dans la conversation (max 200).' }, { status: 400 });
+  }
+
   if (typeof systemPrompt !== 'string' || typeof portfolioContext !== 'string') {
     return NextResponse.json({ error: 'Les champs "systemPrompt" et "portfolioContext" sont requis.' }, { status: 400 });
+  }
+
+  if (systemPrompt.length > 8_000) {
+    return NextResponse.json({ error: 'Le "systemPrompt" dépasse la limite de 8 000 caractères.' }, { status: 400 });
+  }
+
+  if (portfolioContext.length > 20_000) {
+    return NextResponse.json({ error: 'Le "portfolioContext" dépasse la limite de 20 000 caractères.' }, { status: 400 });
+  }
+
+  for (const msg of messages) {
+    if (typeof msg.role !== 'string' || typeof msg.content !== 'string') {
+      return NextResponse.json({ error: 'Format de message invalide (role et content requis).' }, { status: 400 });
+    }
+    if (!['user', 'assistant'].includes(msg.role)) {
+      return NextResponse.json({ error: `Rôle de message invalide : "${msg.role}".` }, { status: 400 });
+    }
+    if (msg.content.length > 10_000) {
+      return NextResponse.json({ error: 'Un message dépasse la limite de 10 000 caractères.' }, { status: 400 });
+    }
   }
 
   const model = AI_MODELS.find((m) => m.id === modelId);

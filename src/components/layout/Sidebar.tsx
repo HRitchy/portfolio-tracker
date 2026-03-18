@@ -10,16 +10,27 @@ import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 import { useToast } from '@/components/ui/Toast';
 import { useTheme } from '@/context/ThemeContext';
 
+// Parse a French locale date string (dd/mm/yyyy, hh:mm:ss) produced by
+// Date.toLocaleString('fr-FR') into a Date object without fragile regex.
+function parseFrenchLocaleDate(str: string): Date | null {
+  // Expected format: "dd/mm/yyyy, hh:mm:ss" or "dd/mm/yyyy hh:mm"
+  const [datePart, timePart] = str.split(/,?\s+/);
+  if (!datePart || !timePart) return null;
+  const [day, month, year] = datePart.split('/').map(Number);
+  const [hour, minute, second = 0] = timePart.split(':').map(Number);
+  if ([day, month, year, hour, minute].some(Number.isNaN)) return null;
+  return new Date(year, month - 1, day, hour, minute, second);
+}
+
 function useRelativeTime(lastUpdate: string | null): string {
   const [relative, setRelative] = useState('--');
 
   const compute = useCallback(() => {
     if (!lastUpdate) return '--';
-    const parts = lastUpdate.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2}):?(\d{2})?/);
-    if (!parts) return lastUpdate;
-    const d = new Date(+parts[3], +parts[2] - 1, +parts[1], +parts[4], +parts[5], +(parts[6] ?? 0));
+    const d = parseFrenchLocaleDate(lastUpdate);
+    if (!d || isNaN(d.getTime())) return lastUpdate;
     const diffMs = Date.now() - d.getTime();
-    if (diffMs < 0 || isNaN(diffMs)) return lastUpdate;
+    if (diffMs < 0) return lastUpdate;
     const sec = Math.floor(diffMs / 1000);
     if (sec < 60) return 'À l\'instant';
     const min = Math.floor(sec / 60);
