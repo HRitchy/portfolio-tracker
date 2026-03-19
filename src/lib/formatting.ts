@@ -29,3 +29,15 @@ export function getDigitsForAsset(config: AssetConfig | undefined): number {
   if (cls === 'devises') return 4;
   return 2;
 }
+
+// Parse a French locale date string (dd/mm/yyyy, hh:mm:ss) produced by
+// Date.toLocaleString('fr-FR') into a Date object without fragile regex.
+export function parseFrenchLocaleDate(str: string): Date | null {
+  // Expected format: "dd/mm/yyyy, hh:mm:ss" or "dd/mm/yyyy hh:mm"
+  const [datePart, timePart] = str.split(/,?\s+/);
+  if (!datePart || !timePart) return null;
+  const [day, month, year] = datePart.split('/').map(Number);
+  const [hour, minute, second = 0] = timePart.split(':').map(Number);
+  if ([day, month, year, hour, minute].some(Number.isNaN)) return null;
+  return new Date(year, month - 1, day, hour, minute, second);
+}

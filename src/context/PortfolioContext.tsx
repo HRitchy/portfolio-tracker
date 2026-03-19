@@ -16,6 +16,7 @@ interface PortfolioContextType {
   loading: boolean;
   lastUpdate: string | null;
   refreshAll: () => Promise<void>;
+  refreshAsset: (key: string) => Promise<void>;
 }
 
 const PortfolioContext = createContext<PortfolioContextType>({
@@ -23,6 +24,7 @@ const PortfolioContext = createContext<PortfolioContextType>({
   loading: false,
   lastUpdate: null,
   refreshAll: async () => {},
+  refreshAsset: async () => {},
 });
 
 function rehydrateDates(store: Store): void {
@@ -72,6 +74,17 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(snapshot?.lastUpdate ?? null);
 
+  const refreshAsset = useCallback(async (key: string) => {
+    const cfg = assetsRef.current[key];
+    if (!cfg) return;
+    const result = await fetchAssetData(cfg.symbol);
+    const data = result ? processAsset(key, cfg, result) : null;
+    const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });
+    setStore((prev) => ({ ...prev, [key]: data }));
+    setLastUpdate(timestamp);
+    saveSnapshot({ ...store, [key]: data }, timestamp);
+  }, [store]);
+
   const refreshAll = useCallback(async () => {
     const currentAssets = assetsRef.current;
     const currentKeys = keysRef.current;
@@ -104,7 +117,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   // Refresh when asset list changes
   useEffect(() => {
     refreshAll();
-  }, [assetKeys.join(','), refreshAll]);
+  }, [assetKeys, refreshAll]);
 
   // Auto-refresh every 5 minutes
   useEffect(() => {
@@ -115,7 +128,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   }, [refreshAll]);
 
   return (
-    <PortfolioContext.Provider value={{ store, loading, lastUpdate, refreshAll }}>
+    <PortfolioContext.Provider value={{ store, loading, lastUpdate, refreshAll, refreshAsset }}>
       {children}
     </PortfolioContext.Provider>
   );

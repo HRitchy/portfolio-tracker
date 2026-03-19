@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { AssetConfig } from '@/lib/types';
@@ -57,9 +58,9 @@ function saveAssets(assets: Record<string, AssetConfig>) {
 export function AssetsProvider({ children }: { children: ReactNode }) {
   const [assets, setAssets] = useState<Record<string, AssetConfig>>(() => loadAssets());
 
-  const assetKeys = Object.keys(assets);
-  const portfolioKeys = assetKeys.filter((k) => assets[k].type === 'portfolio');
-  const indicatorKeys = assetKeys.filter((k) => assets[k].type === 'indicator');
+  const assetKeys = useMemo(() => Object.keys(assets), [assets]);
+  const portfolioKeys = useMemo(() => assetKeys.filter((k) => assets[k].type === 'portfolio'), [assetKeys, assets]);
+  const indicatorKeys = useMemo(() => assetKeys.filter((k) => assets[k].type === 'indicator'), [assetKeys, assets]);
 
   const nextColor = useCallback(() => {
     const usedColors = new Set(Object.values(assets).map((a) => a.color));

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { DEFAULT_MODEL_ID, getModelById } from '@/lib/models';
 import type { AIProvider } from '@/lib/models';
+import { encryptValue, decryptValue, isEncrypted } from '@/lib/cryptoStorage';
 
 export const DEFAULT_SYSTEM_PROMPT = `Tu es un expert en analyse financière et en gestion de portefeuille avec 20 ans d'expérience sur les marchés financiers mondiaux. Tu disposes des données de marché en temps réel du portefeuille de l'utilisateur, incluant les prix actuels, les performances récentes, les indicateurs techniques (RSI, moyennes mobiles 50/200, bandes de Bollinger, drawdown depuis le sommet) et les données macro-économiques (Fear & Greed Index, VIX, HY Spread).
 
@@ -101,46 +102,69 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
   const currentSession = chatSessions.find((s) => s.id === currentSessionId) ?? createNewSession();
 
   useEffect(() => {
-    try {
-      const storedModel = localStorage.getItem(STORAGE_KEY_MODEL) ?? DEFAULT_MODEL_ID;
-      const storedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT);
+    async function hydrate() {
+      try {
+        const storedModel = localStorage.getItem(STORAGE_KEY_MODEL) ?? DEFAULT_MODEL_ID;
+        const storedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT);
 
-      const keys: Record<AIProvider, string> = { openai: '', anthropic: '', google: '' };
-      for (const p of ['openai', 'anthropic', 'google'] as AIProvider[]) {
-        keys[p] = localStorage.getItem(apiKeyStorageKey(p)) ?? '';
-      }
-      // Migrate old single key if present
-      const legacyKey = localStorage.getItem('strategic_dashboard_api_key');
-      if (legacyKey && !keys.openai) {
-        keys.openai = legacyKey;
-        localStorage.setItem(apiKeyStorageKey('openai'), legacyKey);
-        localStorage.removeItem('strategic_dashboard_api_key');
-      }
+        const keys: Record<AIProvider, string> = { openai: '', anthropic: '', google: '' };
+        for (const p of ['openai', 'anthropic', 'google'] as AIProvider[]) {
+          const stored = localStorage.getItem(apiKeyStorageKey(p)) ?? '';
+          if (stored && isEncrypted(stored)) {
+            try {
+              keys[p] = await decryptValue(stored);
+            } catch {
+              // Decryption failed (e.g. key rotated) — treat as empty
+              keys[p] = '';
+            }
+          } else {
+            keys[p] = stored;
+            // Encrypt the plaintext key now that crypto is available
+            if (stored) {
+              try {
+                localStorage.setItem(apiKeyStorageKey(p), await encryptValue(stored));
+              } catch { /* non-critical */ }
+            }
+          }
+        }
+        // Migrate old single key if present
+        const legacyKey = localStorage.getItem('strategic_dashboard_api_key');
+        if (legacyKey && !keys.openai) {
+          keys.openai = legacyKey;
+          try {
+            localStorage.setItem(apiKeyStorageKey('openai'), await encryptValue(legacyKey));
+          } catch {
+            localStorage.setItem(apiKeyStorageKey('openai'), legacyKey);
+          }
+          localStorage.removeItem('strategic_dashboard_api_key');
+        }
 
-      setApiKeys(keys);
-      setSelectedModelIdState(storedModel);
-      if (storedPrompt) setSystemPromptState(storedPrompt);
+        setApiKeys(keys);
+        setSelectedModelIdState(storedModel);
+        if (storedPrompt) setSystemPromptState(storedPrompt);
 
-      // Load chat sessions
-      const rawSessions = localStorage.getItem(STORAGE_KEY_SESSIONS);
-      const sessions: ChatSession[] = rawSessions ? JSON.parse(rawSessions) : [];
-      const rawCurrentId = localStorage.getItem(STORAGE_KEY_CURRENT_SESSION);
+        // Load chat sessions
+        const rawSessions = localStorage.getItem(STORAGE_KEY_SESSIONS);
+        const sessions: ChatSession[] = rawSessions ? JSON.parse(rawSessions) : [];
+        const rawCurrentId = localStorage.getItem(STORAGE_KEY_CURRENT_SESSION);
 
-      if (sessions.length === 0) {
+        if (sessions.length === 0) {
+          const initial = createNewSession();
+          setChatSessions([initial]);
+          setCurrentSessionId(initial.id);
+        } else {
+          setChatSessions(sessions);
+          const existsInSessions = sessions.some((s) => s.id === rawCurrentId);
+          setCurrentSessionId(existsInSessions ? rawCurrentId! : sessions[0].id);
+        }
+      } catch {
         const initial = createNewSession();
         setChatSessions([initial]);
         setCurrentSessionId(initial.id);
-      } else {
-        setChatSessions(sessions);
-        const existsInSessions = sessions.some((s) => s.id === rawCurrentId);
-        setCurrentSessionId(existsInSessions ? rawCurrentId! : sessions[0].id);
       }
-    } catch {
-      const initial = createNewSession();
-      setChatSessions([initial]);
-      setCurrentSessionId(initial.id);
+      setHydrated(true);
     }
-    setHydrated(true);
+    hydrate();
   }, []);
 
   // Persist sessions to localStorage whenever they change (after hydration)
@@ -158,11 +182,7 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
     } catch {}
   }, [currentSessionId, hydrated]);
 
-  const setApiKey = (key: string) => {
-    const trimmed = key.trim();
-    setApiKeys((prev) => ({ ...prev, [currentProvider]: trimmed }));
-    try { localStorage.setItem(apiKeyStorageKey(currentProvider), trimmed); } catch {}
-  };
+  const setApiKey = (key: string) => setApiKeyForProvider(currentProvider, key);
 
   const setSelectedModelId = (id: string) => {
     setSelectedModelIdState(id);
@@ -189,13 +209,13 @@ export function StrategicDashboardProvider({ children }: { children: ReactNode }
   const setApiKeyForProvider = (provider: AIProvider, key: string) => {
     const trimmed = key.trim();
     setApiKeys((prev) => ({ ...prev, [provider]: trimmed }));
-    try {
-      if (trimmed) {
-        localStorage.setItem(apiKeyStorageKey(provider), trimmed);
-      } else {
-        localStorage.removeItem(apiKeyStorageKey(provider));
-      }
-    } catch {}
+    if (trimmed) {
+      encryptValue(trimmed)
+        .then((enc) => { try { localStorage.setItem(apiKeyStorageKey(provider), enc); } catch {} })
+        .catch(() => { try { localStorage.setItem(apiKeyStorageKey(provider), trimmed); } catch {} });
+    } else {
+      try { localStorage.removeItem(apiKeyStorageKey(provider)); } catch {}
+    }
   };
 
   const saveMessages = (messages: ChatMessage[]) => {
