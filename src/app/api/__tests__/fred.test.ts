@@ -36,7 +36,7 @@ describe('GET /api/fred', () => {
         return Promise.resolve({ ok: false, status: 500 });
       }
       // Then CSV fallback succeeds
-      return Promise.resolve({ ok: true, text: async () => csvData });
+      return Promise.resolve({ ok: true, text: async () => csvData, headers: new Headers({ 'content-type': 'text/csv' }) });
     }));
     vi.doMock('@/lib/env', () => ({ env: { FRED_API_KEY: 'test-key' } }));
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -56,6 +56,7 @@ describe('GET /api/fred', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       text: async () => csvData,
+      headers: new Headers({ 'content-type': 'text/csv' }),
     }));
     vi.doMock('@/lib/env', () => ({ env: { FRED_API_KEY: null } }));
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -86,6 +87,7 @@ describe('GET /api/fred', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       text: async () => csvData,
+      headers: new Headers({ 'content-type': 'text/csv' }),
     }));
     vi.doMock('@/lib/env', () => ({ env: { FRED_API_KEY: null } }));
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});

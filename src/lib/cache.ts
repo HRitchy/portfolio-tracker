@@ -15,10 +15,15 @@ export class MemoryCache<T> {
     const entry = this.store.get(key);
     if (!entry) return null;
     if (Date.now() > entry.expiresAt) {
-      this.store.delete(key);
+      // Keep the entry for stale-while-error; only skip returning it as fresh.
       return null;
     }
     return entry.data;
+  }
+
+  /** Return the entry even if expired (stale-while-error fallback). */
+  getStale(key: string): T | null {
+    return this.store.get(key)?.data ?? null;
   }
 
   set(key: string, data: T, ttlMs: number): void {

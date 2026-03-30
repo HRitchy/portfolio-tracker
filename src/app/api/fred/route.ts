@@ -31,6 +31,10 @@ async function fetchFromFREDCsv(): Promise<Observation[]> {
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
   const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=${fmt(start)}&coed=${fmt(end)}`;
   const resp = await fetchExternal(url, { label: '/api/fred-csv' });
+  const contentType = resp.headers.get('content-type') ?? '';
+  if (contentType.includes('text/html')) {
+    throw new Error('FRED CSV endpoint returned HTML instead of CSV');
+  }
   const text = await resp.text();
   const lines = text.trim().split('\n');
   const dataLines = lines.slice(1); // skip header
@@ -82,6 +86,14 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' },
     });
   } catch (err) {
+    // Both sources failed — try serving stale cached data rather than returning an error
+    const stale = cache.getStale(CACHE_KEY);
+    if (stale) {
+      logger.warn('/api/fred serving stale cached data after upstream failures');
+      return NextResponse.json({ observations: stale, stale: true }, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=3600' },
+      });
+    }
     return upstreamError('/api/fred', err);
   }
 }
