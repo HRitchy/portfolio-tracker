@@ -58,7 +58,7 @@ export function MacroProvider({ children }: { children: ReactNode }) {
         }
       });
 
-    fetchWithRetry('/api/fred', controller.signal)
+    fetchWithRetry('/api/fred', controller.signal, 3, 1000)
       .then((r) => r.json())
       .then((d) => {
         const obs = d.observations ?? null;
