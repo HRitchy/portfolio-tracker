@@ -79,7 +79,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel border border-[var(--border)] rounded-2xl shadow-2xl p-6 md:p-8"
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel rounded-2xl shadow-2xl p-6 md:p-8"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -223,7 +223,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm font-semibold bg-[var(--accent)] text-[var(--accent-contrast)] rounded-xl hover:opacity-90 transition-opacity"
+            className="btn-glow px-5 py-2 text-sm font-semibold bg-[var(--accent)] text-[var(--accent-contrast)] rounded-xl hover:opacity-90 transition-opacity"
           >
             Enregistrer
           </button>

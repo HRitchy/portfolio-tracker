@@ -98,7 +98,7 @@ function NavSections({
                   scroll={!item.href.startsWith('/asset/')}
                   className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
                     isActive(item.href)
-                      ? 'bg-[var(--accent)] text-[var(--accent-contrast)] shadow-lg shadow-indigo-500/20'
+                      ? 'bg-[var(--accent)] text-[var(--accent-contrast)] shadow-[0_0_16px_var(--accent-glow)]'
                       : 'text-[var(--nav-text)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]'
                   }`}
                 >

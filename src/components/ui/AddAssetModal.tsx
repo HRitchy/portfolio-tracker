@@ -112,7 +112,7 @@ export default function AddAssetModal({
         role="dialog"
         aria-modal="true"
         aria-label={`Ajouter un ${isPortfolio ? 'actif' : 'indicateur'}`}
-        className="relative z-10 w-full max-w-md mx-4 bg-[var(--panel)] border border-[var(--border)] rounded-2xl shadow-2xl p-6"
+        className="relative z-10 w-full max-w-md mx-4 bg-[var(--panel)] backdrop-blur-xl border border-[var(--glass-border)] rounded-2xl shadow-2xl p-6"
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-bold text-[var(--text)]">
@@ -207,7 +207,7 @@ export default function AddAssetModal({
           <button
             type="submit"
             disabled={testing}
-            className="w-full py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer disabled:cursor-wait"
+            className="btn-glow w-full py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer disabled:cursor-wait"
           >
             {testing ? 'Vérification du symbole...' : 'Ajouter'}
           </button>
