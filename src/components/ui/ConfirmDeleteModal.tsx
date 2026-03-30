@@ -35,7 +35,7 @@ export default function ConfirmDeleteModal({
         role="dialog"
         aria-modal="true"
         aria-label={`Confirmer la suppression de ${assetName}`}
-        className="relative z-10 w-full max-w-sm mx-4 bg-[var(--panel)] border border-[var(--border)] rounded-2xl shadow-2xl p-6"
+        className="relative z-10 w-full max-w-sm mx-4 bg-[var(--panel)] backdrop-blur-xl border border-[var(--glass-border)] rounded-2xl shadow-2xl p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-[var(--text)]">

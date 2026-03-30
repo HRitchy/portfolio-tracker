@@ -316,7 +316,7 @@ export default function StrategicDashboard() {
             </p>
             <button
               onClick={() => setSettingsOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-[var(--accent)] text-[var(--accent-contrast)] rounded-xl hover:opacity-90 transition-opacity"
+              className="btn-glow flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-[var(--accent)] text-[var(--accent-contrast)] rounded-xl hover:opacity-90 transition-opacity"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" />
@@ -424,7 +424,7 @@ export default function StrategicDashboard() {
                   onClick={() => sendMessage(input)}
                   disabled={!input.trim()}
                   aria-label="Envoyer le message"
-                  className="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="btn-glow shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <line x1="22" y1="2" x2="11" y2="13" />

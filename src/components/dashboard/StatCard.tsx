@@ -79,7 +79,7 @@ const StatCard = memo(function StatCard({ assetKey, data }: { assetKey: string; 
 
   return (
     <Link href={`/asset/${assetKey}`} className="block group">
-      <div className="data-card p-4 md:p-5 3xl:p-6 transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02] group-hover:border-[var(--accent)]/40 fade-in">
+      <div className="data-card p-4 md:p-5 3xl:p-6 transition-all duration-200 group-hover:shadow-[0_0_24px_var(--accent-glow)] group-hover:scale-[1.02] group-hover:border-[var(--glass-border)] fade-in">
         <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
           <div className="text-[11px] md:text-xs text-[var(--muted)] flex items-center gap-1.5 md:gap-2">
             <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: cfg.color }} />
