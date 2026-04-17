@@ -9,9 +9,11 @@ import {
   type ReactNode,
 } from 'react';
 import { AssetConfig } from '@/lib/types';
-import { DEFAULT_ASSETS, COLOR_PALETTE } from '@/lib/config';
+import { DISPLAYED_ASSETS, COLOR_PALETTE } from '@/lib/config';
 
-const LOCAL_KEY = 'portfolio_assets';
+// Key bumped so the reduced indicator-only dashboard isn't overridden
+// by previously persisted portfolios.
+const LOCAL_KEY = 'portfolio_assets_v2';
 
 interface AssetsContextType {
   assets: Record<string, AssetConfig>;
@@ -24,10 +26,10 @@ interface AssetsContextType {
 }
 
 const AssetsContext = createContext<AssetsContextType>({
-  assets: DEFAULT_ASSETS,
-  assetKeys: Object.keys(DEFAULT_ASSETS),
-  portfolioKeys: Object.keys(DEFAULT_ASSETS).filter((k) => DEFAULT_ASSETS[k].type === 'portfolio'),
-  indicatorKeys: Object.keys(DEFAULT_ASSETS).filter((k) => DEFAULT_ASSETS[k].type === 'indicator'),
+  assets: DISPLAYED_ASSETS,
+  assetKeys: Object.keys(DISPLAYED_ASSETS),
+  portfolioKeys: Object.keys(DISPLAYED_ASSETS).filter((k) => DISPLAYED_ASSETS[k].type === 'portfolio'),
+  indicatorKeys: Object.keys(DISPLAYED_ASSETS).filter((k) => DISPLAYED_ASSETS[k].type === 'indicator'),
   addAsset: () => {},
   removeAsset: () => {},
   nextColor: () => COLOR_PALETTE[0],
@@ -36,14 +38,14 @@ const AssetsContext = createContext<AssetsContextType>({
 function loadAssets(): Record<string, AssetConfig> {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
-    if (!raw) return DEFAULT_ASSETS;
+    if (!raw) return DISPLAYED_ASSETS;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
       return parsed;
     }
-    return DEFAULT_ASSETS;
+    return DISPLAYED_ASSETS;
   } catch {
-    return DEFAULT_ASSETS;
+    return DISPLAYED_ASSETS;
   }
 }
 

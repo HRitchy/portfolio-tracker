@@ -9,6 +9,13 @@ export const DEFAULT_ASSETS: Record<string, AssetConfig> = {
   eurusd: { symbol: 'EUR=X',   name: 'USD/EUR',          assetClass: 'Devises',    type: 'indicator',  color: 'rgb(59,130,246)',  colorBg: 'rgba(59,130,246,0.1)',  hasRSI: false, hasMM: false, hasDrawdown: false, hasBollinger: false },
 };
 
+// Assets actually fetched and displayed by the market dashboard.
+// The dashboard is focused on three macro indicators (VIX, Fear & Greed, HY Spread).
+// Only VIX is sourced from Yahoo; F&G and HY Spread come from dedicated APIs.
+export const DISPLAYED_ASSETS: Record<string, AssetConfig> = {
+  vix: DEFAULT_ASSETS.vix,
+};
+
 export const COLOR_PALETTE = [
   // Verts
   { color: 'rgb(16,185,129)',  colorBg: 'rgba(16,185,129,0.1)' },
