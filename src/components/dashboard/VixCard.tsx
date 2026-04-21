@@ -19,7 +19,7 @@ function getVixLabel(v: number): string {
 }
 
 export default function VixCard() {
-  const { store } = usePortfolio();
+  const { store, errors, loading } = usePortfolio();
   const vix = store.vix ?? null;
   const series = vix?.series ?? [];
   const latest = series.length ? series[series.length - 1] : null;
@@ -29,6 +29,7 @@ export default function VixCard() {
 
   const color = val != null ? getVixColor(val) : 'var(--muted)';
   const label = val != null ? getVixLabel(val) : '--';
+  const hasError = errors.vix && val == null;
 
   return (
     <div className="data-card p-4 md:p-5 3xl:p-6">
@@ -36,8 +37,10 @@ export default function VixCard() {
         <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: '#ef4444' }} aria-hidden="true" />
         VIX — Volatilité S&amp;P 500
       </div>
-      {val == null ? (
-        <div className="text-2xl md:text-[28px] font-bold text-[var(--muted)]" aria-label="Chargement en cours">--</div>
+      {hasError ? (
+        <div className="text-[var(--muted)] text-sm">Indisponible</div>
+      ) : val == null ? (
+        <div className="text-2xl md:text-[28px] font-bold text-[var(--muted)]" aria-label={loading ? 'Chargement en cours' : 'Donnée en attente'}>--</div>
       ) : (
         <>
           <div

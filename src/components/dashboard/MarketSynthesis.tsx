@@ -176,6 +176,9 @@ export default function MarketSynthesis() {
     [store, fearGreed, hySpread],
   );
 
+  const availableSignals = [mkt.vixLevel, fearGreed, hySpread].filter((v) => v != null).length;
+  const hasEnoughData = availableSignals >= 2;
+
   const color = regimeColor(mkt.regime);
   const contrarianLabel = regimeContrarianLabel(mkt.regime);
   const action = getRegimeAction(mkt.regime);
@@ -192,13 +195,21 @@ export default function MarketSynthesis() {
             Temps de marché
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <span
-              className="text-lg md:text-xl font-bold px-3 py-1.5 rounded-full"
-              style={{ background: `${color}20`, color }}
-            >
-              {mkt.regime}
-            </span>
-            <span className="text-sm text-[var(--muted)]">{contrarianLabel}</span>
+            {hasEnoughData ? (
+              <>
+                <span
+                  className="text-lg md:text-xl font-bold px-3 py-1.5 rounded-full"
+                  style={{ background: `${color}20`, color }}
+                >
+                  {mkt.regime}
+                </span>
+                <span className="text-sm text-[var(--muted)]">{contrarianLabel}</span>
+              </>
+            ) : (
+              <span className="text-sm text-[var(--muted)] italic">
+                Données insuffisantes pour établir un régime de marché.
+              </span>
+            )}
           </div>
         </div>
 
@@ -224,34 +235,36 @@ export default function MarketSynthesis() {
         </div>
       </div>
 
-      <ScoreBar mkt={mkt} />
+      {hasEnoughData && <ScoreBar mkt={mkt} />}
 
-      <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${color}40`, background: `${color}10` }}>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] uppercase tracking-wide font-semibold" style={{ color }}>
-            Démarche à suivre
-          </span>
+      {hasEnoughData && (
+        <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${color}40`, background: `${color}10` }}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] uppercase tracking-wide font-semibold" style={{ color }}>
+              Démarche à suivre
+            </span>
+          </div>
+          <div className="font-semibold text-base md:text-lg mb-1" style={{ color }}>
+            {action.headline}
+          </div>
+          <div className="text-xs md:text-sm text-[var(--muted)] mb-3">{action.posture}</div>
+          <ol className="space-y-2 text-sm">
+            {action.steps.map((step, i) => (
+              <li key={step} className="flex items-start gap-2">
+                <span
+                  className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold"
+                  style={{ background: `${color}30`, color }}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-[var(--text)]">{step}</span>
+              </li>
+            ))}
+          </ol>
         </div>
-        <div className="font-semibold text-base md:text-lg mb-1" style={{ color }}>
-          {action.headline}
-        </div>
-        <div className="text-xs md:text-sm text-[var(--muted)] mb-3">{action.posture}</div>
-        <ol className="space-y-2 text-sm">
-          {action.steps.map((step, i) => (
-            <li key={step} className="flex items-start gap-2">
-              <span
-                className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold"
-                style={{ background: `${color}30`, color }}
-              >
-                {i + 1}
-              </span>
-              <span className="text-[var(--text)]">{step}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+      )}
 
-      {mkt.regimeReasons.length > 0 && (
+      {hasEnoughData && mkt.regimeReasons.length > 0 && (
         <div className="mt-4 pt-4 border-t border-[var(--border)]">
           <div className="text-[10px] uppercase tracking-wide text-[var(--muted)] font-semibold mb-2">
             Diagnostic des indicateurs
