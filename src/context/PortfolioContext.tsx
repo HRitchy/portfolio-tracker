@@ -1,11 +1,12 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { Store, AssetConfig } from '@/lib/types';
+import { Store } from '@/lib/types';
 import { TIMEZONE } from '@/lib/config';
 import { useAssets } from '@/context/AssetsContext';
 import { fetchAssetData } from '@/lib/fetcher';
 import { processAsset } from '@/lib/calculations';
+import { useToast } from '@/components/ui/Toast';
 
 const LOCAL_KEY = 'portfolio_snapshot';
 const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
@@ -15,6 +16,7 @@ interface PortfolioContextType {
   store: Store;
   loading: boolean;
   lastUpdate: string | null;
+  errors: Record<string, boolean>;
   refreshAll: () => Promise<void>;
   refreshAsset: (key: string) => Promise<void>;
 }
@@ -23,6 +25,7 @@ const PortfolioContext = createContext<PortfolioContextType>({
   store: {},
   loading: false,
   lastUpdate: null,
+  errors: {},
   refreshAll: async () => {},
   refreshAsset: async () => {},
 });
@@ -73,6 +76,11 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<Store>(snapshot?.store ?? {});
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(snapshot?.lastUpdate ?? null);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  const { showToast } = useToast();
+  const showToastRef = useRef(showToast);
+  showToastRef.current = showToast;
 
   const refreshAsset = useCallback(async (key: string) => {
     const cfg = assetsRef.current[key];
@@ -80,16 +88,24 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     const result = await fetchAssetData(cfg.symbol);
     const data = result ? processAsset(key, cfg, result) : null;
     const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });
-    setStore((prev) => ({ ...prev, [key]: data }));
+    setStore((prev) => {
+      const next = { ...prev, [key]: data };
+      saveSnapshot(next, timestamp);
+      return next;
+    });
+    setErrors((prev) => ({ ...prev, [key]: data === null }));
     setLastUpdate(timestamp);
-    saveSnapshot({ ...store, [key]: data }, timestamp);
-  }, [store]);
+    if (data === null) {
+      showToastRef.current(`${cfg.name} indisponible`, 'warning');
+    }
+  }, []);
 
   const refreshAll = useCallback(async () => {
     const currentAssets = assetsRef.current;
     const currentKeys = keysRef.current;
     setLoading(true);
     const newStore: Store = {};
+    const newErrors: Record<string, boolean> = {};
 
     const results = await Promise.allSettled(
       currentKeys.map(async (key: string) => {
@@ -99,19 +115,32 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         return { key, data: result ? processAsset(key, cfg, result) : null };
       })
     );
-    results.forEach((res) => {
+    const failures: string[] = [];
+    results.forEach((res, idx) => {
+      const key = currentKeys[idx];
       if (res.status === 'fulfilled') {
         newStore[res.value.key] = res.value.data;
+        newErrors[res.value.key] = res.value.data === null;
+        if (res.value.data === null) failures.push(currentAssets[res.value.key]?.name ?? res.value.key);
       } else {
         console.error('[PortfolioContext] Échec fetch actif :', res.reason);
+        newStore[key] = null;
+        newErrors[key] = true;
+        failures.push(currentAssets[key]?.name ?? key);
       }
     });
 
     const timestamp = new Date().toLocaleString('fr-FR', { timeZone: TIMEZONE });
     setStore(newStore);
+    setErrors(newErrors);
     setLastUpdate(timestamp);
     saveSnapshot(newStore, timestamp);
     setLoading(false);
+
+    if (failures.length > 0) {
+      const label = failures.length === 1 ? failures[0] : `${failures.length} sources`;
+      showToastRef.current(`${label} indisponible${failures.length > 1 ? 's' : ''}`, 'warning');
+    }
   }, []);
 
   // Refresh when asset list changes
@@ -128,7 +157,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   }, [refreshAll]);
 
   return (
-    <PortfolioContext.Provider value={{ store, loading, lastUpdate, refreshAll, refreshAsset }}>
+    <PortfolioContext.Provider value={{ store, loading, lastUpdate, errors, refreshAll, refreshAsset }}>
       {children}
     </PortfolioContext.Provider>
   );
