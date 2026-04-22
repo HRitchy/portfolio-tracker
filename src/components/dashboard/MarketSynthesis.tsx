@@ -4,78 +4,7 @@ import { useMemo } from 'react';
 import { usePortfolio } from '@/context/PortfolioContext';
 import { useMacro } from '@/context/MacroContext';
 import { buildMarketContext, regimeColor, regimeContrarianLabel } from '@/lib/advice';
-import { MarketContext, MarketRegime } from '@/lib/types';
-
-interface RegimeAction {
-  headline: string;
-  steps: string[];
-  posture: string;
-}
-
-function getRegimeAction(regime: MarketRegime): RegimeAction {
-  switch (regime) {
-    case 'Capitulation':
-      return {
-        headline: "Opportunité historique — accumuler agressivement",
-        posture: "Biais 100% acheteur, profil contrariant",
-        steps: [
-          "Augmenter significativement l'exposition actions de qualité (indices larges, leaders).",
-          "Déployer le cash en 2-3 tranches sur 4-8 semaines pour lisser le point d'entrée.",
-          "Privilégier les actifs les plus massacrés mais solides (beta élevé, qualité fondamentale).",
-          "Éviter les ventes à perte : la fenêtre d'achat est généralement courte.",
-          "Tenir bon malgré la volatilité — les meilleurs rebonds suivent la capitulation.",
-        ],
-      };
-    case 'Peur':
-      return {
-        headline: "Zone d'accumulation — renforcer progressivement",
-        posture: "Biais acheteur mesuré, patience récompensée",
-        steps: [
-          "Renforcer les positions existantes par tranches (DCA accéléré).",
-          "Commencer à déployer le cash : 30 à 50% de la poudre sèche disponible.",
-          "Cibler les actifs de qualité qui ont le plus corrigé.",
-          "Éviter l'effet de levier : la volatilité reste élevée.",
-          "Préparer une liste de prix cibles pour les prochains paliers de baisse.",
-        ],
-      };
-    case 'Neutre':
-      return {
-        headline: "Statu quo — conserver et attendre un signal clair",
-        posture: "Équilibre, ni euphorie ni panique",
-        steps: [
-          "Maintenir l'allocation stratégique actuelle, pas de mouvement brusque.",
-          "Poursuivre un DCA régulier et discipliné sur les actifs cibles.",
-          "Conserver une poche de cash (15-25%) pour saisir les opportunités futures.",
-          "Surveiller VIX, Fear & Greed et HY Spread pour détecter un basculement.",
-          "Profiter du calme pour réévaluer la thèse d'investissement de chaque position.",
-        ],
-      };
-    case 'Euphorie':
-      return {
-        headline: "Prudence — alléger progressivement les positions tendues",
-        posture: "Biais défensif, prise de bénéfices sélective",
-        steps: [
-          "Alléger partiellement les actifs les plus étendus (gains >30% sur 90j).",
-          "Reconstituer la trésorerie : viser 25 à 40% de cash disponible.",
-          "Éviter tout nouvel achat hors actifs décotés ou défensifs.",
-          "Couvrir les positions concentrées (options, stops techniques).",
-          "Ne pas céder au FOMO — les rallies verticaux finissent mal.",
-        ],
-      };
-    case 'Exubérance':
-      return {
-        headline: "Danger — posture défensive impérative",
-        posture: "Biais fortement vendeur, protection du capital",
-        steps: [
-          "Alléger fortement l'exposition aux actifs risqués (objectif : réduire de 30-50%).",
-          "Monter la poche de cash / monétaire à 40-60% du portefeuille.",
-          "Fermer ou couvrir les positions à fort effet de levier.",
-          "Éviter tout nouveau déploiement, même sur les pullbacks mineurs.",
-          "Préparer une liste d'achat pour le prochain régime de peur / capitulation.",
-        ],
-      };
-  }
-}
+import { MarketContext } from '@/lib/types';
 
 function IndicatorTile({
   label,
@@ -181,7 +110,6 @@ export default function MarketSynthesis() {
 
   const color = regimeColor(mkt.regime);
   const contrarianLabel = regimeContrarianLabel(mkt.regime);
-  const action = getRegimeAction(mkt.regime);
 
   const vixInfo = vixSubLabel(mkt.vixLevel);
   const fgInfo = fearGreedSubLabel(fearGreed);
@@ -236,33 +164,6 @@ export default function MarketSynthesis() {
       </div>
 
       {hasEnoughData && <ScoreBar mkt={mkt} />}
-
-      {hasEnoughData && (
-        <div className="mt-5 rounded-xl border p-4" style={{ borderColor: `${color}40`, background: `${color}10` }}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase tracking-wide font-semibold" style={{ color }}>
-              Démarche à suivre
-            </span>
-          </div>
-          <div className="font-semibold text-base md:text-lg mb-1" style={{ color }}>
-            {action.headline}
-          </div>
-          <div className="text-xs md:text-sm text-[var(--muted)] mb-3">{action.posture}</div>
-          <ol className="space-y-2 text-sm">
-            {action.steps.map((step, i) => (
-              <li key={step} className="flex items-start gap-2">
-                <span
-                  className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold"
-                  style={{ background: `${color}30`, color }}
-                >
-                  {i + 1}
-                </span>
-                <span className="text-[var(--text)]">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
 
       {hasEnoughData && mkt.regimeReasons.length > 0 && (
         <div className="mt-4 pt-4 border-t border-[var(--border)]">
