@@ -2,16 +2,20 @@
 
 import { useMacro } from '@/context/MacroContext';
 
+// Seuils alignés sur la table de référence :
+//   Euphorie <2.75, Calme 2.75-3.50, Stress 3.50-4.50, Panique >4.50
 function getSpreadColor(v: number): string {
-  if (v >= 5) return '#ef4444';
-  if (v >= 4) return '#f59e0b';
-  return '#10b981';
+  if (v > 4.5) return '#ef4444';   // Panique
+  if (v >= 3.5) return '#f97316';  // Stress
+  if (v >= 2.75) return '#eab308'; // Calme
+  return '#10b981';                 // Euphorie
 }
 
 function getSpreadLabel(v: number): string {
-  if (v >= 5) return 'Stress élevé';
-  if (v >= 4) return 'Vigilance';
-  return 'Normal';
+  if (v > 4.5) return 'Panique';
+  if (v >= 3.5) return 'Stress';
+  if (v >= 2.75) return 'Calme';
+  return 'Euphorie';
 }
 
 export default function HYSpreadCard() {

@@ -2,20 +2,19 @@
 
 import { usePortfolio } from '@/context/PortfolioContext';
 
+// Seuils alignés sur la table de référence : Panique >30, Stress 20-30, Calme 15-20, Euphorie <15
 function getVixColor(v: number): string {
-  if (v >= 30) return '#10b981';
-  if (v >= 20) return '#f59e0b';
-  if (v <= 12) return '#ef4444';
-  return '#84cc16';
+  if (v > 30) return '#ef4444';   // Panique
+  if (v >= 20) return '#f97316';  // Stress
+  if (v >= 15) return '#eab308';  // Calme
+  return '#10b981';                // Euphorie
 }
 
 function getVixLabel(v: number): string {
-  if (v >= 35) return 'Panique';
-  if (v >= 25) return 'Stress élevé';
-  if (v >= 20) return 'Volatilité modérée';
-  if (v <= 12) return 'Complaisance extrême';
-  if (v <= 15) return 'Complaisance';
-  return 'Normal';
+  if (v > 30) return 'Panique';
+  if (v >= 20) return 'Stress';
+  if (v >= 15) return 'Calme';
+  return 'Euphorie';
 }
 
 export default function VixCard() {

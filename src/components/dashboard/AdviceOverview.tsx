@@ -45,7 +45,7 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
     <div className="rounded-xl border border-[var(--border)] p-4 mb-4 bg-[var(--bg-soft)]/30">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span
               className="text-sm font-bold px-3 py-1 rounded-full"
               style={{ background: `${color}20`, color }}
@@ -53,6 +53,17 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
               {mkt.regime}
             </span>
             <span className="text-xs text-[var(--muted)]">{label}</span>
+            <span
+              className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-semibold"
+              style={
+                mkt.regimeConfirmed
+                  ? { background: `${color}20`, color }
+                  : { border: '1px solid var(--border)', color: 'var(--muted)' }
+              }
+              title={mkt.regimeConfirmed ? 'Hypothèse confirmée 2/3' : 'Aucune convergence 2/3'}
+            >
+              {mkt.regimeConfirmed ? 'Confirmé' : 'Non confirmé'}
+            </span>
           </div>
         </div>
 
@@ -96,9 +107,9 @@ function MarketRegimeBanner({ mkt }: { mkt: MarketContext }) {
         />
       </div>
       <div className="flex justify-between text-[10px] text-[var(--muted)]">
-        <span>Exubérance (vendre)</span>
+        <span>Euphorie (vendre)</span>
         <span>Score: {mkt.regimeScore > 0 ? '+' : ''}{mkt.regimeScore}</span>
-        <span>Capitulation (acheter)</span>
+        <span>Panique (acheter)</span>
       </div>
 
       {/* Macro reasons */}

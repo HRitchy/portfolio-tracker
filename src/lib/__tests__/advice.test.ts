@@ -117,7 +117,7 @@ describe('extractMetrics – volatility annualization', () => {
 /* ── buildMarketContext ── */
 
 describe('buildMarketContext', () => {
-  it('returns Capitulation regime for extreme fear signals', () => {
+  it('returns Panique regime for extreme fear signals (3/3 convergence)', () => {
     const store: Store = {
       vix: {
         series: [{ ts: 0, date: '', dateObj: new Date(), close: 40, variation: null }],
@@ -126,11 +126,12 @@ describe('buildMarketContext', () => {
       },
     };
     const ctx = buildMarketContext(store, 10, 8);
-    expect(ctx.regime).toBe('Capitulation');
+    expect(ctx.regime).toBe('Panique');
+    expect(ctx.regimeConfirmed).toBe(true);
     expect(ctx.regimeScore).toBeGreaterThanOrEqual(6);
   });
 
-  it('returns Exubérance regime for extreme greed signals', () => {
+  it('returns Euphorie regime for extreme greed signals (3/3 convergence)', () => {
     const store: Store = {
       vix: {
         series: [{ ts: 0, date: '', dateObj: new Date(), close: 10, variation: null }],
@@ -139,14 +140,55 @@ describe('buildMarketContext', () => {
       },
     };
     const ctx = buildMarketContext(store, 90, 2);
-    expect(ctx.regime).toBe('Exubérance');
+    expect(ctx.regime).toBe('Euphorie');
+    expect(ctx.regimeConfirmed).toBe(true);
     expect(ctx.regimeScore).toBeLessThanOrEqual(-6);
   });
 
-  it('returns Neutre with null inputs', () => {
+  it('returns Indéterminé with null inputs', () => {
     const ctx = buildMarketContext({}, null, null);
-    expect(ctx.regime).toBe('Neutre');
+    expect(ctx.regime).toBe('Indéterminé');
+    expect(ctx.regimeConfirmed).toBe(false);
     expect(ctx.regimeScore).toBe(0);
+  });
+
+  it('confirms Stress with 2-of-3 convergence', () => {
+    const store: Store = {
+      vix: {
+        series: [{ ts: 0, date: '', dateObj: new Date(), close: 24, variation: null }],
+        key: 'vix',
+      },
+    };
+    // VIX 24 → Stress, F&G 30 → Stress, HY 2 → Euphorie  (2/3 Stress)
+    const ctx = buildMarketContext(store, 30, 2);
+    expect(ctx.regime).toBe('Stress');
+    expect(ctx.regimeConfirmed).toBe(true);
+  });
+
+  it('returns Indéterminé when 3 indicators disagree (1/1/1)', () => {
+    const store: Store = {
+      vix: {
+        series: [{ ts: 0, date: '', dateObj: new Date(), close: 17, variation: null }],
+        key: 'vix',
+      },
+    };
+    // VIX 17 → Calme, F&G 10 → Panique, HY 4 → Stress
+    const ctx = buildMarketContext(store, 10, 4);
+    expect(ctx.regime).toBe('Indéterminé');
+    expect(ctx.regimeConfirmed).toBe(false);
+  });
+
+  it('confirms Calme with 2-of-3 convergence', () => {
+    const store: Store = {
+      vix: {
+        series: [{ ts: 0, date: '', dateObj: new Date(), close: 18, variation: null }],
+        key: 'vix',
+      },
+    };
+    // VIX 18 → Calme, F&G 65 → Calme, HY 5 → Panique  (2/3 Calme)
+    const ctx = buildMarketContext(store, 65, 5);
+    expect(ctx.regime).toBe('Calme');
+    expect(ctx.regimeConfirmed).toBe(true);
   });
 });
 
@@ -433,11 +475,13 @@ describe('getAssetAdvice – cross-asset awareness', () => {
       8,  // high HY spread
     );
 
-    // In capitulation regime, cross-asset boost should apply
+    // In Panique regime (3/3 convergence), cross-asset boost should apply
     const boosted = result.advices.filter(a => a.crossAssetAdjustment === 1);
     // At least some assets should get the boost if they all signal buy
     // (This depends on whether all actually score >= 4, but in extreme conditions they should)
-    expect(result.marketContext.regime).toBe('Capitulation');
+    expect(result.marketContext.regime).toBe('Panique');
+    expect(result.marketContext.regimeConfirmed).toBe(true);
+    expect(boosted.length).toBeGreaterThanOrEqual(0);
   });
 
   it('single asset gets no cross-asset adjustment', () => {

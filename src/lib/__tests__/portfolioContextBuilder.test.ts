@@ -4,20 +4,26 @@ import type { Store, AssetAdvice, MarketContext } from '../types';
 import type { AssetConfig } from '../types';
 
 const baseMarketContext: MarketContext = {
-  regime: 'Neutre',
+  regime: 'Indéterminé',
+  regimeConfirmed: false,
   regimeScore: 0,
   fearGreed: null,
   vixLevel: null,
   vixMA50: null,
   hySpread: null,
   regimeReasons: [],
+  indicatorVotes: [
+    { indicator: 'vix', regime: null },
+    { indicator: 'fearGreed', regime: null },
+    { indicator: 'hySpread', regime: null },
+  ],
 };
 
 describe('buildPortfolioContext', () => {
   it('includes regime section', () => {
     const result = buildPortfolioContext({}, {}, [], [], baseMarketContext);
     expect(result).toContain('### Régime de marché');
-    expect(result).toContain('Neutre');
+    expect(result).toContain('Indéterminé');
   });
 
   it('includes fear & greed when present', () => {
