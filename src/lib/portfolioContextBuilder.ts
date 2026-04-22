@@ -11,7 +11,7 @@ export function buildPortfolioContext(
   const lines: string[] = [];
 
   lines.push('### Régime de marché');
-  lines.push(`- Régime actuel: **${marketContext.regime}** (score: ${marketContext.regimeScore > 0 ? '+' : ''}${marketContext.regimeScore}/10)`);
+  lines.push(`- Régime actuel: **${marketContext.regime}** (${marketContext.regimeConfirmed ? 'confirmé 2/3' : 'non confirmé'}, score: ${marketContext.regimeScore > 0 ? '+' : ''}${marketContext.regimeScore}/10)`);
   if (marketContext.fearGreed !== null) lines.push(`- Fear & Greed Index: ${Math.round(marketContext.fearGreed)}/100`);
   if (marketContext.vixLevel !== null) lines.push(`- VIX: ${marketContext.vixLevel.toFixed(2)} (MA50: ${marketContext.vixMA50?.toFixed(2) ?? 'N/A'})`);
   if (marketContext.hySpread !== null) lines.push(`- HY Spread: ${marketContext.hySpread.toFixed(2)}%`);

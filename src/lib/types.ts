@@ -39,7 +39,14 @@ export type AssetKey = string;
 
 export type Advice = 'Renforcer' | 'Alléger' | 'Conserver';
 export type Conviction = 'Faible' | 'Moyenne' | 'Forte' | 'Très forte';
-export type MarketRegime = 'Capitulation' | 'Peur' | 'Neutre' | 'Euphorie' | 'Exubérance';
+export type MarketRegime = 'Panique' | 'Stress' | 'Calme' | 'Euphorie' | 'Indéterminé';
+
+export type IndicatorKey = 'vix' | 'fearGreed' | 'hySpread';
+
+export interface IndicatorVote {
+  indicator: IndicatorKey;
+  regime: MarketRegime | null;
+}
 
 export interface MarketContext {
   fearGreed: number | null;
@@ -47,8 +54,10 @@ export interface MarketContext {
   vixMA50: number | null;
   hySpread: number | null;
   regime: MarketRegime;
+  regimeConfirmed: boolean;
   regimeScore: number;
   regimeReasons: string[];
+  indicatorVotes: IndicatorVote[];
 }
 
 export interface AssetMetrics {

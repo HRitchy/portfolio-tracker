@@ -14,7 +14,7 @@ interface RegimeAction {
 
 function getRegimeAction(regime: MarketRegime): RegimeAction {
   switch (regime) {
-    case 'Capitulation':
+    case 'Panique':
       return {
         headline: "Opportunité historique — accumuler agressivement",
         posture: "Biais 100% acheteur, profil contrariant",
@@ -23,10 +23,10 @@ function getRegimeAction(regime: MarketRegime): RegimeAction {
           "Déployer le cash en 2-3 tranches sur 4-8 semaines pour lisser le point d'entrée.",
           "Privilégier les actifs les plus massacrés mais solides (beta élevé, qualité fondamentale).",
           "Éviter les ventes à perte : la fenêtre d'achat est généralement courte.",
-          "Tenir bon malgré la volatilité — les meilleurs rebonds suivent la capitulation.",
+          "Tenir bon malgré la volatilité — les meilleurs rebonds suivent la panique.",
         ],
       };
-    case 'Peur':
+    case 'Stress':
       return {
         headline: "Zone d'accumulation — renforcer progressivement",
         posture: "Biais acheteur mesuré, patience récompensée",
@@ -38,7 +38,7 @@ function getRegimeAction(regime: MarketRegime): RegimeAction {
           "Préparer une liste de prix cibles pour les prochains paliers de baisse.",
         ],
       };
-    case 'Neutre':
+    case 'Calme':
       return {
         headline: "Statu quo — conserver et attendre un signal clair",
         posture: "Équilibre, ni euphorie ni panique",
@@ -52,18 +52,6 @@ function getRegimeAction(regime: MarketRegime): RegimeAction {
       };
     case 'Euphorie':
       return {
-        headline: "Prudence — alléger progressivement les positions tendues",
-        posture: "Biais défensif, prise de bénéfices sélective",
-        steps: [
-          "Alléger partiellement les actifs les plus étendus (gains >30% sur 90j).",
-          "Reconstituer la trésorerie : viser 25 à 40% de cash disponible.",
-          "Éviter tout nouvel achat hors actifs décotés ou défensifs.",
-          "Couvrir les positions concentrées (options, stops techniques).",
-          "Ne pas céder au FOMO — les rallies verticaux finissent mal.",
-        ],
-      };
-    case 'Exubérance':
-      return {
         headline: "Danger — posture défensive impérative",
         posture: "Biais fortement vendeur, protection du capital",
         steps: [
@@ -71,7 +59,19 @@ function getRegimeAction(regime: MarketRegime): RegimeAction {
           "Monter la poche de cash / monétaire à 40-60% du portefeuille.",
           "Fermer ou couvrir les positions à fort effet de levier.",
           "Éviter tout nouveau déploiement, même sur les pullbacks mineurs.",
-          "Préparer une liste d'achat pour le prochain régime de peur / capitulation.",
+          "Préparer une liste d'achat pour le prochain régime de stress / panique.",
+        ],
+      };
+    case 'Indéterminé':
+      return {
+        headline: "Signaux divergents — attendre une convergence 2/3",
+        posture: "Aucune hypothèse confirmée, prudence opérationnelle",
+        steps: [
+          "Conserver l'allocation actuelle, ne pas prendre de pari directionnel marqué.",
+          "Surveiller les trois indicateurs (VIX, F&G, HY OAS) jusqu'à confirmation.",
+          "Profiter pour ajuster la qualité des positions à la marge sans changer le cap.",
+          "Maintenir la poche de cash actuelle, ni renforcement, ni allègement majeur.",
+          "Documenter les seuils déclencheurs pour réagir vite à la prochaine convergence.",
         ],
       };
   }
@@ -101,33 +101,32 @@ function IndicatorTile({
   );
 }
 
+// Couleurs alignées sur le tableau de référence :
+//   Panique #ef4444 (rouge), Stress #f97316 (orange), Calme #eab308 (jaune), Euphorie #10b981 (vert)
+
 function vixSubLabel(v: number | null): { text: string; color: string } {
   if (v == null) return { text: '--', color: 'var(--muted)' };
-  if (v >= 35) return { text: 'Panique', color: '#10b981' };
-  if (v >= 25) return { text: 'Stress élevé', color: '#34d399' };
-  if (v >= 20) return { text: 'Volatilité modérée', color: '#eab308' };
-  if (v <= 12) return { text: 'Complaisance extrême', color: '#ef4444' };
-  if (v <= 15) return { text: 'Complaisance', color: '#f97316' };
-  return { text: 'Normal', color: '#eab308' };
+  if (v > 30) return { text: 'Panique', color: '#ef4444' };
+  if (v >= 20) return { text: 'Stress', color: '#f97316' };
+  if (v >= 15) return { text: 'Calme', color: '#eab308' };
+  return { text: 'Euphorie', color: '#10b981' };
 }
 
 function fearGreedSubLabel(s: number | null): { text: string; color: string } {
   if (s == null) return { text: '--', color: 'var(--muted)' };
-  if (s <= 20) return { text: 'Peur extrême', color: '#10b981' };
-  if (s <= 35) return { text: 'Peur', color: '#34d399' };
-  if (s <= 55) return { text: 'Neutre', color: '#eab308' };
-  if (s <= 75) return { text: 'Avidité', color: '#f97316' };
-  return { text: 'Avidité extrême', color: '#ef4444' };
+  if (s >= 76) return { text: 'Euphorie', color: '#10b981' };
+  if (s >= 56) return { text: 'Calme', color: '#eab308' };
+  if (s >= 45) return { text: 'Transition', color: 'var(--muted)' };
+  if (s >= 25) return { text: 'Stress', color: '#f97316' };
+  return { text: 'Panique', color: '#ef4444' };
 }
 
 function hySubLabel(v: number | null): { text: string; color: string } {
   if (v == null) return { text: '--', color: 'var(--muted)' };
-  if (v >= 7) return { text: 'Stress crédit majeur', color: '#10b981' };
-  if (v >= 5) return { text: 'Stress crédit élevé', color: '#34d399' };
-  if (v >= 4) return { text: 'Vigilance', color: '#eab308' };
-  if (v <= 2.5) return { text: 'Euphorie crédit', color: '#ef4444' };
-  if (v <= 3) return { text: 'Spreads comprimés', color: '#f97316' };
-  return { text: 'Normal', color: '#eab308' };
+  if (v > 4.5) return { text: 'Panique', color: '#ef4444' };
+  if (v >= 3.5) return { text: 'Stress', color: '#f97316' };
+  if (v >= 2.75) return { text: 'Calme', color: '#eab308' };
+  return { text: 'Euphorie', color: '#10b981' };
 }
 
 function ScoreBar({ mkt }: { mkt: MarketContext }) {
@@ -147,12 +146,12 @@ function ScoreBar({ mkt }: { mkt: MarketContext }) {
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
       <div className="flex justify-between text-[10px] text-[var(--muted)] mt-1">
-        <span>Exubérance (vendre)</span>
+        <span>Euphorie (vendre)</span>
         <span>
           Score : {mkt.regimeScore > 0 ? '+' : ''}
           {mkt.regimeScore} / 10
         </span>
-        <span>Capitulation (acheter)</span>
+        <span>Panique (acheter)</span>
       </div>
     </div>
   );
@@ -183,6 +182,8 @@ export default function MarketSynthesis() {
   const contrarianLabel = regimeContrarianLabel(mkt.regime);
   const action = getRegimeAction(mkt.regime);
 
+  const convergenceCount = mkt.indicatorVotes.filter((v) => v.regime === mkt.regime && mkt.regime !== 'Indéterminé').length;
+
   const vixInfo = vixSubLabel(mkt.vixLevel);
   const fgInfo = fearGreedSubLabel(fearGreed);
   const hyInfo = hySubLabel(hySpread);
@@ -204,6 +205,23 @@ export default function MarketSynthesis() {
                   {mkt.regime}
                 </span>
                 <span className="text-sm text-[var(--muted)]">{contrarianLabel}</span>
+                {mkt.regimeConfirmed ? (
+                  <span
+                    className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-semibold"
+                    style={{ background: `${color}20`, color }}
+                    title="Hypothèse confirmée par au moins 2 indicateurs sur 3"
+                  >
+                    Confirmé {convergenceCount}/3
+                  </span>
+                ) : (
+                  <span
+                    className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-semibold border"
+                    style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+                    title="Aucune convergence 2 sur 3"
+                  >
+                    Non confirmé
+                  </span>
+                )}
               </>
             ) : (
               <span className="text-sm text-[var(--muted)] italic">

@@ -5,10 +5,49 @@ import {
   AssetConfig,
   AssetMetrics,
   Conviction,
+  IndicatorVote,
   MarketContext,
   MarketRegime,
   Store,
 } from './types';
+
+/* ─────────────────────────────────────────────
+   Regime classification thresholds
+   (cf. tableau de référence du dashboard :
+   PANIQUE / STRESS / CALME / EUPHORIE)
+   ───────────────────────────────────────────── */
+
+export function classifyVix(v: number | null): MarketRegime | null {
+  if (v == null) return null;
+  if (v > 30) return 'Panique';
+  if (v >= 20) return 'Stress';
+  if (v >= 15) return 'Calme';
+  return 'Euphorie';
+}
+
+export function classifyHYSpread(v: number | null): MarketRegime | null {
+  if (v == null) return null;
+  if (v > 4.5) return 'Panique';
+  if (v >= 3.5) return 'Stress';
+  if (v >= 2.75) return 'Calme';
+  return 'Euphorie';
+}
+
+export function classifyFearGreed(v: number | null): MarketRegime | null {
+  if (v == null) return null;
+  if (v >= 76) return 'Euphorie';
+  if (v >= 56) return 'Calme';
+  if (v >= 45) return null; // zone tampon entre Stress et Calme (45-55)
+  if (v >= 25) return 'Stress';
+  return 'Panique'; // 0-24
+}
+
+const REGIME_BASE_SCORE: Record<Exclude<MarketRegime, 'Indéterminé'>, number> = {
+  Panique: 4,
+  Stress: 2,
+  Calme: 0,
+  Euphorie: -4,
+};
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -45,87 +84,87 @@ export function buildMarketContext(
     : null;
   const vixMA50 = last(vixData?.mm50);
 
-  let regimeScore = 0;
-  const regimeReasons: string[] = [];
+  const reasons: string[] = [];
 
-  // ── Fear & Greed (contrarian: fear = buy, greed = sell) ──
-  if (fearGreed != null) {
-    if (fearGreed <= 20) {
-      regimeScore += 4;
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : peur extrême — forte opportunité contrarienne.`);
-    } else if (fearGreed <= 35) {
-      regimeScore += 2;
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : peur significative — zone d'accumulation.`);
-    } else if (fearGreed <= 50) {
-      regimeScore += 1;
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : sentiment prudent, léger biais acheteur.`);
-    } else if (fearGreed <= 65) {
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : sentiment neutre/optimiste.`);
-    } else if (fearGreed <= 80) {
-      regimeScore -= 2;
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : avidité — prudence recommandée.`);
-    } else {
-      regimeScore -= 4;
-      regimeReasons.push(`Fear & Greed à ${Math.round(fearGreed)} : avidité extrême — le marché est dangereux.`);
-    }
-  }
+  // ── Per-indicator regime classification (4 régimes) ──
+  const vixRegime = classifyVix(vixLevel);
+  const hyRegime = classifyHYSpread(hySpread);
+  const fgRegime = classifyFearGreed(fearGreed);
 
-  // ── VIX (contrarian: high VIX = buy, low VIX = complacency) ──
   if (vixLevel != null) {
-    if (vixLevel >= 35) {
-      regimeScore += 3;
-      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : panique — historiquement, les meilleurs points d'entrée.`);
-    } else if (vixLevel >= 25) {
-      regimeScore += 2;
-      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : stress élevé, opportunité pour les patients.`);
-    } else if (vixLevel >= 20) {
-      regimeScore += 1;
-      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : volatilité modérée, vigilance mais pas de panique.`);
-    } else if (vixLevel <= 12) {
-      regimeScore -= 3;
-      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : complaisance extrême — risque sous-estimé.`);
-    } else if (vixLevel <= 15) {
-      regimeScore -= 1;
-      regimeReasons.push(`VIX à ${vixLevel.toFixed(1)} : volatilité basse, possible complaisance.`);
-    }
-
-    // VIX vs its own MA50 (spike detection)
+    reasons.push(
+      `VIX à ${vixLevel.toFixed(1)} → ${vixRegime ?? 'Indéterminé'} (Euphorie <15, Calme 15-20, Stress 20-30, Panique >30).`,
+    );
     if (vixMA50 != null && vixLevel > vixMA50 * 1.3) {
-      regimeScore += 1;
-      regimeReasons.push('VIX 30%+ au-dessus de sa MM50 : spike de peur = signal acheteur.');
+      reasons.push('VIX 30%+ au-dessus de sa MM50 : spike de peur, biais acheteur renforcé.');
     }
   }
-
-  // ── HY Spread (contrarian: wide spread = credit stress = buy quality) ──
   if (hySpread != null) {
-    if (hySpread >= 7) {
-      regimeScore += 3;
-      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : stress crédit majeur — achat agressif des actifs qualité.`);
-    } else if (hySpread >= 5) {
-      regimeScore += 2;
-      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : stress crédit élevé — zone d'opportunité.`);
-    } else if (hySpread >= 4) {
-      regimeScore += 1;
-      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : vigilance crédit, pas de panique.`);
-    } else if (hySpread <= 2.5) {
-      regimeScore -= 2;
-      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : spreads très comprimés — euphorie crédit.`);
-    } else if (hySpread <= 3) {
-      regimeScore -= 1;
-      regimeReasons.push(`HY Spread à ${hySpread.toFixed(2)}% : spreads faibles, complaisance possible.`);
-    }
+    reasons.push(
+      `HY OAS à ${hySpread.toFixed(2)}% → ${hyRegime ?? 'Indéterminé'} (Euphorie <2.75, Calme 2.75-3.50, Stress 3.50-4.50, Panique >4.50).`,
+    );
+  }
+  if (fearGreed != null) {
+    const fgLabel = fgRegime ?? 'Transition (45-55)';
+    reasons.push(
+      `Fear & Greed à ${Math.round(fearGreed)} → ${fgLabel} (Panique 0-24, Stress 25-44, Calme 56-75, Euphorie 76-100).`,
+    );
   }
 
+  // ── 2-of-3 convergence rule ──
+  const indicatorVotes: IndicatorVote[] = [
+    { indicator: 'vix', regime: vixRegime },
+    { indicator: 'fearGreed', regime: fgRegime },
+    { indicator: 'hySpread', regime: hyRegime },
+  ];
+
+  const counts = new Map<MarketRegime, number>();
+  for (const vote of indicatorVotes) {
+    if (vote.regime) counts.set(vote.regime, (counts.get(vote.regime) ?? 0) + 1);
+  }
+
+  let regime: MarketRegime = 'Indéterminé';
+  let regimeConfirmed = false;
+  let topCount = 0;
+  for (const [r, c] of counts) {
+    if (c > topCount) {
+      topCount = c;
+      regime = r;
+    }
+  }
+  if (topCount >= 2) {
+    regimeConfirmed = true;
+    reasons.push(
+      `Hypothèse confirmée : ${topCount} indicateurs sur 3 convergent vers « ${regime} ».`,
+    );
+  } else if (topCount > 0) {
+    regime = 'Indéterminé';
+    reasons.push("Aucune convergence 2/3 : les indicateurs divergent, régime indéterminé.");
+  }
+
+  // ── Score continu (-10..+10) pour le scoring contrariant ──
+  let regimeScore = 0;
+  for (const vote of indicatorVotes) {
+    if (vote.regime && vote.regime !== 'Indéterminé') {
+      regimeScore += REGIME_BASE_SCORE[vote.regime];
+    }
+  }
+  if (vixLevel != null && vixMA50 != null && vixLevel > vixMA50 * 1.3) {
+    regimeScore += 1;
+  }
   regimeScore = clamp(regimeScore, -10, 10);
 
-  let regime: MarketRegime;
-  if (regimeScore >= 6) regime = 'Capitulation';
-  else if (regimeScore >= 2) regime = 'Peur';
-  else if (regimeScore > -2) regime = 'Neutre';
-  else if (regimeScore > -6) regime = 'Euphorie';
-  else regime = 'Exubérance';
-
-  return { fearGreed, vixLevel, vixMA50, hySpread, regime, regimeScore, regimeReasons };
+  return {
+    fearGreed,
+    vixLevel,
+    vixMA50,
+    hySpread,
+    regime,
+    regimeConfirmed,
+    regimeScore,
+    regimeReasons: reasons,
+    indicatorVotes,
+  };
 }
 
 /* ─────────────────────────────────────────────
@@ -542,7 +581,7 @@ export function getAssetAdvice(
           if (a.score > 0) {
             a.score += 1;
             a.crossAssetAdjustment = 1;
-            a.reasons.push("Signal d'achat unanime + macro en capitulation : opportunité systémique exceptionnelle (+1).");
+            a.reasons.push("Signal d'achat unanime + macro en panique : opportunité systémique exceptionnelle (+1).");
             a.advice = scoreToAdvice(a.score);
             a.conviction = scoreToConviction(a.score);
           }
@@ -612,20 +651,20 @@ export function getAssetClassLabel(key: string, assets: Record<string, AssetConf
 
 export function regimeColor(regime: MarketRegime): string {
   switch (regime) {
-    case 'Capitulation': return '#10b981';
-    case 'Peur': return '#34d399';
-    case 'Neutre': return '#eab308';
-    case 'Euphorie': return '#f97316';
-    case 'Exubérance': return '#ef4444';
+    case 'Panique': return '#ef4444';     // rouge — marché en panique (achat contrariant)
+    case 'Stress': return '#f97316';      // orange — stress du marché
+    case 'Calme': return '#eab308';       // jaune — marché calme
+    case 'Euphorie': return '#10b981';    // vert — marché euphorique (vente contrariante)
+    case 'Indéterminé': return '#94a3b8'; // gris — pas de convergence 2/3
   }
 }
 
 export function regimeContrarianLabel(regime: MarketRegime): string {
   switch (regime) {
-    case 'Capitulation': return 'Opportunité majeure';
-    case 'Peur': return "Zone d'accumulation";
-    case 'Neutre': return 'Patience';
-    case 'Euphorie': return 'Prudence';
-    case 'Exubérance': return 'Danger — alléger';
+    case 'Panique': return 'Opportunité majeure — accumuler';
+    case 'Stress': return "Zone d'accumulation progressive";
+    case 'Calme': return 'Statu quo — patience';
+    case 'Euphorie': return 'Prudence — alléger';
+    case 'Indéterminé': return 'Signaux divergents — attendre confirmation';
   }
 }

@@ -2,20 +2,22 @@
 
 import { useMacro } from '@/context/MacroContext';
 
+// Seuils alignés sur la table de référence :
+//   Panique 0-24, Stress 25-44, (Transition 45-55), Calme 56-75, Euphorie 76-100
 function getRatingLabel(score: number): string {
-  if (score <= 25) return 'Peur extrême';
-  if (score <= 45) return 'Peur';
-  if (score <= 55) return 'Neutre';
-  if (score <= 75) return 'Avidité';
-  return 'Avidité extrême';
+  if (score >= 76) return 'Euphorie';
+  if (score >= 56) return 'Calme';
+  if (score >= 45) return 'Transition';
+  if (score >= 25) return 'Stress';
+  return 'Panique';
 }
 
 function getRatingColor(score: number): string {
-  if (score <= 25) return '#ef4444';
-  if (score <= 45) return '#f97316';
-  if (score <= 55) return '#eab308';
-  if (score <= 75) return '#84cc16';
-  return '#10b981';
+  if (score >= 76) return '#10b981';  // Euphorie
+  if (score >= 56) return '#eab308';  // Calme
+  if (score >= 45) return '#94a3b8';  // Transition (gris)
+  if (score >= 25) return '#f97316';  // Stress
+  return '#ef4444';                    // Panique
 }
 
 function GaugeArc({ score, color }: { score: number; color: string }) {
